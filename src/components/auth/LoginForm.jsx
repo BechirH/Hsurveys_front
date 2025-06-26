@@ -2,12 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { Users, Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import Button from '../common/Button';
 import { useDispatch, useSelector } from 'react-redux';
-import { loginUser } from '../../redux/slices/authSlice';
+import { loginUser, clearAuthErrors } from '../../redux/slices/authSlice';
 import { useNavigate } from 'react-router-dom';
 
-const LoginForm = ({ loading = false, error = null, onSwitchToSignup = () => {} }) => {
+const LoginForm = ({ 
+  loading = false, 
+  error = null, 
+  values = { email: '', password: '' },
+  onChange, 
+  onSubmit,
+  onSwitchToSignup = () => {} 
+}) => {
   const [showPassword, setShowPassword] = useState(false);
-
   const [formValues, setFormValues] = useState({
     email: '',
     password: '',
@@ -35,6 +41,11 @@ const LoginForm = ({ loading = false, error = null, onSwitchToSignup = () => {} 
     }
   }, [user, navigate]);
 
+  // Clear errors when component mounts or when switching views
+  useEffect(() => {
+    dispatch(clearAuthErrors());
+  }, [dispatch]);
+
   const validate = (values) => {
     const errors = {};
     if (!values.email.trim()) {
@@ -44,15 +55,20 @@ const LoginForm = ({ loading = false, error = null, onSwitchToSignup = () => {} 
     ) {
       errors.email = 'Invalid email address';
     }
-    if (!values.password) errors.password = 'Password is required';
-    else if (values.password.length < 6)
+    if (!values.password) {
+      errors.password = 'Password is required';
+    } else if (values.password.length < 6) {
       errors.password = 'Password must be at least 6 characters';
+    }
     return errors;
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormValues((prev) => ({ ...prev, [name]: value }));
+    if (onChange) {
+      onChange(e);
+    }
   };
 
   const handleBlur = (e) => {
@@ -72,7 +88,11 @@ const LoginForm = ({ loading = false, error = null, onSwitchToSignup = () => {} 
     setFormErrors(errors);
 
     if (Object.keys(errors).length === 0) {
-      dispatch(loginUser(formValues));
+      if (onSubmit) {
+        onSubmit(formValues);
+      } else {
+        dispatch(loginUser(formValues));
+      }
     }
   };
 
@@ -90,10 +110,12 @@ const LoginForm = ({ loading = false, error = null, onSwitchToSignup = () => {} 
           <p className="text-gray-600">Sign in to your account</p>
         </div>
         
-        {reduxError && (
+        {(error || reduxError) && (
           <div className="bg-red-100 border border-red-300 text-red-700 px-4 py-2 rounded mb-4 text-center animate-fade-in">
             <span className="font-semibold">
-              {typeof reduxError === 'object' && reduxError.message ? reduxError.message : String(reduxError)}
+              {typeof (error || reduxError) === 'object' && (error || reduxError).message 
+                ? (error || reduxError).message 
+                : String(error || reduxError)}
             </span>
           </div>
         )}
@@ -148,6 +170,7 @@ const LoginForm = ({ loading = false, error = null, onSwitchToSignup = () => {} 
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
@@ -160,13 +183,13 @@ const LoginForm = ({ loading = false, error = null, onSwitchToSignup = () => {} 
 
           <Button
             type="submit"
-            loading={reduxLoading}
+            loading={reduxLoading || loading}
             fullWidth
             className="font-semibold transform transition-all duration-200 shadow-lg"
-            variant={reduxLoading ? undefined : 'primary'}
-            disabled={reduxLoading}
+            variant={reduxLoading || loading ? undefined : 'primary'}
+            disabled={reduxLoading || loading}
           >
-            {reduxLoading ? (
+            {reduxLoading || loading ? (
               <span className="flex items-center justify-center">
                 <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></span>
                 Signing In...

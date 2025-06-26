@@ -3,7 +3,6 @@ import { User, Eye, EyeOff, Mail, Lock, ChevronLeft } from 'lucide-react';
 import InputField from '../common/InputField';
 import Button from '../common/Button';
 import { useDispatch, useSelector } from 'react-redux';
-import { signupUser } from '../../redux/slices/authSlice';
 import { useNavigate } from 'react-router-dom';
 
 const SignupForm = ({ 
@@ -14,8 +13,8 @@ const SignupForm = ({
   onChange, 
   onSubmit, 
   onSwitchToLogin,
-  onBack = () => {}, // Add onBack prop with default function
-  orgId // NEW PROP
+  onBack = () => {},
+  orgId
 }) => {
   const [formValues, setFormValues] = useState({
     username: '',
@@ -25,17 +24,22 @@ const SignupForm = ({
   });
   const [formErrors, setFormErrors] = useState({});
   const [touched, setTouched] = useState({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { loading: reduxLoading, error: reduxError, user } = useSelector(state => state.user);
+  
+  // Fixed: Use correct state path
+  const { loading: reduxLoading, error: reduxError, user } = useSelector(state => state.auth || {});
 
   useEffect(() => {
     if (user) {
-      navigate('/dashboard');
+      if (user.role === 'admin') {
+        navigate('/dashboard');
+      } else {
+        navigate('/user-home');
+      }
     }
   }, [user, navigate]);
 
@@ -84,7 +88,7 @@ const SignupForm = ({
         username: formValues.username,
         email: formValues.email,
         password: formValues.password,
-      }); // Only send required fields
+      });
     }
   };
 
@@ -108,9 +112,14 @@ const SignupForm = ({
           <p className="text-gray-600">Step 2: Your credentials</p>
         </div>
         <div className="space-y-6">
-          {error && (
+          {/* Fixed: Show both prop error and redux error */}
+          {(error || reduxError) && (
             <div className="bg-red-100 border border-red-300 text-red-700 px-4 py-2 rounded mb-4 text-center animate-fade-in">
-              <span className="font-semibold">{typeof error === 'object' && error.message ? error.message : String(error)}</span>
+              <span className="font-semibold">
+                {typeof (error || reduxError) === 'object' && (error || reduxError).message 
+                  ? (error || reduxError).message 
+                  : String(error || reduxError)}
+              </span>
             </div>
           )}
           <div className="space-y-4">
@@ -190,12 +199,12 @@ const SignupForm = ({
           <Button
             type="submit"
             onClick={handleSubmit}
-            disabled={reduxLoading}
+            disabled={loading || reduxLoading}
             fullWidth
             className="bg-gradient-to-r from-purple-600 to-blue-600 font-semibold hover:from-purple-700 hover:to-blue-700 transform hover:scale-105 transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             variant="primary"
           >
-            {reduxLoading ? 'Creating Account...' : 'Sign Up'}
+            {(loading || reduxLoading) ? 'Creating Account...' : 'Sign Up'}
           </Button>
         </div>
         <div className="text-center mt-6">

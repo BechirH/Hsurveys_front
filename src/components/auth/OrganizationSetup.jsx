@@ -7,11 +7,11 @@ import { useNavigate } from 'react-router-dom';
 
 const OrganizationSetup = ({ 
   loading = false, 
+  error = null,
   onBack = () => {}, 
   onSubmit = () => {}, 
   onSwitchToJoinOrganization = () => {},
-  onOrgCreated = () => {},
-  error
+  onOrgCreated = () => {}
 }) => {
   const [values, setValues] = useState({
     name: '',
@@ -25,7 +25,13 @@ const OrganizationSetup = ({
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { loading: orgLoading, error: orgError, currentOrg } = useSelector(state => state.organization || {});
+  
+  // ✅ FIXED: Added fallback object to prevent destructuring undefined
+  const { 
+    loading: orgLoading = false, 
+    error: orgError = null, 
+    currentOrg = null 
+  } = useSelector(state => state.organization || {});
 
   useEffect(() => {
     console.log('currentOrg:', currentOrg);
@@ -38,7 +44,7 @@ const OrganizationSetup = ({
     let tempErrors = { ...errors };
 
     if ('name' in fieldValues) {
-      tempErrors.name = fieldValues.name ? '' : 'Organization Name is required';
+      tempErrors.name = fieldValues.name.trim() ? '' : 'Organization Name is required';
     }
     
     setErrors(tempErrors);
@@ -60,12 +66,14 @@ const OrganizationSetup = ({
 
   const handleSubmit = e => {
     e.preventDefault();
+    setTouched({ name: true });
+    
     if (validate()) {
-      dispatch(createOrganization({ name: values.name }));
-    } else {
-      setTouched({
-        name: true, 
-      });
+      if (onSubmit) {
+        onSubmit({ name: values.name });
+      } else {
+        dispatch(createOrganization({ name: values.name }));
+      }
     }
   };
 
@@ -75,8 +83,9 @@ const OrganizationSetup = ({
         <div className="flex items-center mb-8">
           <button
             onClick={onBack}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 mr-8 p-1 mt-[-100px] rounded-full hover:bg-black- transition-colors"
+            className="bg-gradient-to-r from-blue-600 to-purple-600 mr-8 p-1 mt-[-100px] rounded-full hover:from-blue-700 hover:to-purple-700 transition-colors"
             type="button"
+            aria-label="Go back"
           >
             <ChevronLeft className="w-6 h-6 text-white" />
           </button>
@@ -89,12 +98,17 @@ const OrganizationSetup = ({
           </div>
         </div>
 
-        <div className="space-y-6">
-          {error && (
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {(error || orgError) && (
             <div className="bg-red-100 border border-red-300 text-red-700 px-4 py-2 rounded mb-4 text-center animate-fade-in">
-              <span className="font-semibold">{typeof error === 'object' && error.message ? error.message : String(error)}</span>
+              <span className="font-semibold">
+                {typeof (error || orgError) === 'object' && (error || orgError).message 
+                  ? (error || orgError).message 
+                  : String(error || orgError)}
+              </span>
             </div>
           )}
+          
           <div>
             <label
               className="block text-sm font-medium text-gray-700 mb-2"
@@ -118,18 +132,18 @@ const OrganizationSetup = ({
               required
             />
             {touched.name && errors.name && (
-              <p className="error-box text-sm">{errors.name}</p>
+              <p className="mt-1 text-sm text-red-600">{errors.name}</p>
             )}
           </div>
 
           <Button
-            onClick={handleSubmit}
-            disabled={orgLoading}
+            type="submit"
+            disabled={orgLoading || loading}
             fullWidth
             className="font-semibold transform transition-all duration-200 shadow-lg"
-            variant={orgLoading ? undefined : 'primary'}
+            variant={orgLoading || loading ? undefined : 'primary'}
           >
-            {orgLoading ? (
+            {orgLoading || loading ? (
               <span className="flex items-center justify-center">
                 <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></span>
                 Creating Organization...
@@ -139,30 +153,20 @@ const OrganizationSetup = ({
             )}
           </Button>
 
-          {orgError && (
-            <div className="error-box text-sm">
-              {typeof orgError === 'string'
-                ? orgError
-                : orgError && orgError.message
-                  ? orgError.message
-                  : JSON.stringify(orgError)}
-            </div>
-          )}
-
           <div className="text-center mt-4">
             <p className="text-gray-600">
-               Join An Existing Organization?{' '}
+              Join An Existing Organization?{' '}
               <Button
                 onClick={onSwitchToJoinOrganization}
                 className="text-blue-600 hover:text-blue-800 font-semibold hover:underline transition-colors"
                 type="button"
                 variant="link"
               >
-                Signup here
+                Sign up here
               </Button>
             </p>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   );

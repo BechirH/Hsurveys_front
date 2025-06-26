@@ -34,6 +34,7 @@ const AuthSystem = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  // Fixed: Consistent state access
   const authState = useSelector(state => state.auth || {});
   const orgState = useSelector(state => state.organization || {});
 

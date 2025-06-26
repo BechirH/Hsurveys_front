@@ -1,10 +1,10 @@
 import { configureStore } from "@reduxjs/toolkit";
-import userReducer from "./slices/authSlice";
+import authReducer from "./slices/authSlice"; // Fixed: renamed from userReducer
 import organizationReducer from "./slices/organizationSlice";
 
 export const store = configureStore({
   reducer: {
-    user: userReducer,
+    auth: authReducer, // Fixed: changed from 'user' to 'auth'
     organization: organizationReducer,
   },
 });
