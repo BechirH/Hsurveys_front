@@ -96,11 +96,12 @@ const AuthSystem = () => {
   const handleLoginChange = e => {
     setLoginValues({ ...loginValues, [e.target.name]: e.target.value });
   };
-  const handleLoginSubmit = e => {
-    e.preventDefault();
-    const errors = validateForm(loginValues, 'login');
+
+  // ✅ FIXED: Changed to accept formValues directly instead of event object
+  const handleLoginSubmit = (formValues) => {
+    const errors = validateForm(formValues, 'login');
     if (Object.keys(errors).length === 0) {
-      dispatch(loginUser(loginValues));
+      dispatch(loginUser(formValues));
     }
   };
 
