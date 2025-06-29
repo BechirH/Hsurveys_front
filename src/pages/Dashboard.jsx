@@ -1,7 +1,9 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { logout } from '../redux/slices/authSlice';
+import { useAuth } from '../hooks/useAuth';
 import TeamModal from '../components/modals/TeamModal';
 import DepartmentModal from '../components/modals/DepartmentModal';
 import UserAssignmentModal from '../components/modals/UserAssignmentModal';
@@ -34,10 +36,11 @@ import {
   X
 } from "lucide-react";
 
-const Dashboard = ({ onBack }) => {
+const Dashboard = () => {
   const navigate = useNavigate();
-  // Get currentUser from Redux
-  const currentUser = useSelector(state => state.user.user);
+  const dispatch = useDispatch();
+  
+  const { user: currentUser, logout: handleLogout } = useAuth();
   // The rest of the state (organizations, surveys, etc.) can still use local state or be migrated to Redux as needed
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -1008,7 +1011,7 @@ const Dashboard = ({ onBack }) => {
                     </button>
                     <button
                       className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-                      onClick={onBack}
+                      onClick={handleLogout}
                     >
                       <LogOut className="w-4 h-4 mr-2" />
                       Sign Out

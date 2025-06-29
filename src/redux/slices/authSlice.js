@@ -1,6 +1,32 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { authService } from "../../services/authService";
 
+// Utility to check token expiration
+const isTokenExpired = (token) => {
+  if (!token) return true;
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    const currentTime = Date.now() / 1000;
+    return payload.exp < currentTime;
+  } catch (error) {
+    return true;
+  }
+};
+
+// Auto-login thunk (now just checks Redux state)
+export const autoLogin = createAsyncThunk(
+  "auth/autoLogin",
+  async (_, { getState, rejectWithValue }) => {
+    const { token, user } = getState().auth;
+    if (!token || !user || isTokenExpired(token)) {
+      authService.setAuthToken(null);
+      return rejectWithValue("No valid session found");
+    }
+    authService.setAuthToken(token);
+    return { user, token };
+  }
+);
+
 // Login thunk
 export const loginUser = createAsyncThunk(
   "auth/login",
@@ -9,25 +35,14 @@ export const loginUser = createAsyncThunk(
       const response = await authService.login(credentials);
       return response;
     } catch (err) {
-      console.log("=== LOGIN ERROR DEBUG ===");
-      console.log("Full error:", err);
-      console.log("Error response:", err.response);
-      console.log("Error response data:", err.response?.data);
-      console.log("Error message from backend:", err.response?.data?.message);
-      console.log("========================");
-
       if (err.response && err.response.data) {
-        // Extract the message from your backend error structure
         const errorMessage =
           err.response.data.message ||
           err.response.data.error ||
           "An error occurred";
-        console.log("Extracted error message:", errorMessage);
         return rejectWithValue(errorMessage);
       }
-      const fallbackError = err.message || "Unknown error";
-      console.log("Using fallback error:", fallbackError);
-      return rejectWithValue(fallbackError);
+      return rejectWithValue(err.message || "Unknown error");
     }
   }
 );
@@ -40,11 +55,6 @@ export const registerUserForNewOrg = createAsyncThunk(
       const response = await authService.registerUserForNewOrg(orgId, userData);
       return response;
     } catch (err) {
-      console.log("=== REGISTER NEW ORG ERROR DEBUG ===");
-      console.log("Full error:", err);
-      console.log("Error response data:", err.response?.data);
-      console.log("===================================");
-
       if (err.response && err.response.data) {
         const errorMessage =
           err.response.data.message ||
@@ -65,11 +75,6 @@ export const registerUserForExistingOrg = createAsyncThunk(
       const response = await authService.registerUserForExistingOrg(userData);
       return response;
     } catch (err) {
-      console.log("=== REGISTER EXISTING ORG ERROR DEBUG ===");
-      console.log("Full error:", err);
-      console.log("Error response data:", err.response?.data);
-      console.log("========================================");
-
       if (err.response && err.response.data) {
         const errorMessage =
           err.response.data.message ||
@@ -91,11 +96,26 @@ const authSlice = createSlice({
     errorLogin: null,
     errorRegisterNewOrg: null,
     errorRegisterExistingOrg: null,
+    isInitialized: false,
   },
   reducers: {
     logout: (state) => {
       state.user = null;
       state.token = null;
+      state.errorLogin = null;
+      state.errorRegisterNewOrg = null;
+      state.errorRegisterExistingOrg = null;
+      authService.setAuthToken(null);
+    },
+    resetAuth: (state) => {
+      state.user = null;
+      state.token = null;
+      state.loading = false;
+      state.errorLogin = null;
+      state.errorRegisterNewOrg = null;
+      state.errorRegisterExistingOrg = null;
+      state.isInitialized = false;
+      authService.setAuthToken(null);
     },
     clearAuthErrors: (state) => {
       state.errorLogin = null;
@@ -105,19 +125,36 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Login
+      .addCase(autoLogin.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(autoLogin.fulfilled, (state, action) => {
+        state.loading = false;
+        state.isInitialized = true;
+        if (action.payload.user) {
+          state.user = action.payload.user;
+        }
+        if (action.payload.token) {
+          state.token = action.payload.token;
+          authService.setAuthToken(action.payload.token);
+        }
+      })
+      .addCase(autoLogin.rejected, (state) => {
+        state.loading = false;
+        state.isInitialized = true;
+        state.user = null;
+        state.token = null;
+        authService.setAuthToken(null);
+      })
       .addCase(loginUser.pending, (state) => {
-        console.log("Login pending - clearing error");
         state.loading = true;
         state.errorLogin = null;
       })
       .addCase(loginUser.fulfilled, (state, action) => {
-        console.log("Login fulfilled");
         state.loading = false;
         if (action.payload.user) {
           state.user = action.payload.user;
         } else {
-          // Fallback for backend response without user object
           state.user = {
             username: action.payload.username,
             role:
@@ -128,23 +165,13 @@ const authSlice = createSlice({
           };
         }
         state.token = action.payload.token;
+        authService.setAuthToken(action.payload.token);
       })
       .addCase(loginUser.rejected, (state, action) => {
-        console.log("=== LOGIN REJECTED IN REDUCER ===");
-        console.log("Action payload:", action.payload);
-        console.log("Action error:", action.error);
-        console.log(
-          "Setting errorLogin to:",
-          action.payload || action.error.message
-        );
-        console.log("================================");
-
         state.loading = false;
         state.errorLogin = action.payload || action.error.message;
-
-        console.log("State after setting error:", state.errorLogin);
+        authService.setAuthToken(null);
       })
-      // Register for new org
       .addCase(registerUserForNewOrg.pending, (state) => {
         state.loading = true;
         state.errorRegisterNewOrg = null;
@@ -154,7 +181,6 @@ const authSlice = createSlice({
         if (action.payload.user) {
           state.user = action.payload.user;
         } else {
-          // Fallback for backend response without user object
           state.user = {
             username: action.payload.username,
             role:
@@ -165,13 +191,13 @@ const authSlice = createSlice({
           };
         }
         state.token = action.payload.token;
+        authService.setAuthToken(action.payload.token);
       })
       .addCase(registerUserForNewOrg.rejected, (state, action) => {
-        console.log("Register new org rejected - payload:", action.payload);
         state.loading = false;
         state.errorRegisterNewOrg = action.payload || action.error.message;
+        authService.setAuthToken(null);
       })
-      // Register for existing org
       .addCase(registerUserForExistingOrg.pending, (state) => {
         state.loading = true;
         state.errorRegisterExistingOrg = null;
@@ -180,17 +206,15 @@ const authSlice = createSlice({
         state.loading = false;
         state.user = action.payload.user;
         state.token = action.payload.token;
+        authService.setAuthToken(action.payload.token);
       })
       .addCase(registerUserForExistingOrg.rejected, (state, action) => {
-        console.log(
-          "Register existing org rejected - payload:",
-          action.payload
-        );
         state.loading = false;
         state.errorRegisterExistingOrg = action.payload || action.error.message;
+        authService.setAuthToken(null);
       });
   },
 });
 
-export const { logout, clearAuthErrors } = authSlice.actions;
+export const { logout, resetAuth, clearAuthErrors } = authSlice.actions;
 export default authSlice.reducer;

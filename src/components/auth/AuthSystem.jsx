@@ -7,6 +7,7 @@ import SignupUser from './SignupUser';
 import OrganizationSetup from './OrganizationSetup';
 import Dashboard from '../../pages/Dashboard';
 import { registerUserForNewOrg, registerUserForExistingOrg, clearAuthErrors, loginUser } from '../../redux/slices/authSlice';
+import { createOrganization } from '../../redux/slices/organizationSlice';
 
 const AuthSystem = () => {
   const [currentView, setCurrentView] = useState('login');
@@ -39,7 +40,7 @@ const AuthSystem = () => {
   const orgState = useSelector(state => state.organization || {});
 
   const { loading: authLoading = false, errorLogin, errorRegisterNewOrg, errorRegisterExistingOrg } = authState;
-  const { loading: orgLoading = false, error: orgError = null } = orgState;
+  const { loading: orgLoading = false, error: orgError = null, currentOrg = null } = orgState;
 
   const validateForm = (values, type) => {
     const errors = {};
@@ -125,12 +126,38 @@ const AuthSystem = () => {
     dispatch(registerUserForExistingOrg(userData));
   };
 
+  // ✅ NEW: Handler for organization form submission
+  const handleOrgSubmit = (orgData) => {
+    console.log('Creating organization with data:', orgData);
+    dispatch(createOrganization(orgData));
+  };
+
   // Handler for organization form
   const handleOrgCreated = (createdOrgId) => {
     console.log('handleOrgCreated called with:', createdOrgId);
     setOrgId(createdOrgId);
     setCurrentView('signup');
   };
+
+  // ✅ FIXED: Watch for currentOrg changes and automatically proceed to signup
+  React.useEffect(() => {
+    console.log('currentOrg changed:', currentOrg);
+    if (currentOrg && (currentOrg.id || currentOrg._id)) {
+      const orgIdToUse = currentOrg.id || currentOrg._id;
+      console.log('Organization created successfully, proceeding to signup with orgId:', orgIdToUse);
+      setOrgId(orgIdToUse);
+      setCurrentView('signup');
+    }
+  }, [currentOrg]);
+
+  // ✅ NEW: Watch for successful authentication and redirect to dashboard
+  React.useEffect(() => {
+    const { user, token } = authState;
+    if (user && token) {
+      console.log('User authenticated, redirecting to dashboard');
+      navigate('/dashboard', { replace: true });
+    }
+  }, [authState.user, authState.token, navigate]);
 
   // Navigation functions
   const switchToSignup = () => { dispatch(clearAuthErrors()); setCurrentView('organization'); };
@@ -177,14 +204,10 @@ const AuthSystem = () => {
         <OrganizationSetup
           loading={orgLoading}
           error={orgError}
+          onSubmit={handleOrgSubmit}
           onOrgCreated={handleOrgCreated}
           onBack={switchToLogin}
           onSwitchToJoinOrganization={switchToJoinOrganization}
-        />
-      )}
-      {currentView === 'dashboard' && (
-        <Dashboard 
-          onBack={() => setCurrentView('login')}
         />
       )}
     </div>
