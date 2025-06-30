@@ -1,22 +1,32 @@
 import { configureStore } from "@reduxjs/toolkit";
 import authReducer from "./slices/authSlice";
 import organizationReducer from "./slices/organizationSlice";
-import { persistStore, persistReducer } from "redux-persist";
-import storage from "redux-persist/lib/storage";
+import StateLoader from "../utils/stateLoader";
 
-const persistConfig = {
-  key: "auth",
-  storage,
-  whitelist: ["auth"],
-};
+// Create state loader instance
+const stateLoader = new StateLoader();
 
-const persistedAuthReducer = persistReducer(persistConfig, authReducer);
+// Load initial state from localStorage
+const preloadedState = stateLoader.loadState();
 
 export const store = configureStore({
   reducer: {
-    auth: persistedAuthReducer,
+    auth: authReducer,
     organization: organizationReducer,
   },
+  preloadedState,
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: {
+        ignoredActions: ["persist/PERSIST", "persist/REHYDRATE"],
+      },
+    }),
 });
 
-export const persistor = persistStore(store);
+// Subscribe to store changes and save state to localStorage
+store.subscribe(() => {
+  stateLoader.saveState(store.getState());
+});
+
+// Export the state loader for manual operations if needed
+export { stateLoader };

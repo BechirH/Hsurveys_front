@@ -8,6 +8,10 @@ export const sessionManager = {
     try {
       localStorage.setItem(TOKEN_KEY, token);
       localStorage.setItem(USER_KEY, JSON.stringify(user));
+      console.log("Session stored:", {
+        token: token ? "present" : "null",
+        user,
+      });
     } catch (error) {
       console.error("Error storing session:", error);
     }
@@ -38,7 +42,13 @@ export const sessionManager = {
   isAuthenticated: () => {
     const token = sessionManager.getToken();
     const user = sessionManager.getUser();
-    return !!(token && user);
+    const isAuth = !!(token && user);
+    console.log("Session check:", {
+      token: token ? "present" : "null",
+      user: user ? "present" : "null",
+      isAuth,
+    });
+    return isAuth;
   },
 
   // Clear session data
@@ -46,6 +56,7 @@ export const sessionManager = {
     try {
       localStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem(USER_KEY);
+      console.log("Session cleared");
     } catch (error) {
       console.error("Error clearing session:", error);
     }
@@ -70,6 +81,18 @@ export const sessionManager = {
       console.error("Error checking token expiration:", error);
       return true;
     }
+  },
+
+  // Debug method to log current session state
+  debugSession: () => {
+    const token = sessionManager.getToken();
+    const user = sessionManager.getUser();
+    console.log("Current session state:", {
+      token: token ? "present" : "null",
+      user: user ? "present" : "null",
+      isAuthenticated: sessionManager.isAuthenticated(),
+      isTokenExpired: token ? sessionManager.isTokenExpired(token) : "no token",
+    });
   },
 };
 

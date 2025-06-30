@@ -9,18 +9,18 @@ import { useNavigate } from 'react-router-dom';
 const SignupUser = ({ 
   loading = false, 
   error = null, 
-  values = { name: '', email: '', password: '', confirmPassword: '', invitationCode: '' },
+  values = { username: '', email: '', password: '', confirmPassword: '', inviteCode: '' },
   onChange, 
   onSubmit, 
   onSwitchToLogin,
   onSwitchToCreateOrganization = () => {}
 }) => {
   const [formValues, setFormValues] = useState({
-    name: '',
+    username: '',
     email: '',
     password: '',
     confirmPassword: '',
-    invitationCode: '',
+    inviteCode: '',
   });
   const [formErrors, setFormErrors] = useState({});
   const [touched, setTouched] = useState({});
@@ -49,7 +49,7 @@ const SignupUser = ({
 
   const validate = () => {
     const validationErrors = {};
-    if (!formValues.name.trim()) validationErrors.name = 'Name is required';
+    if (!formValues.username.trim()) validationErrors.username = 'Username is required';
     if (!formValues.email.trim()) {
       validationErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(formValues.email)) {
@@ -65,8 +65,8 @@ const SignupUser = ({
     } else if (formValues.password && formValues.confirmPassword && formValues.password !== formValues.confirmPassword) {
       validationErrors.confirmPassword = "Passwords don't match";
     }
-    if (!formValues.invitationCode.trim()) {
-      validationErrors.invitationCode = 'Invitation code is required';
+    if (!formValues.inviteCode.trim()) {
+      validationErrors.inviteCode = 'Invitation code is required';
     }
     setFormErrors(validationErrors);
     return validationErrors;
@@ -90,19 +90,19 @@ const SignupUser = ({
     e.preventDefault();
     const validationErrors = validate();
     setTouched({
-      name: true,
+      username: true,
       email: true,
       password: true,
       confirmPassword: true,
-      invitationCode: true,
+      inviteCode: true,
     });
     
     if (Object.keys(validationErrors).length === 0) {
       const userData = {
-        name: formValues.name,
+        username: formValues.username,
         email: formValues.email,
         password: formValues.password,
-        invitationCode: formValues.invitationCode,
+        inviteCode: formValues.inviteCode,
       };
       
       if (onSubmit) {
@@ -137,16 +137,16 @@ const SignupUser = ({
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
             <InputField
-              id="name"
-              label="Full Name"
+              id="username"
+              label="Username"
               icon={User}
-              name="name"
+              name="username"
               type="text"
-              value={formValues.name}
+              value={formValues.username}
               onChange={handleChange}
               onBlur={handleBlur}
-              error={touched.name && formErrors.name ? formErrors.name : ''}
-              placeholder="Enter your full name"
+              error={touched.username && formErrors.username ? formErrors.username : ''}
+              placeholder="Enter your username"
             />
             <InputField
               id="email"
@@ -161,15 +161,15 @@ const SignupUser = ({
               placeholder="Enter your email"
             />
             <InputField
-              id="invitationCode"
+              id="inviteCode"
               label="Invitation Code"
               icon={Key}
-              name="invitationCode"
+              name="inviteCode"
               type="text"
-              value={formValues.invitationCode}
+              value={formValues.inviteCode}
               onChange={handleChange}
               onBlur={handleBlur}
-              error={touched.invitationCode && formErrors.invitationCode ? formErrors.invitationCode : ''}
+              error={touched.inviteCode && formErrors.inviteCode ? formErrors.inviteCode : ''}
               placeholder="Enter invitation code"
             />
             <div className="relative">

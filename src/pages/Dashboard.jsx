@@ -3,11 +3,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../redux/slices/authSlice';
-import { useAuth } from '../hooks/useAuth';
-import TeamModal from '../components/modals/TeamModal';
-import DepartmentModal from '../components/modals/DepartmentModal';
-import UserAssignmentModal from '../components/modals/UserAssignmentModal';
-import Button from '../components/common/Button';
+import NavBar from '../components/common/NavBar';
+import { apiService } from '../services/apiService';
 import {
   Users,
   Building2,
@@ -33,505 +30,323 @@ import {
   Users2,
   Loader2,
   AlertCircle,
-  X
+  X,
+  ClipboardList,
+  Target,
+  TrendingUp,
+  Calendar,
+  Award,
+  Lock,
+  Unlock,
+  CheckCircle,
+  Clock,
+  AlertTriangle
 } from "lucide-react";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   
-  const { user: currentUser, logout: handleLogout } = useAuth();
-  // The rest of the state (organizations, surveys, etc.) can still use local state or be migrated to Redux as needed
+  const { user: currentUser, token } = useSelector(state => state.auth);
+  
+  // State management
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [organizations, setOrganizations] = useState([]);
-  const [surveys, setSurveys] = useState([]);
-  const [users, setUsers] = useState([]);
-  const [roles, setRoles] = useState([]);
-  const [teams, setTeams] = useState([]);
-  const [departments, setDepartments] = useState([]);
   const [activeTab, setActiveTab] = useState("overview");
-  const [showUserMenu, setShowUserMenu] = useState(false);
-  const [showTeamModal, setShowTeamModal] = useState(false);
-  const [showDepartmentModal, setShowDepartmentModal] = useState(false);
-  const [editingTeam, setEditingTeam] = useState(null);
-  const [showUserAssignmentModal, setShowUserAssignmentModal] = useState(false);
-  const [assignmentTarget, setAssignmentTarget] = useState(null);
-  const [assignmentType, setAssignmentType] = useState(null);
-  const [editingDepartment, setEditingDepartment] = useState(null);
-  const [teamForm, setTeamForm] = useState({
-    name: '',
-    department: '',
-    members: []
-  });
-  const [departmentForm, setDepartmentForm] = useState({
-    name: '',
-    status: 'Active'
-  });
-  const [selectedUsers, setSelectedUsers] = useState([]);
+  
+  // Data states
+  const [organizations, setOrganizations] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [teams, setTeams] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [surveys, setSurveys] = useState([]);
+  const [roles, setRoles] = useState([]);
+  const [permissions, setPermissions] = useState([]);
+  const [questions, setQuestions] = useState([]);
+  const [surveyResponses, setSurveyResponses] = useState([]);
 
-  // Optionally, you can load other data from Redux or API here
-  // useEffect(() => { ... }, []);
+  // API Base URLs
+  const API_BASE_URL = "http://localhost:8080/api";
+  const AUTH_API_URL = "http://localhost:8081/api";
+  const ORG_API_URL = "http://localhost:8082/api";
+
+  useEffect(() => {
+    if (currentUser) {
+      loadDashboardData();
+    }
+  }, [currentUser]);
+
+  const loadDashboardData = async () => {
+    setLoading(true);
+    try {
+      // Load all data in parallel - backend handles organization filtering
+      await Promise.all([
+        loadOrganization(),
+        loadDepartments(),
+        loadTeams(),
+        loadUsers(),
+        loadSurveys(),
+        loadRoles(),
+        loadPermissions(),
+        loadQuestions(),
+        loadSurveyResponses()
+      ]);
+    } catch (err) {
+      setError('Failed to load dashboard data');
+      console.error('Dashboard load error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // API Functions - Backend handles organization filtering
+  const loadOrganization = async () => {
+    try {
+      const data = await apiService.getCurrentOrganization();
+      setOrganizations([data]);
+    } catch (err) {
+      console.error('Failed to load organization:', err);
+    }
+  };
+
+  const loadDepartments = async () => {
+    try {
+      const data = await apiService.getDepartments();
+      setDepartments(data);
+    } catch (err) {
+      console.error('Failed to load departments:', err);
+    }
+  };
+
+  const loadTeams = async () => {
+    try {
+      const data = await apiService.getTeams();
+      setTeams(data);
+    } catch (err) {
+      console.error('Failed to load teams:', err);
+    }
+  };
+
+  const loadUsers = async () => {
+    try {
+      const data = await apiService.getUsers();
+      setUsers(data);
+    } catch (err) {
+      console.error('Failed to load users:', err);
+    }
+  };
+
+  const loadSurveys = async () => {
+    try {
+      const data = await apiService.getSurveys();
+      setSurveys(data);
+    } catch (err) {
+      console.error('Failed to load surveys:', err);
+    }
+  };
+
+  const loadRoles = async () => {
+    try {
+      const data = await apiService.getRoles();
+      setRoles(data);
+    } catch (err) {
+      console.error('Failed to load roles:', err);
+    }
+  };
+
+  const loadPermissions = async () => {
+    try {
+      const data = await apiService.getPermissions();
+      setPermissions(data);
+    } catch (err) {
+      console.error('Failed to load permissions:', err);
+    }
+  };
+
+  const loadQuestions = async () => {
+    try {
+      const data = await apiService.getQuestions();
+      setQuestions(data);
+    } catch (err) {
+      console.error('Failed to load questions:', err);
+    }
+  };
+
+  const loadSurveyResponses = async () => {
+    try {
+      const data = await apiService.getSurveyResponses();
+      setSurveyResponses(data);
+    } catch (err) {
+      console.error('Failed to load survey responses:', err);
+    }
+  };
+
+  // Dashboard Stats - Organization Scoped
+  const dashboardStats = [
+    {
+      title: 'Organization',
+      value: organizations[0]?.name || 'Loading...',
+      icon: Building2,
+      color: 'bg-blue-500',
+      description: 'Your organization'
+    },
+    {
+      title: 'Departments',
+      value: departments.length,
+      icon: Users,
+      color: 'bg-green-500',
+      description: 'In your organization'
+    },
+    {
+      title: 'Teams',
+      value: teams.length,
+      icon: Users2,
+      color: 'bg-purple-500',
+      description: 'Active teams'
+    },
+    {
+      title: 'Total Users',
+      value: users.length,
+      icon: UserCheck,
+      color: 'bg-orange-500',
+      description: 'In your organization'
+    },
+    {
+      title: 'Active Surveys',
+      value: surveys.filter(s => s.status === 'ACTIVE').length,
+      icon: ClipboardList,
+      color: 'bg-indigo-500',
+      description: 'Currently running'
+    },
+    {
+      title: 'Survey Responses',
+      value: surveyResponses.length,
+      icon: BarChart3,
+      color: 'bg-pink-500',
+      description: 'Total submissions'
+    }
+  ];
+
+  // Helper functions
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'ACTIVE': return 'bg-green-100 text-green-800';
+      case 'DRAFT': return 'bg-yellow-100 text-yellow-800';
+      case 'COMPLETED': return 'bg-blue-100 text-blue-800';
+      case 'LOCKED': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getSurveyTypeColor = (type) => {
+    switch (type) {
+      case 'FEEDBACK': return 'bg-blue-100 text-blue-800';
+      case 'EXAM': return 'bg-purple-100 text-purple-800';
+      case 'ASSESSMENT': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString();
+  };
 
   if (!currentUser) {
-    return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    );
   }
 
-  const handleAssignUsers = (targetId, type) => {
-    setAssignmentTarget(targetId);
-    setAssignmentType(type);
-    setShowUserAssignmentModal(true);
-  };
-
-  const handleUserAssignmentSubmit = (userIds) => {
-    if (assignmentType === 'team') {
-      const team = teams.find(t => t.id === assignmentTarget);
-      if (!team) return;
-      
-      // 1. Update team members
-      const updatedTeams = teams.map(t => 
-        t.id === assignmentTarget ? { ...t, members: userIds } : t
-      );
-      
-      // 2. Update user's department field
-      const updatedUsers = users.map(user => 
-        userIds.includes(user.id) 
-          ? { ...user, department: team.department }
-          : user
-      );
-      
-      setTeams(updatedTeams);
-      setUsers(updatedUsers);
-      
-    } else if (assignmentType === 'department') {
-      const department = departments.find(d => d.id === assignmentTarget);
-      if (!department) return;
-      
-      // 1. Update department members (if tracking separately)
-      const updatedDepartments = departments.map(d => 
-        d.id === assignmentTarget ? { ...d, members: userIds } : d
-      );
-      
-      // 2. Update user's department field
-      const updatedUsers = users.map(user => 
-        userIds.includes(user.id)
-          ? { ...user, department: department.name }
-          : user
-      );
-      
-      setDepartments(updatedDepartments);
-      setUsers(updatedUsers);
-    }
-    
-    setShowUserAssignmentModal(false);
-  };
-
-  const handleTeamSubmit = (e) => {
-    e.preventDefault();
-    
-    if (editingTeam) {
-      const updatedTeams = teams.map(team => 
-        team.id === editingTeam.id 
-          ? { ...team, ...teamForm, members: selectedUsers }
-          : team
-      );
-      
-      // Update user departments
-      const updatedUsers = users.map(user => 
-        selectedUsers.includes(user.id)
-          ? { ...user, department: teamForm.department }
-          : user
-      );
-      
-      setTeams(updatedTeams);
-      setUsers(updatedUsers);
-    } else {
-      const newTeam = {
-        id: Date.now(),
-        ...teamForm,
-        members: selectedUsers,
-        createdAt: new Date().toISOString()
-      };
-      
-      // Update user departments
-      const updatedUsers = users.map(user => 
-        selectedUsers.includes(user.id)
-          ? { ...user, department: teamForm.department }
-          : user
-      );
-      
-      setTeams([...teams, newTeam]);
-      setUsers(updatedUsers);
-    }
-    
-    setTeamForm({ name: '', department: '', members: [] });
-    setSelectedUsers([]);
-    setEditingTeam(null);
-    setShowTeamModal(false);
-  };
-
-  const handleEditTeam = (team) => {
-    setEditingTeam(team);
-    setTeamForm({
-      name: team.name,
-      department: team.department,
-      members: team.members
-    });
-    setSelectedUsers(team.members || []);
-    setShowTeamModal(true);
-  };
-
-  const handleDeleteTeam = (teamId) => {
-    if (window.confirm('Are you sure you want to delete this team?')) {
-      setTeams(teams.filter(team => team.id !== teamId));
-    }
-  };
-
-  const handleDepartmentSubmit = (e) => {
-    e.preventDefault();
-    
-    if (editingDepartment) {
-      setDepartments(departments.map(dept =>
-        dept.id === editingDepartment.id
-          ? { ...dept, name: departmentForm.name }
-          : dept
-      ));
-    } else {
-      const newDepartment = {
-        id: Date.now(),
-        name: departmentForm.name,
-        createdAt: new Date().toISOString()
-      };
-      setDepartments([...departments, newDepartment]);
-    }
-    
-    setDepartmentForm({ name: '' });
-    setEditingDepartment(null);
-    setShowDepartmentModal(false);
-  };
-
-  const handleEditDepartment = (department) => {
-    setEditingDepartment(department);
-    setDepartmentForm({
-      name: department.name
-    });
-    setShowDepartmentModal(true);
-  };
-
-  const handleDeleteDepartment = (departmentId) => {
-    if (window.confirm('Are you sure you want to delete this department?')) {
-      setDepartments(departments.filter(dept => dept.id !== departmentId));
-    }
-  };
-
-  const handleRemoveUser = (userId, targetId, type) => {
-    if (type === 'team') {
-      setTeams(teams.map(team => 
-        team.id === targetId
-          ? { 
-              ...team, 
-              members: (team.members || []).filter(id => id !== userId) 
-            }
-          : team
-      ));
-
-      // Check if user needs department update
-      const userTeams = teams.filter(t => 
-        (t.members || []).includes(userId) && 
-        t.department === teams.find(t => t.id === targetId)?.department
-      );
-      
-      if (userTeams.length === 0) {
-        setUsers(users.map(u => 
-          u.id === userId ? { ...u, department: '' } : u
-        ));
-      }
-      
-    } else if (type === 'department') {
-      const dept = departments.find(d => d.id === targetId);
-      
-      // 1. Remove from department members (with null check)
-      setDepartments(departments.map(d => 
-        d.id === targetId
-          ? { 
-              ...d, 
-              members: (d.members || []).filter(id => id !== userId) 
-            }
-          : d
-      ));
-      
-      // 2. Remove from all teams in this department (with null check)
-      setTeams(teams.map(team => 
-        team.department === dept?.name
-          ? { 
-              ...team, 
-              members: (team.members || []).filter(id => id !== userId) 
-            }
-          : team
-      ));
-      
-      // 3. Clear user's department field
-      setUsers(users.map(u => 
-        u.id === userId ? { ...u, department: '' } : u
-      ));
-    }
-  };
-
-  // Permissions
-  const isGlobalAdmin = currentUser?.role === "Global Admin";
-  const isRegionalAdmin = isGlobalAdmin || currentUser?.role === "Regional Admin";
-  const isLocalAdmin = isRegionalAdmin || currentUser?.role === "Local Admin";
-
-  const canManageSurveys = isLocalAdmin;
-  const canManageUsers = isLocalAdmin;
-  const canManageRoles = isRegionalAdmin;
-  const canManageOrganizations = isGlobalAdmin;
-  const canManageTeams = isLocalAdmin;
-
-  const getAvailableTabs = () => {
-    const tabs = [{ id: "overview", label: "Overview", icon: BarChart3 }];
-    if (canManageSurveys) tabs.push({ id: "surveys", label: "Surveys", icon: FileText });
-    if (canManageUsers) tabs.push({ id: "users", label: "Users", icon: Users });
-    if (canManageTeams) tabs.push({ id: "teams", label: "Teams", icon: Users2 });
-    if (canManageRoles) tabs.push({ id: "roles", label: "Roles", icon: Shield });
-    if (canManageOrganizations) tabs.push({ id: "organizations", label: "Organizations", icon: Building2 });
-    if (isRegionalAdmin) tabs.push({ id: "departments", label: "Departments", icon: Building2 });
-    return tabs;
-  };
-
-  // Component helpers
-  const StatCard = ({ title, value, icon: Icon, color, change }) => (
-    <div className="card-base">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className="text-2xl font-bold text-gray-900">{value}</p>
-          {change && (
-            <p className={`text-sm ${change > 0 ? "text-green-600" : "text-red-600"}`}>
-              {change > 0 ? "+" : ""}{change}% from last month
-            </p>
-          )}
-        </div>
-        <div className={`p-3 rounded-full ${color}`}>
+  const StatCard = ({ title, value, icon: Icon, color, description }) => (
+    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
+      <div className="flex items-center justify-between mb-3">
+        <div className={`${color} p-3 rounded-lg`}>
           <Icon className="w-6 h-6 text-white" />
         </div>
+        <div className="text-right">
+          <p className="text-2xl font-bold text-gray-900">{value}</p>
+          <p className="text-sm font-medium text-gray-600">{title}</p>
+        </div>
       </div>
-    </div>
-  );
-
-  // Render functions
-  const renderTeams = () => (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="section-header">Teams</h2>
-        <Button
-          icon={Plus}
-          label="Create Team"
-          onClick={() => {
-            setEditingTeam(null);
-            setTeamForm({ name: '', department: '', members: [] });
-            setSelectedUsers([]);
-            setShowTeamModal(true);
-          }}
-        />
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {teams.map((team) => {
-          const assignedSurveys = surveys.filter((survey) =>
-            survey.assignedTo?.includes(team.id)
-          );
-          return (
-            <div key={team.id} className="card-base">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">{team.name}</h3>
-                <div className="flex space-x-2">
-                  <button 
-                    className="icon-btn"
-                    onClick={() => handleEditTeam(team)}
-                  >
-                    <Edit className="w-4 h-4" />
-                  </button>
-                  <button 
-                    className="icon-btn-purple"
-                    onClick={() => handleAssignUsers(team.id, 'team')}
-                  >
-                    <UserPlus className="w-4 h-4" />
-                  </button>
-                  <button 
-                    className="icon-btn-red"
-                    onClick={() => handleDeleteTeam(team.id)}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-              <div className="space-y-4">
-                <div>
-                  <p className="text-sm font-medium text-gray-700 mb-1">Department:</p>
-                  <p className="text-sm text-gray-900">{team.department}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-700 mb-1">Members ({team.members.length}):</p>
-                  <div className="flex flex-wrap gap-1">
-                    {users
-                      .filter((u) => team.members.includes(u.id))
-                      .slice(0, 5)
-                      .map((user) => (
-                        <span key={user.id} className="tag-base tag-gray">
-                          {user.name}
-                        </span>
-                      ))}
-                    {team.members.length > 5 && (
-                      <span className="tag-base tag-gray">
-                        +{team.members.length - 5} more
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-700 mb-1">Assigned Surveys ({assignedSurveys.length}):</p>
-                  <div className="flex flex-wrap gap-1">
-                    {assignedSurveys.slice(0, 3).map((survey) => (
-                      <span key={survey.id} className="tag-base tag-blue">
-                        {survey.title}
-                      </span>
-                    ))}
-                    {assignedSurveys.length > 3 && (
-                      <span className="tag-base tag-blue">
-                        +{assignedSurveys.length - 3} more
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      <p className="text-xs text-gray-500">{description}</p>
     </div>
   );
 
   const renderOverview = () => (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {canManageSurveys && (
-          <StatCard
-            title="Active Surveys"
-            value={surveys.filter((s) => s.status === "Active").length}
-            icon={FileText}
-            color="bg-blue-500"
-            change={8}
-          />
-        )}
-        {canManageUsers && (
-          <StatCard
-            title="Total Users"
-            value={users.length}
-            icon={Users}
-            color="bg-green-500"
-            change={3}
-          />
-        )}
-        {canManageTeams && (
-          <StatCard
-            title="Active Teams"
-            value={teams.length}
-            icon={Users2}
-            color="bg-indigo-500"
-            change={2}
-          />
-        )}
-        {canManageRoles && (
-          <StatCard
-            title="Roles Managed"
-            value={roles.length}
-            icon={Shield}
-            color="bg-purple-500"
-            change={0}
-          />
-        )}
-        {isRegionalAdmin && (
-          <StatCard
-            title="Departments"
-            value={[...new Set(teams.map((team) => team.department))].length}
-            icon={Building2}
-            color="bg-orange-500"
-            change={0}
-          />
-        )}
+    <div className="space-y-8">
+      {/* Organization Info */}
+      {organizations[0] && (
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-6 text-white">
+          <div className="flex items-center space-x-3 mb-4">
+            <Building2 className="w-8 h-8" />
+            <h2 className="text-2xl font-bold">{organizations[0].name}</h2>
+          </div>
+          <p className="text-blue-100">Organization Dashboard - Manage your departments, teams, users, and surveys</p>
+        </div>
+      )}
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {dashboardStats.map((stat, index) => (
+          <StatCard key={index} {...stat} />
+        ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="card-base">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Recent Activity
-          </h3>
-          <div className="space-y-4">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-blue-100 rounded-full">
-                <FileText className="w-4 h-4 text-blue-600" />
+      {/* Recent Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Recent Surveys */}
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-gray-800">Recent Surveys</h2>
+            <button
+              onClick={() => setActiveTab('surveys')}
+              className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+            >
+              View All
+            </button>
+          </div>
+          <div className="space-y-3">
+            {surveys.slice(0, 5).map((survey) => (
+              <div key={survey.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div>
+                  <p className="font-medium text-gray-800">{survey.title}</p>
+                  <p className="text-sm text-gray-500">{survey.type}</p>
+                </div>
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(survey.status)}`}>
+                  {survey.status}
+                </span>
               </div>
-              <div>
-                <p className="text-sm font-medium text-gray-900">
-                  New survey created
-                </p>
-                <p className="text-xs text-gray-500">2 hours ago</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-green-100 rounded-full">
-                <Users2 className="w-4 h-4 text-green-600" />{" "}
-                {/* Updated icon */}
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-900">
-                  Team members updated
-                </p>
-                <p className="text-xs text-gray-500">4 hours ago</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-purple-100 rounded-full">
-                <Shield className="w-4 h-4 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-900">
-                  Permissions granted
-                </p>
-                <p className="text-xs text-gray-500">1 day ago</p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
 
-        <div className="card-base">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Quick Actions
-          </h3>
-          <div className="grid grid-cols-1 gap-3">
-            {canManageSurveys && (
-              <Button
-                icon={Plus}
-                label="Create New Survey"
-                onClick={() => console.log("Create survey")}
-              />
-            )}
-            {canManageTeams && ( // NEW: Team action button
-              <Button
-                icon={Users2}
-                label="Create New Team"
-                onClick={() => console.log("Create team")}
-                variant="secondary"
-              />
-            )}
-            {canManageUsers && (
-              <Button
-                icon={UserPlus}
-                label="Add New User"
-                onClick={() => console.log("Add user")}
-                variant="secondary"
-              />
-            )}
+        {/* Recent Users */}
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-gray-800">Recent Users</h2>
+            <button
+              onClick={() => setActiveTab('users')}
+              className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+            >
+              View All
+            </button>
+          </div>
+          <div className="space-y-3">
+            {users.slice(0, 5).map((user) => (
+              <div key={user.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-sm font-medium">
+                    {user.username?.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+                <div>
+                  <p className="font-medium text-gray-800">{user.username}</p>
+                  <p className="text-sm text-gray-500">{user.email}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -540,223 +355,160 @@ const Dashboard = () => {
 
   const renderSurveys = () => (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="section-header">
-          Surveys
-        </h2>
-        <Button
-          icon={Plus}
-          label="Create Survey"
-          onClick={() => console.log("Create survey")}
-        />
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-gray-800">Survey Management</h2>
+        <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center">
+          <Plus className="w-4 h-4 mr-2" />
+          Create Survey
+        </button>
       </div>
 
-      <div className="card-base">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="table-header-base">Survey</th>
-              <th className="table-header-base">Department</th>
-              <th className="table-header-base">Assigned To</th>
-              <th className="table-header-base">Responses</th>
-              <th className="table-header-base">Status</th>
-              <th className="table-header-base">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {surveys.map((survey) => (
-              <tr key={survey.id}>
-                <td className="table-cell-base">
-                  <div className="text-sm font-medium text-gray-900">
-                    {survey.title}
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    Created: {survey.created}
-                  </div>
-                </td>
-                <td className="table-cell-base text-sm text-gray-900">
-                  {survey.department}
-                </td>
-                <td className="table-cell-base">
-                  <div className="flex flex-wrap gap-1">
-                    {survey.assignedTo?.map((teamId) => {
-                      const team = teams.find((t) => t.id === teamId);
-                      return team ? (
-                        <span
-                          key={teamId}
-                          className="tag-base tag-blue"
-                        >
-                          {team.name}
-                        </span>
-                      ) : null;
-                    })}
-                  </div>
-                </td>
-                <td className="table-cell-base text-sm text-gray-900">
-                  {survey.responses}
-                </td>
-                <td className="table-cell-base">
-                  <span
-                    className={`tag-base ${
-                      survey.status === "Active"
-                        ? "tag-green"
-                        : survey.status === "Draft"
-                        ? "tag-yellow"
-                        : "tag-gray"
-                    }`}
-                  >
-                    {survey.status}
-                  </span>
-                </td>
-                <td className="table-cell-base text-sm font-medium space-x-2">
-                  <button className="icon-btn">
-                    <Eye className="w-4 h-4" />
-                  </button>
-                  <button className="icon-btn">
-                    <Edit className="w-4 h-4" />
-                  </button>
-                  <button className="icon-btn">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </td>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Deadline</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {surveys.map((survey) => (
+                <tr key={survey.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div>
+                      <div className="text-sm font-medium text-gray-900">{survey.title}</div>
+                      <div className="text-sm text-gray-500">{survey.description}</div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getSurveyTypeColor(survey.type)}`}>
+                      {survey.type}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(survey.status)}`}>
+                      {survey.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {survey.deadline ? formatDate(survey.deadline) : 'No deadline'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <div className="flex items-center space-x-2">
+                      <button className="text-blue-600 hover:text-blue-900">
+                        <Eye className="w-4 h-4" />
+                      </button>
+                      <button className="text-green-600 hover:text-green-900">
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button className="text-orange-600 hover:text-orange-900">
+                        {survey.locked ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
 
   const renderUsers = () => (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="section-header">
-          Organization Users
-        </h2>
-        <Button
-          icon={UserPlus}
-          label="Assign User"
-          onClick={() => console.log("Assign user")}
-        />
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-gray-800">User Management</h2>
+        <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center">
+          <UserPlus className="w-4 h-4 mr-2" />
+          Add User
+        </button>
       </div>
 
-      <div className="card-base">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="table-header-base">User</th>
-              <th className="table-header-base">Role</th>
-              <th className="table-header-base">Department</th>
-              <th className="table-header-base">Teams</th>{" "}
-              {/* NEW COLUMN */}
-              <th className="table-header-base">Status</th>
-              <th className="table-header-base">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {users.map((user) => (
-              <tr key={user.id}>
-                <td className="table-cell-base">
-                  <div className="text-sm font-medium text-gray-900">
-                    {user.name}
-                  </div>
-                  <div className="text-sm text-gray-500">{user.email}</div>
-                </td>
-                <td className="table-cell-base text-sm text-gray-900">
-                  {user.role}
-                </td>
-                <td className="table-cell-base text-sm text-gray-900">
-                  {user.department}
-                </td>
-                <td className="table-cell-base">
-                  <div className="flex flex-wrap gap-1">
-                    {teams
-                      .filter((t) => t.members.includes(user.id))
-                      .map((team) => (
-                        <span
-                          key={team.id}
-                          className="tag-base tag-gray"
-                        >
-                          {team.name}
-                        </span>
-                      ))}
-                  </div>
-                </td>
-                <td className="table-cell-base">
-                  <span
-                    className={`tag-base ${
-                      user.status === "Active"
-                        ? "tag-green"
-                        : "tag-red"
-                    }`}
-                  >
-                    {user.status}
-                  </span>
-                </td>
-                <td className="table-cell-base text-sm font-medium space-x-2">
-                  <button className="icon-btn">
-                    <Shield className="w-4 h-4" />
-                  </button>
-                  <button className="icon-btn">
-                    <Edit className="w-4 h-4" />
-                  </button>
-                  <button className="icon-btn">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </td>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {users.map((user) => (
+                <tr key={user.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center mr-3">
+                        <span className="text-white text-sm font-medium">
+                          {user.username?.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="text-sm font-medium text-gray-900">{user.username}</div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.email}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                      {user.roles?.join(', ') || 'User'}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {user.department || 'Not assigned'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <div className="flex items-center space-x-2">
+                      <button className="text-blue-600 hover:text-blue-900">
+                        <Eye className="w-4 h-4" />
+                      </button>
+                      <button className="text-green-600 hover:text-green-900">
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button className="text-orange-600 hover:text-orange-900">
+                        <UserPlus className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
 
-  const renderRoles = () => (
+  const renderOrganizations = () => (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="section-header">Roles</h2>
-        <Button
-          icon={Plus}
-          label="Create Role"
-          onClick={() => console.log("Create role")}
-        />
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-gray-800">Organization Information</h2>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {roles.map((role) => (
-          <div
-            key={role.id}
-            className="card-base"
-          >
+      <div className="grid grid-cols-1 gap-6">
+        {organizations.map((org) => (
+          <div key={org.id} className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">
-                {role.name}
-              </h3>
-              <div className="flex space-x-2">
-                <button className="text-blue-600 hover:text-blue-900">
+              <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
+                <Building2 className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex items-center space-x-2">
+                <button className="text-green-600 hover:text-green-900">
                   <Edit className="w-4 h-4" />
-                </button>
-                <button className="text-red-600 hover:text-red-900">
-                  <Trash2 className="w-4 h-4" />
                 </button>
               </div>
             </div>
-            <p className="text-sm text-gray-600 mb-3">
-              {role.users} users assigned
-            </p>
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-gray-700">Permissions:</p>
-              <div className="flex flex-wrap gap-1">
-                {role.permissions.map((permission, index) => (
-                  <span
-                    key={index}
-                    className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
-                  >
-                    {permission.replace("_", " ")}
-                  </span>
-                ))}
-              </div>
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">{org.name}</h3>
+            <div className="space-y-2 text-sm text-gray-600">
+              <p>Departments: {departments.length}</p>
+              <p>Teams: {teams.length}</p>
+              <p>Users: {users.length}</p>
             </div>
           </div>
         ))}
@@ -764,342 +516,269 @@ const Dashboard = () => {
     </div>
   );
 
-  const renderDepartments = () => {
-    const departmentsWithStats = departments.map(dept => {
-      const deptTeams = teams.filter(team => team.department === dept.name);
-      
-      // Get members from users who have this department set
-      const deptMembers = users
-        .filter(user => user.department === dept.name)
-        .map(user => user.id);
-      
-      return {
-        ...dept,
-        teamCount: deptTeams.length,
-        members: deptMembers,
-        memberCount: deptMembers.length,
-        surveyCount: surveys.filter(survey => 
-          deptTeams.some(team => survey.assignedTo?.includes(team.id))
-        ).length
-      };
-    });
-
-    return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h2 className="text-xl font-semibold text-gray-900">Departments</h2>
-          {isGlobalAdmin && (
-            <Button
-              icon={Plus}
-              label="Add Department"
-              onClick={() => {
-                setEditingDepartment(null);
-                setDepartmentForm({ name: ''});
-                setShowDepartmentModal(true);
-              }}
-            />
-          )}
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {departmentsWithStats.map((dept) => (
-            <div key={dept.id} className="bg-white rounded-lg shadow-sm border p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">{dept.name}</h3>
-                {isGlobalAdmin && (
-                  <div className="flex space-x-2">
-                    <button 
-                      className="text-blue-600 hover:text-blue-900"
-                      onClick={() => handleAssignUsers(dept.id, 'department')}
-                    >
-                      <UserPlus className="w-4 h-4" />
-                    </button>
-                    <button 
-                      className="text-green-600 hover:text-green-900"
-                      onClick={() => handleEditDepartment(dept)}
-                    >
-                      <Edit className="w-4 h-4" />
-                    </button>
-                    <button 
-                      className="text-red-600 hover:text-red-900"
-                      onClick={() => handleDeleteDepartment(dept.id)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <p className="text-sm font-medium text-gray-700 mb-1">Teams:</p>
-                  <p className="text-sm text-gray-900">{dept.teamCount}</p>
-                </div>
-
-                <div>
-                  <p className="text-sm font-medium text-gray-700 mb-1">Members ({dept.memberCount}):</p>
-                  <div className="flex flex-wrap gap-1">
-                    {users
-                      .filter((u) => dept.members.includes(u.id))
-                      .slice(0, 5)
-                      .map((user) => (
-                        <span key={user.id} className="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded-full">
-                          {user.name}
-                          <button 
-                            onClick={() => handleRemoveUser(user.id, dept.id, 'department')}
-                            className="ml-1 text-red-500 hover:text-red-700"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        </span>
-                      ))}
-                    {dept.memberCount > 5 && (
-                      <span className="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded-full">
-                        +{dept.memberCount - 5} more
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-sm font-medium text-gray-700 mb-1">Assigned Surveys:</p>
-                  <p className="text-sm text-gray-900">{dept.surveyCount}</p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
-  const renderOrganizations = () => (
+  const renderDepartments = () => (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold text-gray-900">Organizations</h2>       
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-gray-800">Department Management</h2>
+        <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center">
+          <Plus className="w-4 h-4 mr-2" />
+          Create Department
+        </button>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Organization
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Region
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Users
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Surveys
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {organizations.map((org) => (
-              <tr key={org.id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {org.name}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {org.region}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {org.users}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {org.surveys}
-                </td>                
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                  <button className="text-blue-600 hover:text-blue-900">
-                    <Eye className="w-4 h-4" />
-                  </button>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Teams</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Members</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {departments.map((dept) => (
+                <tr key={dept.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center mr-3">
+                        <Users className="w-4 h-4 text-white" />
+                      </div>
+                      <div className="text-sm font-medium text-gray-900">{dept.name}</div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {teams.filter(team => team.departmentId === dept.id).length}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {users.filter(user => user.departmentId === dept.id).length}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <div className="flex items-center space-x-2">
+                      <button className="text-blue-600 hover:text-blue-900">
+                        <Eye className="w-4 h-4" />
+                      </button>
+                      <button className="text-green-600 hover:text-green-900">
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button className="text-orange-600 hover:text-orange-900">
+                        <UserPlus className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderTeams = () => (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-gray-800">Team Management</h2>
+        <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center">
+          <Plus className="w-4 h-4 mr-2" />
+          Create Team
+        </button>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Team</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Members</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {teams.map((team) => (
+                <tr key={team.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center mr-3">
+                        <Users2 className="w-4 h-4 text-white" />
+                      </div>
+                      <div className="text-sm font-medium text-gray-900">{team.name}</div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {departments.find(dept => dept.id === team.departmentId)?.name || 'Unknown'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {users.filter(user => user.teamId === team.id).length}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <div className="flex items-center space-x-2">
+                      <button className="text-blue-600 hover:text-blue-900">
+                        <Eye className="w-4 h-4" />
+                      </button>
+                      <button className="text-green-600 hover:text-green-900">
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button className="text-orange-600 hover:text-orange-900">
+                        <UserPlus className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderRoles = () => (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-gray-800">Role & Permission Management</h2>
+        <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center">
+          <Shield className="w-4 h-4 mr-2" />
+          Create Role
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Roles */}
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Roles</h3>
+          <div className="space-y-3">
+            {roles.map((role) => (
+              <div key={role.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div>
+                  <p className="font-medium text-gray-800">{role.name}</p>
+                  <p className="text-sm text-gray-500">{role.description}</p>
+                </div>
+                <div className="flex items-center space-x-2">
                   <button className="text-green-600 hover:text-green-900">
                     <Edit className="w-4 h-4" />
                   </button>
                   <button className="text-red-600 hover:text-red-900">
                     <Trash2 className="w-4 h-4" />
                   </button>
-                </td>
-              </tr>
+                </div>
+              </div>
             ))}
-          </tbody>
-        </table>
+          </div>
+        </div>
+
+        {/* Permissions */}
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Permissions</h3>
+          <div className="space-y-3">
+            {permissions.map((permission) => (
+              <div key={permission.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div>
+                  <p className="font-medium text-gray-800">{permission.name}</p>
+                  <p className="text-sm text-gray-500">{permission.description}</p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button className="text-green-600 hover:text-green-900">
+                    <Edit className="w-4 h-4" />
+                  </button>
+                  <button className="text-red-600 hover:text-red-900">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
 
   const renderContent = () => {
     switch (activeTab) {
-      case "overview": return renderOverview();
-      case "surveys": return renderSurveys();
-      case "users": return renderUsers();
-      case "teams": return renderTeams();
-      case "roles": return renderRoles();
-      case "departments": return renderDepartments();
-      case "organizations": return renderOrganizations();
-      default: return renderOverview();
+      case 'overview':
+        return renderOverview();
+      case 'surveys':
+        return renderSurveys();
+      case 'users':
+        return renderUsers();
+      case 'organizations':
+        return renderOrganizations();
+      case 'departments':
+        return renderDepartments();
+      case 'teams':
+        return renderTeams();
+      case 'roles':
+        return renderRoles();
+      default:
+        return renderOverview();
     }
   };
 
-  const getRoleIcon = (role) => {
-    switch (role) {
-      case "Global Admin": return Globe;
-      case "Regional Admin": return MapPin;
-      case "Local Admin": return Home;
-      default: return UserCheck;
-    }
-  };
-
-  const RoleIcon = getRoleIcon(currentUser?.role);
-  const availableTabs = getAvailableTabs();
+  const tabs = [
+    { id: 'overview', name: 'Overview', icon: Home },
+    { id: 'surveys', name: 'Surveys', icon: ClipboardList },
+    { id: 'users', name: 'Users', icon: Users },
+    { id: 'organizations', name: 'Organization', icon: Building2 },
+    { id: 'departments', name: 'Departments', icon: Users2 },
+    { id: 'teams', name: 'Teams', icon: Target },
+    { id: 'roles', name: 'Roles & Permissions', icon: Shield }
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-semibold text-gray-900">
-                Organization Dashboard
-              </h1>
-            </div>
+      <NavBar />
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">Admin Dashboard</h1>
+          <p className="text-gray-600">Manage your organization, users, surveys, and more</p>
+        </div>
 
-            <div className="flex items-center space-x-4">
-              <button className="p-2 text-gray-400 hover:text-gray-500">
-                <Bell className="w-5 h-5" />
+        {/* Error Display */}
+        {error && (
+          <div className="mb-6 bg-red-100 border border-red-300 text-red-700 px-4 py-3 rounded-lg flex items-center">
+            <AlertCircle className="w-5 h-5 mr-2" />
+            {error}
+          </div>
+        )}
+
+        {/* Loading State */}
+        {loading && (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-blue-600 mr-3" />
+            <span className="text-gray-600">Loading dashboard data...</span>
+          </div>
+        )}
+
+        {/* Navigation Tabs */}
+        <div className="mb-8">
+          <nav className="flex space-x-8 border-b border-gray-200">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center space-x-2 py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === tab.id
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <tab.icon className="w-4 h-4" />
+                <span>{tab.name}</span>
               </button>
-
-              <div className="relative">
-                <button
-                  onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="flex items-center space-x-3 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  <div className="flex items-center space-x-2">
-                    <div className="p-2 bg-blue-100 rounded-full">
-                      <RoleIcon className="w-4 h-4 text-blue-600" />
-                    </div>
-                    <div className="text-left">
-                      <p className="font-medium text-gray-900">
-                        {currentUser?.name}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {currentUser?.role}
-                      </p>
-                    </div>
-                    <ChevronDown className="w-4 h-4 text-gray-400" />
-                  </div>
-                </button>
-
-                {showUserMenu && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
-                    <div className="px-4 py-2 text-sm text-gray-700 border-b">
-                      <p className="font-medium">{currentUser?.organization}</p>
-                      <p className="text-xs text-gray-500">
-                        {currentUser?.department}
-                      </p>
-                    </div>
-                    <button className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left">
-                      <Settings className="w-4 h-4 mr-2" />
-                      Settings
-                    </button>
-                    <button
-                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-                      onClick={handleLogout}
-                    >
-                      <LogOut className="w-4 h-4 mr-2" />
-                      Sign Out
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+            ))}
+          </nav>
         </div>
-      </header>
 
-      {/* Navigation */}
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex space-x-8">
-            {availableTabs.map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === tab.id
-                      ? "border-blue-500 text-blue-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  <span>{tab.label}</span>
-                </button>
-              );
-            })}
-          </div>
+        {/* Main Content */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          {renderContent()}
         </div>
-      </nav>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {renderContent()}
-      </main>
-
-  {/* Modals */}
-      {showTeamModal && (
-        <TeamModal
-          editingTeam={editingTeam}
-          teamForm={teamForm}
-          departments={departments}
-          onClose={() => {
-            setShowTeamModal(false);
-            setTeamForm({ name: '', department: '' });
-            setEditingTeam(null);
-          }}
-          onChange={setTeamForm}
-          onSubmit={handleTeamSubmit}
-        />
-      )}
-
-      {showDepartmentModal && (
-        <DepartmentModal
-          editingDepartment={editingDepartment}
-          departmentForm={departmentForm}
-          onClose={() => {
-            setShowDepartmentModal(false);
-            setDepartmentForm({ name: '' });
-            setEditingDepartment(null);
-          }}
-          onChange={setDepartmentForm}
-          onSubmit={handleDepartmentSubmit}
-        />
-      )}
-
-      {showUserAssignmentModal && (
-        <UserAssignmentModal
-          isOpen={showUserAssignmentModal}
-          onClose={() => setShowUserAssignmentModal(false)}
-          users={users}
-          currentAssignments={
-            assignmentType === 'team' 
-              ? teams.find(t => t.id === assignmentTarget)?.members || []
-              : departments.find(d => d.id === assignmentTarget)?.members || []
-          }
-          onAssign={handleUserAssignmentSubmit}
-          title={`Assign Users to ${assignmentType}`}
-          type={assignmentType}
-          isEditing={!!assignmentTarget}
-        />
-      )}
+      </div>
     </div>
   );
 };

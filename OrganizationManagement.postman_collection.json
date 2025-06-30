@@ -1,0 +1,779 @@
+{
+	"info": {
+		"_postman_id": "0b37d442-baca-4d1f-9976-d059b71ed44e",
+		"name": "OrganizationManagement",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "26007967",
+		"_collection_link": "https://tarekjlassi.postman.co/workspace/Tarek-Jlassi's-Workspace~4456f7c5-1191-4f5c-8cff-0c52375fc7fe/collection/45140261-0b37d442-baca-4d1f-9976-d059b71ed44e?action=share&source=collection_link&creator=26007967"
+	},
+	"item": [
+		{
+			"name": "Departments",
+			"item": [
+				{
+					"name": "Get All Departments",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\":\"tarek in\"\r\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/departments",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"departments"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Department",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"tarek\",\r\n  \"organizationId\": 1\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/departments",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"departments"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Departments By ID",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "Update A Department",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"B1\",\r\n    \"departmentId\": 1\r\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/departments/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"departments",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Department",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/departments/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"departments",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Request",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8082/api/departments/user/{userId}",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"api",
+								"departments",
+								"user",
+								"{userId}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Organizations",
+			"item": [
+				{
+					"name": "Create Organization",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\":\"tarek in\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/organizations",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"organizations"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Organization's Children",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\":\"tarek in\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/organizations/2/children",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"organizations",
+								"2",
+								"children"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Organizations",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/organizations",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"organizations"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Organization",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/organizations/2",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"organizations",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update An Organization",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"B1\",\r\n    \"departmentId\": 1\r\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/organizations/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"organizations",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Organization By Id",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "Check Organization's Id Validity",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiJ9.eyJhdXRob3JpdGllcyI6WyJBRE1JTl9ST09UIiwiVVNFUl9SRUFEIiwiVVNFUl9VUERBVEUiXSwic3ViIjoidGVzdDExMTEyMTJAZ21haWwuY29tIiwiaWF0IjoxNzQ5NTE3NDY3LCJleHAiOjE3NDk2MDM4Njd9.K1BauivI3DKQjqKe8BDzOLdZ744z3-QDp-RJo-YHMkQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\":\"tarek in\"\r\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/organizations/3edb4d47-505d-42a3-a2a8-f66df1a9fab8/exists",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"organizations",
+								"3edb4d47-505d-42a3-a2a8-f66df1a9fab8",
+								"exists"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Teams",
+			"item": [
+				{
+					"name": "Create Teams",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"B1\",\r\n    \"departmentId\": 1\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/teams",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"teams"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Team By id",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"B1\",\r\n    \"departmentId\": 1\r\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/teams/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"teams",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Teams",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/teams",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"teams"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Team",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/teams/2",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"teams",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update A Team",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"B1\",\r\n    \"departmentId\": 1\r\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/teams/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"teams",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Survey Assignment",
+			"item": [
+				{
+					"name": "Assign Survey To A  Department",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8082/api/organizations/b98b23ed-83a1-4459-8853-d0719d675fe6/departments/0bc810f8-f766-440f-960c-8881ca64ab9b/assign-survey/7a03fb1e-c309-433e-b2ba-9d43f4082a65",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"api",
+								"organizations",
+								"b98b23ed-83a1-4459-8853-d0719d675fe6",
+								"departments",
+								"0bc810f8-f766-440f-960c-8881ca64ab9b",
+								"assign-survey",
+								"7a03fb1e-c309-433e-b2ba-9d43f4082a65"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Remove Survey From A Department",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8082/api/organizations/b98b23ed-83a1-4459-8853-d0719d675fe6/departments/0bc810f8-f766-440f-960c-8881ca64ab9b/remove-survey/7a03fb1e-c309-433e-b2ba-9d43f4082a65",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"api",
+								"organizations",
+								"b98b23ed-83a1-4459-8853-d0719d675fe6",
+								"departments",
+								"0bc810f8-f766-440f-960c-8881ca64ab9b",
+								"remove-survey",
+								"7a03fb1e-c309-433e-b2ba-9d43f4082a65"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Assign Survey To A Team",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8082/api/organizations/b98b23ed-83a1-4459-8853-d0719d675fe6/teams/94f40cab-5909-4bc5-8a84-15c2caa4ad27/assign-survey/7a03fb1e-c309-433e-b2ba-9d43f4082a65",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"api",
+								"organizations",
+								"b98b23ed-83a1-4459-8853-d0719d675fe6",
+								"teams",
+								"94f40cab-5909-4bc5-8a84-15c2caa4ad27",
+								"assign-survey",
+								"7a03fb1e-c309-433e-b2ba-9d43f4082a65"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Remove Survey From A Team",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/organizations/b98b23ed-83a1-4459-8853-d0719d675fe6/teams/94f40cab-5909-4bc5-8a84-15c2caa4ad27/remove-survey/7a03fb1e-c309-433e-b2ba-9d43f4082a65",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"organizations",
+								"b98b23ed-83a1-4459-8853-d0719d675fe6",
+								"teams",
+								"94f40cab-5909-4bc5-8a84-15c2caa4ad27",
+								"remove-survey",
+								"7a03fb1e-c309-433e-b2ba-9d43f4082a65"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "User Assignment",
+			"item": [
+				{
+					"name": "Assign User To A Department",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiJ9.eyJvcmdhbml6YXRpb25JZCI6ImZiNTBiZDdkLTdlZWYtNDdhMS04ZGEwLWQxMDQ0M2NiYzZkOCIsInVzZXJJZCI6IjFkZGFkODc5LTYyOTAtNGQyYy1iYTJiLWZiYzFjYWU1MWM5NyIsImF1dGhvcml0aWVzIjpbIkRFUEFSVE1FTlRfQ1JFQVRFIiwiREVQQVJUTUVOVF9ERUxFVEUiLCJERVBBUlRNRU5UX1JFQUQiLCJERVBBUlRNRU5UX1VQREFURSIsIk9QVElPTl9DUkVBVEUiLCJPUFRJT05fREVMRVRFIiwiT1BUSU9OX0xPQ0siLCJPUFRJT05fUkVBRCIsIk9QVElPTl9VTkxPQ0siLCJPUFRJT05fVVBEQVRFIiwiT1JHQU5JWkFUSU9OX0RFTEVURSIsIk9SR0FOSVpBVElPTl9SRUFEIiwiT1JHQU5JWkFUSU9OX1VQREFURSIsIlBFUk1JU1NJT05fQ1JFQVRFIiwiUEVSTUlTU0lPTl9ERUxFVEUiLCJQRVJNSVNTSU9OX1JFQUQiLCJQRVJNSVNTSU9OX1VQREFURSIsIlFVRVNUSU9OX0NSRUFURSIsIlFVRVNUSU9OX0RFTEVURSIsIlFVRVNUSU9OX0xPQ0siLCJRVUVTVElPTl9SRUFEIiwiUVVFU1RJT05fVU5MT0NLIiwiUVVFU1RJT05fVVBEQVRFIiwiUk9MRV9DUkVBVEUiLCJST0xFX0RFTEVURSIsIlJPTEVfUkVBRCIsIlJPTEVfVVBEQVRFIiwiU1VSVkVZX0NSRUFURSIsIlNVUlZFWV9ERUxFVEUiLCJTVVJWRVlfTE9DSyIsIlNVUlZFWV9SRUFEIiwiU1VSVkVZX1VOTE9DSyIsIlNVUlZFWV9VUERBVEUiLCJURUFNX0NSRUFURSIsIlRFQU1fREVMRVRFIiwiVEVBTV9SRUFEIiwiVEVBTV9VUERBVEUiLCJVU0VSX0NSRUFURSIsIlVTRVJfREVMRVRFIiwiVVNFUl9SRUFEIiwiVVNFUl9VUERBVEUiXSwic3ViIjoib3JnM0BnbWFpbC5jb20iLCJpYXQiOjE3NTA4OTU0MTcsImV4cCI6MTc1MDk4MTgxN30.7eOezYZxdJIJX4zZoas47iZHBSamWlB9Wao-1tOBvPs",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \r\n    \"departmentId\": 1\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8082/api/departments/f18cb450-ba50-4c01-ab35-f091aa3d4626/assign-user/1ddad879-6290-4d2c-ba2b-fbc1cae51c97",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"api",
+								"departments",
+								"f18cb450-ba50-4c01-ab35-f091aa3d4626",
+								"assign-user",
+								"1ddad879-6290-4d2c-ba2b-fbc1cae51c97"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Remove User From A Department",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/organizations/departments/{departmentId}/remove-user/{userId}",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"organizations",
+								"departments",
+								"{departmentId}",
+								"remove-user",
+								"{userId}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Assign User To A Team",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/organizations/teams/{teamId}/assign-user/{userId}",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"organizations",
+								"teams",
+								"{teamId}",
+								"assign-user",
+								"{userId}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Remove User From A Team",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/organizations/teams/{teamId}/remove-user/{userId}",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"organizations",
+								"teams",
+								"{teamId}",
+								"remove-user",
+								"{userId}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

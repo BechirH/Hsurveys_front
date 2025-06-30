@@ -6,13 +6,13 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
-import { store, persistor } from "./redux/store";
+import { store } from "./redux/store";
 import { useDispatch, useSelector } from "react-redux";
 import { autoLogin } from "./redux/slices/authSlice";
-import { PersistGate } from "redux-persist/integration/react";
 
 import AuthSystem from "./components/auth/AuthSystem";
 import Dashboard from "./pages/Dashboard";
+import UserHome from "./pages/UserHome";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import LoadingSpinner from "./components/common/LoadingSpinner";
 
@@ -37,12 +37,24 @@ const AppRoutes = () => {
     );
   }
 
+  // Determine the appropriate redirect path based on user role
+  const getRedirectPath = () => {
+    if (user && token) {
+      return user.role === "admin" ? "/dashboard" : "/user-home";
+    }
+    return "/";
+  };
+
   return (
     <Routes>
       <Route
         path="/"
         element={
-          user && token ? <Navigate to="/dashboard" replace /> : <AuthSystem />
+          user && token ? (
+            <Navigate to={getRedirectPath()} replace />
+          ) : (
+            <AuthSystem />
+          )
         }
       />
       <Route
@@ -50,6 +62,14 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/user-home"
+        element={
+          <ProtectedRoute>
+            <UserHome />
           </ProtectedRoute>
         }
       />
@@ -62,13 +82,11 @@ const AppRoutes = () => {
 function App() {
   return (
     <Provider store={store}>
-      <PersistGate loading={null} persistor={persistor}>
-        <Router>
-          <div className="App">
-            <AppRoutes />
-          </div>
-        </Router>
-      </PersistGate>
+      <Router>
+        <div className="App">
+          <AppRoutes />
+        </div>
+      </Router>
     </Provider>
   );
 }

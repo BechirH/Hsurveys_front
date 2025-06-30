@@ -1,10 +1,15 @@
 import axios from "axios";
 
 const AUTH_API_BASE_URL = "http://localhost:8081/api";
-const REGISTER_API_BASE_URL = "http://localhost:8081/api";
 
-// Create axios instance
+// Create axios instance for authenticated endpoints
 const apiClient = axios.create({
+  baseURL: AUTH_API_BASE_URL,
+  timeout: 10000,
+});
+
+// Create a separate axios instance for open APIs (no auth required)
+const openApiClient = axios.create({
   baseURL: AUTH_API_BASE_URL,
   timeout: 10000,
 });
@@ -19,20 +24,20 @@ const setAuthToken = (token) => {
 };
 
 export const authService = {
-  // Login for all users
+  // Login for all users (OPEN API - no authentication required)
   login: async (credentials) => {
     try {
-      const response = await apiClient.post("/auth/login", credentials);
+      const response = await openApiClient.post("/auth/login", credentials);
       return response.data;
     } catch (error) {
       throw error;
     }
   },
 
-  // Register user for a new organization (Step 2)
+  // Register user for a new organization (Step 2) (OPEN API - no authentication required)
   registerUserForNewOrg: async (orgId, userData) => {
     try {
-      const response = await apiClient.post(
+      const response = await openApiClient.post(
         `/auth/register/${orgId}`,
         userData
       );
@@ -42,17 +47,17 @@ export const authService = {
     }
   },
 
-  // Register user for an existing organization
+  // Register user for an existing organization (OPEN API - no authentication required)
   registerUserForExistingOrg: async (userData) => {
     try {
-      const response = await apiClient.post("/auth/register", userData);
+      const response = await openApiClient.post("/auth/register", userData);
       return response.data;
     } catch (error) {
       throw error;
     }
   },
 
-  // Validate token with backend (optional)
+  // Validate token with backend (REQUIRES AUTH)
   validateToken: async (token) => {
     setAuthToken(token);
     try {
@@ -63,10 +68,10 @@ export const authService = {
     }
   },
 
-  // Set token for future requests
+  // Set token for future requests (only affects authenticated endpoints)
   setAuthToken,
 
-  // Logout (clear session on backend if needed)
+  // Logout (clear session on backend if needed) (REQUIRES AUTH)
   logout: async (token) => {
     setAuthToken(token);
     try {
