@@ -9,6 +9,10 @@ import {
 import { store } from "./redux/store";
 import { useDispatch, useSelector } from "react-redux";
 import { autoLogin } from "./redux/slices/authSlice";
+import { sessionManager } from "./utils/sessionManager";
+import { apiService } from "./services/apiService";
+import { organizationService } from "./services/organizationService";
+import { authService } from "./services/authService";
 
 import AuthSystem from "./components/auth/AuthSystem";
 import Dashboard from "./pages/Dashboard";
@@ -80,6 +84,20 @@ const AppRoutes = () => {
 };
 
 function App() {
+  const token = useSelector((state) => state.auth.token);
+
+  useEffect(() => {
+    // Prefer Redux token, fallback to sessionManager/localStorage
+    const sessionToken = token || sessionManager.getToken();
+    if (sessionToken) {
+      apiService.setUserAuthToken(sessionToken);
+      apiService.setOrgAuthToken(sessionToken);
+      apiService.setSurveyAuthToken(sessionToken);
+      organizationService.setAuthToken(sessionToken);
+      authService.setAuthToken(sessionToken);
+    }
+  }, [token]);
+
   return (
     <Provider store={store}>
       <Router>

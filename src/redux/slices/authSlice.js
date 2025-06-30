@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { authService } from "../../services/authService";
 import { organizationService } from "../../services/organizationService";
 import { apiService } from "../../services/apiService";
+import { sessionManager } from "../../utils/sessionManager";
 
 // Utility to check token expiration
 const isTokenExpired = (token) => {
@@ -122,8 +123,10 @@ const authSlice = createSlice({
       state.errorRegisterExistingOrg = null;
       authService.setAuthToken(null);
       organizationService.setAuthToken(null);
-      apiService.setAuthToken(null);
-      apiService.setAuthApiToken(null);
+      apiService.setUserAuthToken(null);
+      apiService.setOrgAuthToken(null);
+      apiService.setSurveyAuthToken(null);
+      sessionManager.clearSession();
       // State will be automatically saved to localStorage by StateLoader
     },
     resetAuth: (state) => {
@@ -136,8 +139,10 @@ const authSlice = createSlice({
       state.isInitialized = false;
       authService.setAuthToken(null);
       organizationService.setAuthToken(null);
-      apiService.setAuthToken(null);
-      apiService.setAuthApiToken(null);
+      apiService.setUserAuthToken(null);
+      apiService.setOrgAuthToken(null);
+      apiService.setSurveyAuthToken(null);
+      sessionManager.clearSession();
       // State will be automatically saved to localStorage by StateLoader
     },
     clearAuthErrors: (state) => {
@@ -161,8 +166,10 @@ const authSlice = createSlice({
           state.token = action.payload.token;
           authService.setAuthToken(action.payload.token);
           organizationService.setAuthToken(action.payload.token);
-          apiService.setAuthToken(action.payload.token);
-          apiService.setAuthApiToken(action.payload.token);
+          apiService.setUserAuthToken(action.payload.token);
+          apiService.setOrgAuthToken(action.payload.token);
+          apiService.setSurveyAuthToken(action.payload.token);
+          sessionManager.setSession(action.payload.token, action.payload.user);
         }
       })
       .addCase(autoLogin.rejected, (state) => {
@@ -172,8 +179,9 @@ const authSlice = createSlice({
         state.token = null;
         authService.setAuthToken(null);
         organizationService.setAuthToken(null);
-        apiService.setAuthToken(null);
-        apiService.setAuthApiToken(null);
+        apiService.setUserAuthToken(null);
+        apiService.setOrgAuthToken(null);
+        apiService.setSurveyAuthToken(null);
       })
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
@@ -199,8 +207,13 @@ const authSlice = createSlice({
         state.token = action.payload.token;
         authService.setAuthToken(action.payload.token);
         organizationService.setAuthToken(action.payload.token);
-        apiService.setAuthToken(action.payload.token);
-        apiService.setAuthApiToken(action.payload.token);
+        apiService.setUserAuthToken(action.payload.token);
+        apiService.setOrgAuthToken(action.payload.token);
+        apiService.setSurveyAuthToken(action.payload.token);
+        sessionManager.setSession(
+          action.payload.token,
+          action.payload.user || userData
+        );
         // State will be automatically saved to localStorage by StateLoader
       })
       .addCase(loginUser.rejected, (state, action) => {
@@ -208,8 +221,9 @@ const authSlice = createSlice({
         state.errorLogin = action.payload || action.error.message;
         authService.setAuthToken(null);
         organizationService.setAuthToken(null);
-        apiService.setAuthToken(null);
-        apiService.setAuthApiToken(null);
+        apiService.setUserAuthToken(null);
+        apiService.setOrgAuthToken(null);
+        apiService.setSurveyAuthToken(null);
       })
       .addCase(registerUserForNewOrg.pending, (state) => {
         state.loading = true;
@@ -235,8 +249,13 @@ const authSlice = createSlice({
         state.token = action.payload.token;
         authService.setAuthToken(action.payload.token);
         organizationService.setAuthToken(action.payload.token);
-        apiService.setAuthToken(action.payload.token);
-        apiService.setAuthApiToken(action.payload.token);
+        apiService.setUserAuthToken(action.payload.token);
+        apiService.setOrgAuthToken(action.payload.token);
+        apiService.setSurveyAuthToken(action.payload.token);
+        sessionManager.setSession(
+          action.payload.token,
+          action.payload.user || userData
+        );
         // State will be automatically saved to localStorage by StateLoader
       })
       .addCase(registerUserForNewOrg.rejected, (state, action) => {
@@ -244,8 +263,9 @@ const authSlice = createSlice({
         state.errorRegisterNewOrg = action.payload || action.error.message;
         authService.setAuthToken(null);
         organizationService.setAuthToken(null);
-        apiService.setAuthToken(null);
-        apiService.setAuthApiToken(null);
+        apiService.setUserAuthToken(null);
+        apiService.setOrgAuthToken(null);
+        apiService.setSurveyAuthToken(null);
       })
       .addCase(registerUserForExistingOrg.pending, (state) => {
         state.loading = true;
@@ -271,8 +291,13 @@ const authSlice = createSlice({
         state.token = action.payload.token;
         authService.setAuthToken(action.payload.token);
         organizationService.setAuthToken(action.payload.token);
-        apiService.setAuthToken(action.payload.token);
-        apiService.setAuthApiToken(action.payload.token);
+        apiService.setUserAuthToken(action.payload.token);
+        apiService.setOrgAuthToken(action.payload.token);
+        apiService.setSurveyAuthToken(action.payload.token);
+        sessionManager.setSession(
+          action.payload.token,
+          action.payload.user || userData
+        );
         // State will be automatically saved to localStorage by StateLoader
       })
       .addCase(registerUserForExistingOrg.rejected, (state, action) => {
@@ -280,8 +305,9 @@ const authSlice = createSlice({
         state.errorRegisterExistingOrg = action.payload || action.error.message;
         authService.setAuthToken(null);
         organizationService.setAuthToken(null);
-        apiService.setAuthToken(null);
-        apiService.setAuthApiToken(null);
+        apiService.setUserAuthToken(null);
+        apiService.setOrgAuthToken(null);
+        apiService.setSurveyAuthToken(null);
       });
   },
 });

@@ -1,75 +1,111 @@
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:8080/api";
-const AUTH_API_URL = "http://localhost:8081/api";
+const USER_API_URL = "http://localhost:8081/api";
+const ORG_API_URL = "http://localhost:8082/api";
+const SURVEY_API_URL = "http://localhost:8083/api";
 
-// Create axios instance for main API service
-const apiClient = axios.create({
-  baseURL: API_BASE_URL,
+// Create axios instances for each microservice
+const userApiClient = axios.create({
+  baseURL: USER_API_URL,
   timeout: 10000,
 });
 
-// Create axios instance for auth API service
-const authApiClient = axios.create({
-  baseURL: AUTH_API_URL,
+const orgApiClient = axios.create({
+  baseURL: ORG_API_URL,
   timeout: 10000,
 });
 
-// Helper to set token header for main API
-const setAuthToken = (token) => {
+const surveyApiClient = axios.create({
+  baseURL: SURVEY_API_URL,
+  timeout: 10000,
+});
+
+// Helper to set token header for each client
+const setUserAuthToken = (token) => {
   if (token) {
-    apiClient.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    console.log("[apiService] Setting User API Bearer token:", token);
+    userApiClient.defaults.headers.common["Authorization"] = `Bearer ${token}`;
   } else {
-    delete apiClient.defaults.headers.common["Authorization"];
+    console.log("[apiService] Clearing User API Bearer token");
+    delete userApiClient.defaults.headers.common["Authorization"];
   }
 };
 
-// Helper to set token header for auth API
-const setAuthApiToken = (token) => {
+const setOrgAuthToken = (token) => {
   if (token) {
-    authApiClient.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    console.log("[apiService] Setting Org API Bearer token:", token);
+    orgApiClient.defaults.headers.common["Authorization"] = `Bearer ${token}`;
   } else {
-    delete authApiClient.defaults.headers.common["Authorization"];
+    console.log("[apiService] Clearing Org API Bearer token");
+    delete orgApiClient.defaults.headers.common["Authorization"];
+  }
+};
+
+const setSurveyAuthToken = (token) => {
+  if (token) {
+    console.log("[apiService] Setting Survey API Bearer token:", token);
+    surveyApiClient.defaults.headers.common[
+      "Authorization"
+    ] = `Bearer ${token}`;
+  } else {
+    console.log("[apiService] Clearing Survey API Bearer token");
+    delete surveyApiClient.defaults.headers.common["Authorization"];
   }
 };
 
 export const apiService = {
-  // Set token for future requests
-  setAuthToken,
-  setAuthApiToken,
-
-  // Organization endpoints
-  getCurrentOrganization: async () => {
-    try {
-      const response = await apiClient.get("/organizations/current");
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  getDepartments: async () => {
-    try {
-      const response = await apiClient.get("/organizations/departments");
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  getTeams: async () => {
-    try {
-      const response = await apiClient.get("/organizations/teams");
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
+  // Set tokens for future requests
+  setUserAuthToken,
+  setOrgAuthToken,
+  setSurveyAuthToken,
 
   // User endpoints
   getUsers: async () => {
     try {
-      const response = await apiClient.get("/users");
+      const response = await userApiClient.get("/users");
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+  // Role/Permission endpoints (User microservice)
+  getRoles: async () => {
+    try {
+      const response = await userApiClient.get("/roles");
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+  getPermissions: async () => {
+    try {
+      const response = await userApiClient.get("/permissions");
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Organization endpoints
+  getCurrentOrganization: async () => {
+    try {
+      const response = await orgApiClient.get("/organizations/current");
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+  getDepartments: async () => {
+    try {
+      const response = await orgApiClient.get("/departments");
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+  getTeams: async () => {
+    try {
+      const response = await orgApiClient.get("/teams");
       return response.data;
     } catch (error) {
       throw error;
@@ -79,44 +115,23 @@ export const apiService = {
   // Survey endpoints
   getSurveys: async () => {
     try {
-      const response = await apiClient.get("/survey");
+      const response = await surveyApiClient.get("/survey");
       return response.data;
     } catch (error) {
       throw error;
     }
   },
-
   getQuestions: async () => {
     try {
-      const response = await apiClient.get("/questions");
+      const response = await surveyApiClient.get("/questions");
       return response.data;
     } catch (error) {
       throw error;
     }
   },
-
   getSurveyResponses: async () => {
     try {
-      const response = await apiClient.get("/survey-response");
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  // Auth API endpoints
-  getRoles: async () => {
-    try {
-      const response = await authApiClient.get("/roles");
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  getPermissions: async () => {
-    try {
-      const response = await authApiClient.get("/permissions");
+      const response = await surveyApiClient.get("/survey-response");
       return response.data;
     } catch (error) {
       throw error;
