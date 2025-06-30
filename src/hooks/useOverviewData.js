@@ -46,7 +46,10 @@ export const useOverviewData = (currentUser) => {
   // API Functions
   const loadOrganization = async () => {
     try {
-      const data = await apiService.getCurrentOrganization();
+      if (!currentUser || !currentUser.organizationId) return;
+      const data = await apiService.getCurrentOrganization(
+        currentUser.organizationId
+      );
       setOrganizations([data]);
     } catch (err) {
       console.error("Failed to load organization:", err);

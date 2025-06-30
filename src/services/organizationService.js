@@ -38,9 +38,11 @@ export const organizationService = {
   },
 
   // Get current organization (REQUIRES AUTH)
-  getCurrentOrganization: async () => {
+  getCurrentOrganization: async (organizationId) => {
     try {
-      const response = await orgApiClient.get("/organizations/current");
+      const response = await orgApiClient.get(
+        `/organizations/${organizationId}`
+      );
       return response.data;
     } catch (error) {
       throw error;

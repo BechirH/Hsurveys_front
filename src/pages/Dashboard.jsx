@@ -81,97 +81,48 @@ const Dashboard = () => {
   const AUTH_API_URL = "http://localhost:8081/api";
   const ORG_API_URL = "http://localhost:8082/api";
 
-  // Dashboard Stats - Improved with subtle styling and better contrast
   const dashboardStats = [
     {
       title: 'Organization',
       value: organizations[0]?.name || 'Loading...',
       icon: Building2,
-      iconColor: 'text-blue-600',
-      bgColor: 'bg-blue-50',
-      borderColor: 'border-blue-200',
-      description: 'Your organization',
-      descriptionColor: 'text-blue-700'
+      color: 'bg-blue-500', // This will be used for the icon background only
+      description: 'Your organization'
     },
     {
       title: 'Departments',
       value: departments.length,
       icon: Users,
-      iconColor: 'text-slate-600',
-      bgColor: 'bg-slate-50',
-      borderColor: 'border-slate-200',
-      description: 'In your organization',
-      descriptionColor: 'text-slate-700'
+      color: 'bg-green-500',
+      description: 'In your organization'
     },
     {
       title: 'Teams',
       value: teams.length,
       icon: Users2,
-      iconColor: 'text-slate-600',
-      bgColor: 'bg-slate-50',
-      borderColor: 'border-slate-200',
-      description: 'Active teams',
-      descriptionColor: 'text-slate-700'
+      color: 'bg-purple-500',
+      description: 'Active teams'
     },
     {
-      title: 'Users',
+      title: 'Total Users',
       value: users.length,
       icon: UserCheck,
-      iconColor: 'text-emerald-600',
-      bgColor: 'bg-emerald-50',
-      borderColor: 'border-emerald-200',
-      description: 'Registered users',
-      descriptionColor: 'text-emerald-700'
+      color: 'bg-orange-500',
+      description: 'In your organization'
     },
     {
-      title: 'Surveys',
-      value: surveys.length,
+      title: 'Active Surveys',
+      value: surveys.filter(s => s.status === 'ACTIVE').length,
       icon: ClipboardList,
-      iconColor: 'text-slate-600',
-      bgColor: 'bg-slate-50',
-      borderColor: 'border-slate-200',
-      description: 'Total surveys',
-      descriptionColor: 'text-slate-700'
+      color: 'bg-indigo-500',
+      description: 'Currently running'
     },
     {
-      title: 'Roles',
-      value: roles.length,
-      icon: ShieldCheck,
-      iconColor: 'text-amber-600',
-      bgColor: 'bg-amber-50',
-      borderColor: 'border-amber-200',
-      description: 'User roles',
-      descriptionColor: 'text-amber-700'
-    },
-    {
-      title: 'Permissions',
-      value: permissions.length,
-      icon: Lock,
-      iconColor: 'text-slate-600',
-      bgColor: 'bg-slate-50',
-      borderColor: 'border-slate-200',
-      description: 'Access permissions',
-      descriptionColor: 'text-slate-700'
-    },
-    {
-      title: 'Questions',
-      value: questions.length,
-      icon: FileText,
-      iconColor: 'text-slate-600',
-      bgColor: 'bg-slate-50',
-      borderColor: 'border-slate-200',
-      description: 'Survey questions',
-      descriptionColor: 'text-slate-700'
-    },
-    {
-      title: 'Responses',
+      title: 'Survey Responses',
       value: surveyResponses.length,
       icon: BarChart3,
-      iconColor: 'text-violet-600',
-      bgColor: 'bg-violet-50',
-      borderColor: 'border-violet-200',
-      description: 'Survey responses',
-      descriptionColor: 'text-violet-700'
+      color: 'bg-pink-500',
+      description: 'Total submissions'
     }
   ];
 
@@ -226,7 +177,7 @@ const Dashboard = () => {
 
   if (!currentUser) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex-center bg-gray-50">
         <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
       </div>
     );
@@ -253,7 +204,7 @@ const Dashboard = () => {
           onCreateSurvey={onCreateSurvey}
         />;
       case "users":
-        return <UsersSection users={users} onAddUser={onAddUser} />;
+        return <UsersSection users={users} reload={reload} />;
       case "organizations":
         return <OrganizationsSection organizations={organizations} departments={departments} teams={teams} users={users} />;
       case "departments":
@@ -280,30 +231,26 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <NavBar />
-      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Admin Dashboard</h1>
+          <h1 className="section-header mb-2">Admin Dashboard</h1>
           <p className="text-gray-600">Manage your organization, users, surveys, and more</p>
         </div>
-
         {/* Error Display */}
         {error && (
-          <div className="mb-6 bg-red-100 border border-red-300 text-red-700 px-4 py-3 rounded-lg flex items-center">
+          <div className="error-box flex items-center">
             <AlertCircle className="w-5 h-5 mr-2" />
             {error}
           </div>
         )}
-
         {/* Loading State */}
         {loading && (
-          <div className="flex items-center justify-center py-12">
+          <div className="flex-center py-12">
             <Loader2 className="w-8 h-8 animate-spin text-blue-600 mr-3" />
             <span className="text-gray-600">Loading dashboard data...</span>
           </div>
         )}
-
         {/* Navigation Tabs */}
         <div className="mb-8">
           <nav className="flex space-x-8 border-b border-gray-200">
@@ -323,9 +270,8 @@ const Dashboard = () => {
             ))}
           </nav>
         </div>
-
         {/* Main Content */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div className="card-base">
           {renderContent()}
         </div>
       </div>
