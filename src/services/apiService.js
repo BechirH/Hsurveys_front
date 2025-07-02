@@ -221,4 +221,68 @@ export const apiService = {
       throw error;
     }
   },
+
+  // Assign a role to a user
+  assignRoleToUser: async (userId, roleId) => {
+    try {
+      const response = await userApiClient.post(
+        `/users/${userId}/roles/${roleId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error(
+        "[apiService] assignRoleToUser error:",
+        error.response?.status,
+        error.response?.data
+      );
+      throw error;
+    }
+  },
+
+  // Remove a role from a user
+  removeRoleFromUser: async (userId, roleId) => {
+    try {
+      const response = await userApiClient.delete(
+        `/users/${userId}/roles/${roleId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error(
+        "[apiService] removeRoleFromUser error:",
+        error.response?.status,
+        error.response?.data
+      );
+      throw error;
+    }
+  },
+
+  // Update a user
+  updateUser: async (id, userData) => {
+    try {
+      const response = await userApiClient.put(`/users/${id}`, userData);
+      return response.data;
+    } catch (error) {
+      console.error(
+        "[apiService] updateUser error:",
+        error.response?.status,
+        error.response?.data
+      );
+      throw error;
+    }
+  },
+
+  // Delete a user
+  deleteUser: async (id) => {
+    try {
+      const response = await userApiClient.delete(`/users/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error(
+        "[apiService] deleteUser error:",
+        error.response?.status,
+        error.response?.data
+      );
+      throw error;
+    }
+  },
 };

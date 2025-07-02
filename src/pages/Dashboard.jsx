@@ -204,7 +204,7 @@ const Dashboard = () => {
           onCreateSurvey={onCreateSurvey}
         />;
       case "users":
-        return <UsersSection users={users} reload={reload} />;
+        return <UsersSection users={users} reload={reload} roles={roles} departments={departments} />;
       case "organizations":
         return <OrganizationsSection organizations={organizations} departments={departments} teams={teams} users={users} />;
       case "departments":
@@ -236,6 +236,25 @@ const Dashboard = () => {
         <div className="mb-8">
           <h1 className="section-header mb-2">Admin Dashboard</h1>
           <p className="text-gray-600">Manage your organization, users, surveys, and more</p>
+          {/* Invitation Code Field */}
+          {organizations[0]?.id && (
+            <div className="mt-4 flex items-center space-x-3 bg-white border border-gray-200 rounded-lg shadow-sm p-4 w-full max-w-md">
+              <div className="flex-1">
+                <div className="text-xs text-gray-500 mb-1 font-medium">Invitation Code</div>
+                <div className="flex items-center">
+                  <span className="font-mono text-base text-gray-800 bg-gray-100 px-3 py-1 rounded select-all">{organizations[0].id}</span>
+                </div>
+              </div>
+              <button
+                onClick={() => {navigator.clipboard.writeText(organizations[0].id)}}
+                className="ml-2 p-2 rounded-lg bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-colors"
+                title="Copy invitation code"
+                type="button"
+              >
+                <ClipboardList className="w-5 h-5 text-blue-600" />
+              </button>
+            </div>
+          )}
         </div>
         {/* Error Display */}
         {error && (
