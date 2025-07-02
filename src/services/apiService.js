@@ -1,8 +1,8 @@
 import axios from "axios";
 
-const USER_API_URL = "http://localhost:8081/api";
-const ORG_API_URL = "http://localhost:8082/api";
-const SURVEY_API_URL = "http://localhost:8083/api";
+const USER_API_URL = "http://46.62.136.95:8081/api";
+const ORG_API_URL = "http://46.62.136.95:8082/api";
+const SURVEY_API_URL = "http://46.62.136.95:8083/api";
 
 // Create axios instances for each microservice
 const userApiClient = axios.create({
