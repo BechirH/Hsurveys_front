@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const ORG_API_BASE_URL = "http://localhost:8082/api";
+const ORG_API_BASE_URL = "http://46.62.136.95:8082/api";
 
 // Create axios instance for organization service
 const orgApiClient = axios.create({
