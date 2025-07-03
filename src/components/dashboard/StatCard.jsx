@@ -1,17 +1,18 @@
 import React from "react";
-const StatCard = ({ title, value, icon: Icon, color, description }) => (
-  <div className="card-base hover:shadow-md transition-shadow duration-200">
-    <div className="flex-between mb-3">
-      <div className={`${color} p-3 rounded-lg`}>
+
+const StatCard = ({ title, value, icon: Icon, color, bgColor, description }) => (
+  <div className={`${bgColor} rounded-2xl p-6 border border-gray-200 hover:shadow-lg transition-shadow duration-300`}>
+    <div className="flex items-center justify-between mb-4">
+      <div className={`bg-gradient-to-r ${color} p-3 rounded-xl shadow-lg`}>
         <Icon className="w-6 h-6 text-white" />
       </div>
-      <div className="text-right">
-        <p className="text-2xl font-bold text-gray-900">{value}</p>
-        <p className="text-sm font-medium text-gray-600">{title}</p>
-      </div>
     </div>
-    <p className="text-xs text-gray-500">{description}</p>
+    <div>
+      <p className="text-sm font-medium text-gray-600 mb-1">{title}</p>
+      <p className="text-2xl font-bold text-gray-900 mb-1">{value}</p>
+      <p className="text-xs text-gray-500">{description}</p>
+    </div>
   </div>
 );
 
-export default StatCard; 
+export default StatCard;

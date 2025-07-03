@@ -271,6 +271,24 @@ export const apiService = {
     }
   },
 
+  // Update an organization
+  updateOrganization: async (id, organizationData) => {
+    try {
+      const response = await orgApiClient.put(
+        `/organizations/${id}`,
+        organizationData
+      );
+      return response.data;
+    } catch (error) {
+      console.error(
+        "[apiService] updateOrganization error:",
+        error.response?.status,
+        error.response?.data
+      );
+      throw error;
+    }
+  },
+
   // Delete a user
   deleteUser: async (id) => {
     try {
