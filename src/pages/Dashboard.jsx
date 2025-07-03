@@ -78,12 +78,7 @@ const Dashboard = () => {
   // State management
   const [activeTab, setActiveTab] = useState("overview");
   const [copiedCode, setCopiedCode] = useState(false);
-  
-  // API Base URLs
-  const API_BASE_URL = "http://localhost:8080/api";
-  const AUTH_API_URL = "http://localhost:8081/api";
-  const ORG_API_URL = "http://localhost:8082/api";
-
+ 
   const dashboardStats = [
     {
       title: 'Organization',
@@ -174,11 +169,7 @@ const Dashboard = () => {
     alert('Create Survey clicked!');
   };
 
-  const onAddUser = () => {
-    // TODO: Implement add user modal or navigation
-    alert('Add User clicked!');
-  };
-
+ 
   const onCreateDepartment = () => {
     // TODO: Implement create department modal or navigation
     alert('Create Department clicked!');
@@ -230,7 +221,7 @@ const Dashboard = () => {
       case "users":
         return <UsersSection users={users} reload={reload} roles={roles} departments={departments} />;
       case "organizations":
-        return <OrganizationsSection organizations={organizations} departments={departments} teams={teams} users={users} />;
+        return <OrganizationsSection organizations={organizations} departments={departments} teams={teams} users={users} reload={reload} />;
       case "departments":
         return <DepartmentsSection departments={departments} teams={teams} users={users} onCreateDepartment={onCreateDepartment} />;
       case "teams":
@@ -238,7 +229,15 @@ const Dashboard = () => {
       case "roles":
         return <RolesSection roles={roles} permissions={permissions} onCreateRole={onCreateRole} />;
       default:
-        return <OverviewSection stats={dashboardStats} />;
+        return <OverviewSection
+          stats={dashboardStats}
+          organizations={organizations}
+          surveys={surveys}
+          users={users}
+          getStatusColor={getStatusColor}
+          getSurveyTypeColor={getSurveyTypeColor}
+          setActiveTab={setActiveTab}
+        />;
     }
   };
 
@@ -269,49 +268,43 @@ const Dashboard = () => {
               </p>
             </div>
             
-            {/* Quick Actions */}
-            <div className="flex items-center space-x-3 mt-4 lg:mt-0">
-              <button className="flex items-center space-x-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-2 rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl">
-                <Plus className="w-4 h-4" />
-                <span className="font-medium">Quick Action</span>
-              </button>
+            {/* Settings Button */}
+            <div className="mt-4 lg:mt-0">
               <button className="p-2 text-gray-500 hover:text-gray-700 hover:bg-white rounded-xl transition-all duration-200 border border-gray-200 hover:shadow-md">
                 <Settings className="w-5 h-5" />
               </button>
             </div>
           </div>
 
-          {/* Invitation Code Card */}
+          {/* Invitation Code Card - Compact */}
           {organizations[0]?.id && (
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300 max-w-md">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <div className="bg-gradient-to-br from-purple-600 to-indigo-600 p-1.5 rounded-lg">
-                      <Globe className="w-4 h-4 text-white" />
-                    </div>
-                    <h3 className="text-sm font-semibold text-gray-800">Invitation Code</h3>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <code className="font-mono text-lg font-semibold text-gray-800 bg-gradient-to-r from-gray-100 to-gray-200 px-4 py-2 rounded-xl select-all border">
+            <div className="bg-white rounded-xl shadow-md border border-gray-200 p-4 hover:shadow-lg transition-shadow duration-300 max-w-sm">
+              <div className="flex items-center space-x-3">
+                <div className="bg-gradient-to-br from-purple-600 to-indigo-600 p-1.5 rounded-lg flex-shrink-0">
+                  <Globe className="w-4 h-4 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-sm font-medium text-gray-800 mb-1">Invitation Code</h3>
+                  <div className="flex items-center space-x-2">
+                    <code className="font-mono text-sm font-semibold text-gray-800 bg-gray-100 px-2 py-1 rounded border break-all">
                       {organizations[0].id}
                     </code>
                     <button
                       onClick={handleCopyInvitationCode}
-                      className="flex items-center justify-center p-2 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 border border-blue-200 transition-all duration-200 hover:shadow-md"
+                      className="flex items-center justify-center p-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-all duration-200 flex-shrink-0"
                       title="Copy invitation code"
                     >
                       {copiedCode ? (
-                        <Check className="w-5 h-5 text-green-600" />
+                        <Check className="w-4 h-4 text-green-600" />
                       ) : (
-                        <Copy className="w-5 h-5 text-blue-600" />
+                        <Copy className="w-4 h-4 text-blue-600" />
                       )}
                     </button>
                   </div>
                 </div>
               </div>
-              <p className="text-xs text-gray-500 mt-3 font-medium">
-                Share this code with new members to join your organization
+              <p className="text-xs text-gray-500 mt-2">
+                Share this code with new members
               </p>
             </div>
           )}
