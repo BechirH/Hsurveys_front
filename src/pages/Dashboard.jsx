@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../redux/slices/authSlice';
 import NavBar from '../components/common/NavBar';
+import DashboardLoading from '../components/common/DashboardLoading';
 import { apiService } from '../services/apiService';
 import {
   Users,
@@ -186,16 +187,7 @@ const Dashboard = () => {
   };
 
   if (!currentUser) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="text-center">
-          <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-200">
-            <Loader2 className="w-8 h-8 animate-spin text-purple-600 mx-auto mb-4" />
-            <p className="text-gray-600 font-medium">Loading your dashboard...</p>
-          </div>
-        </div>
-      </div>
-    );
+    return <DashboardLoading message="Loading your dashboard..." />;
   }
 
   const renderContent = () => {
@@ -326,19 +318,7 @@ const Dashboard = () => {
         )}
 
         {/* Loading State */}
-        {loading && (
-          <div className="flex items-center justify-center py-16">
-            <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-200">
-              <div className="flex items-center space-x-4">
-                <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
-                <div>
-                  <h3 className="font-semibold text-gray-800">Loading Dashboard</h3>
-                  <p className="text-gray-600 text-sm">Fetching your data...</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        {loading && <DashboardLoading message="Loading Dashboard Data..." />}
 
         {/* Navigation Tabs */}
         <div className="mb-8">
