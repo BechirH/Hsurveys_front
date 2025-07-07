@@ -28,8 +28,6 @@ const NavBar = () => {
     setIsUserMenuOpen(false);
   };
 
-
-
   return (
     <nav className="bg-white shadow-lg border-b border-gray-200 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -46,8 +44,6 @@ const NavBar = () => {
               <p className="text-xs text-gray-500 font-medium">Welcome back, {user?.username}!</p>
             </div>
           </div>
-
-
 
           {/* Right Side Actions */}
           <div className="flex items-center space-x-3">
@@ -123,8 +119,6 @@ const NavBar = () => {
             </button>
           </div>
         </div>
-
-
       </div>
 
       {/* Backdrop for mobile menu */}
