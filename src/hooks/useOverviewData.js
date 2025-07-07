@@ -18,7 +18,6 @@ export const useOverviewData = (currentUser) => {
     if (currentUser) {
       loadDashboardData();
     }
-    // eslint-disable-next-line
   }, [currentUser]);
 
   const loadDashboardData = async () => {
