@@ -5,6 +5,8 @@ import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../redux/slices/authSlice';
 import NavBar from '../components/common/NavBar';
 import { apiService } from '../services/apiService';
+import QuestionsSection from '../components/dashboard/QuestionSection';
+
 import {
   Users,
   Building2,
@@ -76,10 +78,7 @@ const Dashboard = () => {
   // State management
   const [activeTab, setActiveTab] = useState("overview");
   
-  // API Base URLs
-  const API_BASE_URL = "http://localhost:8080/api";
-  const AUTH_API_URL = "http://localhost:8081/api";
-  const ORG_API_URL = "http://localhost:8082/api";
+
 
   const dashboardStats = [
     {
@@ -203,6 +202,13 @@ const Dashboard = () => {
           formatDate={formatDate}
           onCreateSurvey={onCreateSurvey}
         />;
+      case "questions":
+        return (
+        <QuestionsSection
+        questions={questions}
+        reload={reload} 
+        />
+      );
       case "users":
         return <UsersSection users={users} reload={reload} />;
       case "organizations":
@@ -221,6 +227,7 @@ const Dashboard = () => {
   const tabs = [
     { id: 'overview', name: 'Overview', icon: Home },
     { id: 'surveys', name: 'Surveys', icon: ClipboardList },
+    { id: 'questions', name: 'Questions', icon: ClipboardList },
     { id: 'users', name: 'Users', icon: Users },
     { id: 'organizations', name: 'Organization', icon: Building2 },
     { id: 'departments', name: 'Departments', icon: Users2 },
