@@ -181,9 +181,50 @@ const Dashboard = () => {
     alert('Create Team clicked!');
   };
 
-  const onCreateRole = () => {
-    // TODO: Implement create role modal or navigation
-    alert('Create Role clicked!');
+  const onCreateRole = async (roleData) => {
+    try {
+      // Create the role first
+      const createdRole = await apiService.createRole({
+        name: roleData.name,
+        description: roleData.description
+      });
+
+      // Add permissions to the role
+      for (const permissionId of roleData.permissions) {
+        await apiService.addPermissionToRole(createdRole.id, permissionId);
+      }
+
+      console.log('Role created successfully:', createdRole);
+      reload && reload(); // Refresh the data
+    } catch (error) {
+      console.error('Error creating role:', error);
+      alert(`Failed to create role: ${error.response?.data?.message || error.message}`);
+    }
+  };
+
+  const onEditRole = async (roleData) => {
+    try {
+      // Note: Edit role name/description is not implemented yet
+      console.log('Editing role:', roleData);
+      alert('Edit role name and description is not implemented yet. Only permissions can be managed.');
+      
+      // For now, we can only manage permissions
+      // This would need to be implemented when the backend supports it
+    } catch (error) {
+      console.error('Error editing role:', error);
+      alert(`Failed to edit role: ${error.response?.data?.message || error.message}`);
+    }
+  };
+
+  const onDeleteRole = async (roleId) => {
+    try {
+      await apiService.deleteRole(roleId);
+      console.log('Role deleted successfully');
+      reload && reload(); // Refresh the data
+    } catch (error) {
+      console.error('Error deleting role:', error);
+      alert(`Failed to delete role: ${error.response?.data?.message || error.message}`);
+    }
   };
 
   if (!currentUser) {
@@ -219,7 +260,13 @@ const Dashboard = () => {
       case "teams":
         return <TeamsSection teams={teams} departments={departments} users={users} onCreateTeam={onCreateTeam} />;
       case "roles":
-        return <RolesSection roles={roles} permissions={permissions} onCreateRole={onCreateRole} />;
+        return <RolesSection 
+          roles={roles} 
+          permissions={permissions} 
+          onCreateRole={onCreateRole}
+          onEditRole={onEditRole}
+          onDeleteRole={onDeleteRole}
+        />;
       default:
         return <OverviewSection
           stats={dashboardStats}
@@ -240,7 +287,7 @@ const Dashboard = () => {
     { id: 'organizations', name: 'Organization', icon: Building2 },
     { id: 'departments', name: 'Departments', icon: Users2 },
     { id: 'teams', name: 'Teams', icon: Target },
-    { id: 'roles', name: 'Roles & Permissions', icon: Shield }
+    { id: 'roles', name: 'Roles', icon: Shield }
   ];
 
   return (

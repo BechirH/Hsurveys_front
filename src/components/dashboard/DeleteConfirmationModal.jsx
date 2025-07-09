@@ -1,9 +1,58 @@
 import React from 'react';
 import { X, Trash2, AlertTriangle } from 'lucide-react';
 
-const DeleteConfirmationModal = ({ open, onClose, onConfirm, loading, user }) => {
-  if (!open || !user) return null;
-  
+const DeleteConfirmationModal = ({ 
+  open, 
+  onClose, 
+  onConfirm, 
+  loading, 
+  entity, 
+  entityType = 'user',
+  title,
+  description,
+  warningItems = [],
+  entityDisplay
+}) => {
+  if (!open || !entity) return null;
+
+  // Default configurations for different entity types
+  const getEntityConfig = (type) => {
+    const configs = {
+      user: {
+        title: 'Delete User',
+        description: 'This action cannot be undone',
+        warningItems: [
+          'Remove all user data and permissions',
+          'Revoke access to all systems',
+          'Cannot be recovered once deleted'
+        ],
+        entityDisplay: (user) => ({
+          avatar: user.username?.charAt(0).toUpperCase(),
+          name: user.username,
+          subtitle: user.email
+        })
+      },
+      role: {
+        title: 'Delete Role',
+        description: 'This action cannot be undone',
+        warningItems: [
+          'Remove role and all its permissions',
+          'Users with this role will lose access',
+          'Cannot be recovered once deleted'
+        ],
+        entityDisplay: (role) => ({
+          avatar: role.name?.charAt(0).toUpperCase(),
+          name: role.name,
+          subtitle: role.description
+        })
+      }
+    };
+    return configs[type] || configs.user;
+  };
+
+  const config = getEntityConfig(entityType);
+  const display = entityDisplay ? entityDisplay(entity) : config.entityDisplay(entity);
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
       <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md relative transform transition-all duration-300 scale-100 animate-slide-up border border-gray-100">
@@ -20,8 +69,8 @@ const DeleteConfirmationModal = ({ open, onClose, onConfirm, loading, user }) =>
             <Trash2 className="w-7 h-7 text-white" />
           </div>
           <div>
-            <h3 className="text-2xl font-bold text-gray-800">Delete User</h3>
-            <p className="text-gray-600 mt-1">This action cannot be undone</p>
+            <h3 className="text-2xl font-bold text-gray-800">{title || config.title}</h3>
+            <p className="text-gray-600 mt-1">{description || config.description}</p>
           </div>
         </div>
 
@@ -34,38 +83,37 @@ const DeleteConfirmationModal = ({ open, onClose, onConfirm, loading, user }) =>
             <div>
               <h4 className="font-semibold text-red-800 mb-2">Permanent Deletion Warning</h4>
               <p className="text-red-700 text-sm mb-3">
-                You are about to permanently delete the user account for{' '}
-                <span className="font-semibold">{user.username}</span>. This will:
+                You are about to permanently delete{' '}
+                <span className="font-semibold">{display.name}</span>. This will:
               </p>
               <ul className="text-red-700 text-sm space-y-1 ml-4">
-                <li className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
-                  Remove all user data and permissions
-                </li>
-                <li className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
-                  Revoke access to all systems
-                </li>
-                <li className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
-                  Cannot be recovered once deleted
-                </li>
+                {warningItems.length > 0 ? warningItems.map((item, index) => (
+                  <li key={index} className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
+                    {item}
+                  </li>
+                )) : config.warningItems.map((item, index) => (
+                  <li key={index} className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
+                    {item}
+                  </li>
+                ))}
               </ul>
             </div>
           </div>
         </div>
 
-        {/* User Info Card */}
+        {/* Entity Info Card */}
         <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
               <span className="text-white text-sm font-semibold">
-                {user.username?.charAt(0).toUpperCase()}
+                {display.avatar}
               </span>
             </div>
             <div>
-              <div className="font-semibold text-gray-800">{user.username}</div>
-              <div className="text-sm text-gray-600">{user.email}</div>
+              <div className="font-semibold text-gray-800">{display.name}</div>
+              <div className="text-sm text-gray-600">{display.subtitle}</div>
             </div>
           </div>
         </div>
@@ -94,7 +142,7 @@ const DeleteConfirmationModal = ({ open, onClose, onConfirm, loading, user }) =>
             ) : (
               <>
                 <Trash2 className="w-5 h-5" />
-                Delete User
+                Delete {entityType.charAt(0).toUpperCase() + entityType.slice(1)}
               </>
             )}
           </button>

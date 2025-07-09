@@ -4,7 +4,7 @@ const USER_API_URL = "http://localhost:8081/api";
 const ORG_API_URL = "http://localhost:8082/api";
 const SURVEY_API_URL = "http://localhost:8083/api";
 
-// Create axios instances for each microservice
+
 const userApiClient = axios.create({
   baseURL: USER_API_URL,
   timeout: 10000,
@@ -20,7 +20,7 @@ const surveyApiClient = axios.create({
   timeout: 10000,
 });
 
-// Add request interceptors to log headers
+
 userApiClient.interceptors.request.use(
   (config) => {
     return config;
@@ -81,7 +81,7 @@ export const apiService = {
   setOrgAuthToken,
   setSurveyAuthToken,
 
-  // User endpoints
+
   getUsers: async () => {
     try {
       const response = await userApiClient.get("/users");
@@ -110,7 +110,7 @@ export const apiService = {
     }
   },
 
-  // Role/Permission endpoints (User microservice)
+ 
   getRoles: async () => {
     try {
       const response = await userApiClient.get("/roles");
@@ -132,6 +132,70 @@ export const apiService = {
     } catch (error) {
       console.error(
         "[apiService] getPermissions error:",
+        error.response?.status,
+        error.response?.data
+      );
+      throw error;
+    }
+  },
+
+  // Create a new role
+  createRole: async (roleData) => {
+    try {
+      const response = await userApiClient.post("/roles", roleData);
+      return response.data;
+    } catch (error) {
+      console.error(
+        "[apiService] createRole error:",
+        error.response?.status,
+        error.response?.data
+      );
+      throw error;
+    }
+  },
+
+  // Add permission to a role
+  addPermissionToRole: async (roleId, permissionId) => {
+    try {
+      const response = await userApiClient.post(
+        `/roles/${roleId}/permissions/${permissionId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error(
+        "[apiService] addPermissionToRole error:",
+        error.response?.status,
+        error.response?.data
+      );
+      throw error;
+    }
+  },
+
+  // Remove permission from a role
+  removePermissionFromRole: async (roleId, permissionId) => {
+    try {
+      const response = await userApiClient.delete(
+        `/roles/${roleId}/permissions/${permissionId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error(
+        "[apiService] removePermissionFromRole error:",
+        error.response?.status,
+        error.response?.data
+      );
+      throw error;
+    }
+  },
+
+  // Delete a role
+  deleteRole: async (roleId) => {
+    try {
+      const response = await userApiClient.delete(`/roles/${roleId}`);
+      return response.data;
+    } catch (error) {
+      console.error(
+        "[apiService] deleteRole error:",
         error.response?.status,
         error.response?.data
       );
