@@ -70,4 +70,13 @@ export const surveyService = {
       throw error;
     }
   },
+  assignQuestionToSurvey: async (surveyId, questionId) => {
+  try {
+    // Exemple POST pour assigner une question au survey
+    const response = await surveyApiClient.post(`/survey/${surveyId}/question/${questionId}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+},
 };

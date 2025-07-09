@@ -6,7 +6,7 @@ import Button from "../common/Button";
 const SURVEY_STATUSES = ["DRAFT", "ACTIVE", "CLOSED"];
 const SURVEY_TYPES = ["FEEDBACK", "EXAM"];
 
-const SurveyForm = ({ form, setForm, onSubmit, loading, error }) => {
+const SurveyForm = ({ form, setForm, onSubmit, loading, error}) => {
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setForm((prev) => ({
@@ -90,14 +90,17 @@ const SurveyForm = ({ form, setForm, onSubmit, loading, error }) => {
           className="mr-2"
           disabled={loading}
         />
-        <label htmlFor="locked" className="font-semibold">Verrouiller ce sondage</label>
+        <label htmlFor="locked" className="font-semibold">lock the survey</label>
       </div>
 
       {error && <p className="text-red-600 mb-3">{error}</p>}
 
-      <Button type="submit" loading={loading} fullWidth disabled={loading}>
-        Créer et ajouter des questions
-      </Button>
+      <div className="flex justify-center gap-4">
+  <Button type="submit" loading={loading} disabled={loading} className="w-40 text-center justify-center">
+    Submit
+  </Button>
+
+</div>
     </form>
   );
 };
