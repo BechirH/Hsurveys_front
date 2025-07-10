@@ -2,13 +2,13 @@ import axios from "axios";
 
 const SURVEY_API_BASE_URL = "http://46.62.136.95:8083/api";
 
-// Axios instance pour les appels nécessitant authentification
+// Instance Axios
 const surveyApiClient = axios.create({
   baseURL: SURVEY_API_BASE_URL,
   timeout: 10000,
 });
 
-// Helper pour gérer le token dans les headers Authorization
+// Auth : Ajoute ou supprime le token dans les headers
 const setSurveyAuthToken = (token) => {
   if (token) {
     surveyApiClient.defaults.headers.common["Authorization"] = `Bearer ${token}`;
@@ -18,10 +18,10 @@ const setSurveyAuthToken = (token) => {
 };
 
 export const surveyService = {
-  // Définir le token d'authentification (à appeler dès que token dispo)
+  // Auth
   setSurveyAuthToken,
 
-  // Récupérer tous les sondages (GET /api/survey)
+  // Récupérer tous les surveys
   getAllSurveys: async () => {
     try {
       const response = await surveyApiClient.get("/survey");
@@ -31,7 +31,7 @@ export const surveyService = {
     }
   },
 
-  // Créer un nouveau sondage (POST /api/survey)
+  // Créer un survey
   createSurvey: async (surveyData) => {
     try {
       const response = await surveyApiClient.post("/survey", surveyData);
@@ -41,7 +41,7 @@ export const surveyService = {
     }
   },
 
-  // Récupérer un sondage par ID (GET /api/survey/{id})
+  // Récupérer un survey par ID
   getSurveyById: async (surveyId) => {
     try {
       const response = await surveyApiClient.get(`/survey/${surveyId}`);
@@ -51,7 +51,7 @@ export const surveyService = {
     }
   },
 
-  // Mettre à jour un sondage (PUT /api/survey/{id})
+  // Mettre à jour un survey
   updateSurvey: async (surveyId, surveyData) => {
     try {
       const response = await surveyApiClient.put(`/survey/${surveyId}`, surveyData);
@@ -61,7 +61,7 @@ export const surveyService = {
     }
   },
 
-  // Supprimer un sondage (DELETE /api/survey/{id})
+  // Supprimer un survey
   deleteSurvey: async (surveyId) => {
     try {
       const response = await surveyApiClient.delete(`/survey/${surveyId}`);
@@ -70,13 +70,25 @@ export const surveyService = {
       throw error;
     }
   },
+
+  // Assigner une question à un survey
   assignQuestionToSurvey: async (surveyId, questionId) => {
-  try {
-    // Exemple POST pour assigner une question au survey
-    const response = await surveyApiClient.post(`/survey/${surveyId}/question/${questionId}`);
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
-},
+    try {
+      const response = await surveyApiClient.post(`/survey/${surveyId}/question/${questionId}`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // ❌ Détacher une question d'un survey
+  unassignQuestionFromSurvey: async (surveyId, questionId) => {
+    try {
+      const response = await surveyApiClient.delete(`/survey/${surveyId}/question/${questionId}`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 };
+
