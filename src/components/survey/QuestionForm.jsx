@@ -13,13 +13,15 @@ const QUESTION_TYPES = [
 ];
 
 const QuestionForm = ({ onSubmit, loading, error }) => {
-  const [form, setForm] = useState({
+  const initialForm = {
     subject: "",
     questionText: "",
     questionType: QUESTION_TYPES[0],
     locked: false,
     options: [],
-  });
+  };
+
+  const [form, setForm] = useState(initialForm);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -34,12 +36,7 @@ const QuestionForm = ({ onSubmit, loading, error }) => {
       ...prev,
       options: [
         ...prev.options,
-        {
-          optionText: "",
-          optionScore: 0,
-          isCorrect: false,
-          isLocked: false,
-        },
+        { optionText: "", optionScore: 0, isCorrect: false, isLocked: false },
       ],
     }));
   };
@@ -59,9 +56,10 @@ const QuestionForm = ({ onSubmit, loading, error }) => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSubmit(form);
+    await onSubmit(form); // attend que la soumission soit terminée
+    setForm(initialForm); // ✅ reset le formulaire après succès
   };
 
   return (
@@ -118,70 +116,70 @@ const QuestionForm = ({ onSubmit, loading, error }) => {
       </div>
 
       {form.questionType !== "FREE_TEXT" && (
-  <div className="mt-4 space-y-2">
-    <div className="flex justify-between items-center">
-      <h4 className="font-semibold text-gray-700">Options</h4>
-      <Button
-        type="button"
-        onClick={handleAddOption}
-        variant="primary"
-        disabled={loading}
-      >
-        Ajouter une option
-      </Button>
-    </div>
+        <div className="mt-4 space-y-2">
+          <div className="flex justify-between items-center">
+            <h4 className="font-semibold text-gray-700">Options</h4>
+            <Button
+              type="button"
+              onClick={handleAddOption}
+              variant="primary"
+              disabled={loading}
+            >
+              Ajouter une option
+            </Button>
+          </div>
 
-    {form.options.map((option, index) => (
-  <div key={index} className="flex space-x-4 items-center">
-    <input
-      type="text"
-      placeholder="Option text"
-      value={option.optionText}
-      onChange={(e) =>
-        handleOptionChange(index, "optionText", e.target.value)
-      }
-      className="input-base flex-grow"  // prend tout l'espace possible sauf celui du score
-    />
-    <input
-      type="number"
-      placeholder="Score"
-      value={option.optionScore}
-      onChange={(e) =>
-        handleOptionChange(index, "optionScore", Number(e.target.value))
-      }
-      className="input-base w-10"  
-    />
-    <label className="text-sm flex items-center space-x-1">
-      <input
-        type="checkbox"
-        checked={option.isCorrect}
-        onChange={(e) =>
-          handleOptionChange(index, "isCorrect", e.target.checked)
-        }
-      />
-      <span>Correct</span>
-    </label>
-    <button
-  type="button"
-  onClick={() => handleRemoveOption(index)}
-  className="text-red-600 hover:text-red-800 text-lg font-bold px-1"
-  aria-label="Supprimer option"
-  title="Delete"  
->
-  &times;
-</button>
-  </div>
-))}
-  </div>
-)}
+          {form.options.map((option, index) => (
+            <div key={index} className="flex space-x-4 items-center">
+              <input
+                type="text"
+                placeholder="Option text"
+                value={option.optionText}
+                onChange={(e) =>
+                  handleOptionChange(index, "optionText", e.target.value)
+                }
+                className="input-base flex-grow"
+              />
+              <input
+                type="number"
+                placeholder="Score"
+                value={option.optionScore}
+                onChange={(e) =>
+                  handleOptionChange(index, "optionScore", Number(e.target.value))
+                }
+                className="input-base w-10"
+              />
+              <label className="text-sm flex items-center space-x-1">
+                <input
+                  type="checkbox"
+                  checked={option.isCorrect}
+                  onChange={(e) =>
+                    handleOptionChange(index, "isCorrect", e.target.checked)
+                  }
+                />
+                <span>Correct</span>
+              </label>
+              <button
+                type="button"
+                onClick={() => handleRemoveOption(index)}
+                className="text-red-600 hover:text-red-800 text-lg font-bold px-1"
+                aria-label="Supprimer option"
+                title="Delete"
+              >
+                &times;
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
 
       {error && <p className="text-red-600 mb-3">{error}</p>}
 
       <div className="mt-6">
-  <Button type="submit" loading={loading} fullWidth disabled={loading}>
-    Créer la question
-  </Button>
-</div>
+        <Button type="submit" loading={loading} fullWidth disabled={loading}>
+          Créer la question
+        </Button>
+      </div>
     </form>
   );
 };
