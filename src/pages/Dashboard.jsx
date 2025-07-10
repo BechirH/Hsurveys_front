@@ -267,39 +267,6 @@ const Dashboard = () => {
               </button>
             </div>
           </div>
-
-          {/* Invitation Code Card - Compact */}
-          {organizations[0]?.id && (
-            <div className="bg-white rounded-xl shadow-md border border-gray-200 p-4 hover:shadow-lg transition-shadow duration-300 max-w-sm">
-              <div className="flex items-center space-x-3">
-                <div className="bg-gradient-to-br from-purple-600 to-indigo-600 p-1.5 rounded-lg flex-shrink-0">
-                  <Globe className="w-4 h-4 text-white" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-sm font-medium text-gray-800 mb-1">Invitation Code</h3>
-                  <div className="flex items-center space-x-2">
-                    <code className="font-mono text-sm font-semibold text-gray-800 bg-gray-100 px-2 py-1 rounded border break-all">
-                      {organizations[0].id}
-                    </code>
-                    <button
-                      onClick={handleCopyInvitationCode}
-                      className="flex items-center justify-center p-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-all duration-200 flex-shrink-0"
-                      title="Copy invitation code"
-                    >
-                      {copiedCode ? (
-                        <Check className="w-4 h-4 text-green-600" />
-                      ) : (
-                        <Copy className="w-4 h-4 text-blue-600" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <p className="text-xs text-gray-500 mt-2">
-                Share this code with new members
-              </p>
-            </div>
-          )}
         </div>
 
         {/* Error Display */}

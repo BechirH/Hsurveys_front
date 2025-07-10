@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Building2, Edit, Users, GitBranch, Building, BarChart3, Settings } from "lucide-react";
 import EditOrganizationModal from './EditOrganizationModal';
-
+import InvitationCodeCard from "./InvitationCodeCard"; // ✅ make sure it's imported
 const OrganizationsSection = ({ organizations, departments, teams, users, reload }) => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedOrganization, setSelectedOrganization] = useState(null);
@@ -34,10 +34,12 @@ const OrganizationsSection = ({ organizations, departments, teams, users, reload
               <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
                 <Building2 className="w-6 h-6 text-white" />
               </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-800">{org.name}</h1>
-                <p className="text-sm text-gray-600">Organization ID: {org.id}</p>
-              </div>
+              
+  <div>
+  <h1 className="text-2xl font-bold text-gray-800">{org?.name}</h1>
+  <InvitationCodeCard orgId={org?.id} /> {/* ✅ replaced the org ID line */}
+</div>
+
             </div>
             <button 
               onClick={() => handleEditOrganization(org)}
