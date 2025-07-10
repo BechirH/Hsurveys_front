@@ -4,8 +4,9 @@ import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../redux/slices/authSlice';
 import NavBar from '../components/common/NavBar';
-import DashboardLoading from '../components/common/DashboardLoading';
 import { apiService } from '../services/apiService';
+import QuestionsSection from '../components/dashboard/QuestionSection';
+
 import {
   Users,
   Building2,
@@ -41,9 +42,7 @@ import {
   Unlock,
   CheckCircle,
   Clock,
-  AlertTriangle,
-  Copy,
-  Check
+  AlertTriangle
 } from "lucide-react";
 import OverviewSection from '../components/dashboard/OverviewSection';
 import { useOverviewData } from '../hooks/useOverviewData';
@@ -78,55 +77,50 @@ const Dashboard = () => {
 
   // State management
   const [activeTab, setActiveTab] = useState("overview");
-  const [copiedCode, setCopiedCode] = useState(false);
- 
+  
+
+
   const dashboardStats = [
     {
       title: 'Organization',
       value: organizations[0]?.name || 'Loading...',
       icon: Building2,
-      color: 'from-blue-500 to-blue-600',
-      bgColor: 'bg-blue-50',
+      color: 'bg-blue-500', // This will be used for the icon background only
       description: 'Your organization'
     },
     {
       title: 'Departments',
       value: departments.length,
       icon: Users,
-      color: 'from-emerald-500 to-emerald-600',
-      bgColor: 'bg-emerald-50',
+      color: 'bg-green-500',
       description: 'In your organization'
     },
     {
       title: 'Teams',
       value: teams.length,
       icon: Users2,
-      color: 'from-purple-500 to-purple-600',
-      bgColor: 'bg-purple-50',
+      color: 'bg-purple-500',
       description: 'Active teams'
     },
     {
       title: 'Total Users',
       value: users.length,
       icon: UserCheck,
-      color: 'from-orange-500 to-orange-600',
-      bgColor: 'bg-orange-50',
+      color: 'bg-orange-500',
       description: 'In your organization'
     },
     {
       title: 'Active Surveys',
       value: surveys.filter(s => s.status === 'ACTIVE').length,
       icon: ClipboardList,
-      color: 'from-indigo-500 to-indigo-600',
-      bgColor: 'bg-indigo-50',
+      color: 'bg-indigo-500',
       description: 'Currently running'
     },
     {
       title: 'Survey Responses',
       value: surveyResponses.length,
       icon: BarChart3,
-      color: 'from-pink-500 to-pink-600',
-      bgColor: 'bg-pink-50',
+      color: 'bg-pink-500',
       description: 'Total submissions'
     }
   ];
@@ -134,20 +128,20 @@ const Dashboard = () => {
   // Helper functions
   const getStatusColor = (status) => {
     switch (status) {
-      case 'ACTIVE': return 'bg-emerald-100 text-emerald-800 border border-emerald-200';
-      case 'DRAFT': return 'bg-yellow-100 text-yellow-800 border border-yellow-200';
-      case 'COMPLETED': return 'bg-blue-100 text-blue-800 border border-blue-200';
-      case 'LOCKED': return 'bg-red-100 text-red-800 border border-red-200';
-      default: return 'bg-gray-100 text-gray-800 border border-gray-200';
+      case 'ACTIVE': return 'bg-green-100 text-green-800';
+      case 'DRAFT': return 'bg-yellow-100 text-yellow-800';
+      case 'COMPLETED': return 'bg-blue-100 text-blue-800';
+      case 'LOCKED': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
   const getSurveyTypeColor = (type) => {
     switch (type) {
-      case 'FEEDBACK': return 'bg-blue-100 text-blue-800 border border-blue-200';
-      case 'EXAM': return 'bg-purple-100 text-purple-800 border border-purple-200';
-      case 'ASSESSMENT': return 'bg-emerald-100 text-emerald-800 border border-emerald-200';
-      default: return 'bg-gray-100 text-gray-800 border border-gray-200';
+      case 'FEEDBACK': return 'bg-blue-100 text-blue-800';
+      case 'EXAM': return 'bg-purple-100 text-purple-800';
+      case 'ASSESSMENT': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -155,22 +149,16 @@ const Dashboard = () => {
     return new Date(dateString).toLocaleDateString();
   };
 
-  const handleCopyInvitationCode = async () => {
-    try {
-      await navigator.clipboard.writeText(organizations[0].id);
-      setCopiedCode(true);
-      setTimeout(() => setCopiedCode(false), 2000);
-    } catch (err) {
-      console.error('Failed to copy invitation code:', err);
-    }
-  };
-
   const onCreateSurvey = () => {
     // TODO: Implement survey creation modal or navigation
     alert('Create Survey clicked!');
   };
 
- 
+  const onAddUser = () => {
+    // TODO: Implement add user modal or navigation
+    alert('Add User clicked!');
+  };
+
   const onCreateDepartment = () => {
     // TODO: Implement create department modal or navigation
     alert('Create Department clicked!');
@@ -187,7 +175,11 @@ const Dashboard = () => {
   };
 
   if (!currentUser) {
-    return <DashboardLoading message="Loading your dashboard..." />;
+    return (
+      <div className="min-h-screen flex-center bg-gray-50">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    );
   }
 
   const renderContent = () => {
@@ -210,10 +202,17 @@ const Dashboard = () => {
           formatDate={formatDate}
           onCreateSurvey={onCreateSurvey}
         />;
+      case "questions":
+        return (
+        <QuestionsSection
+        questions={questions}
+        reload={reload} 
+        />
+      );
       case "users":
-        return <UsersSection users={users} reload={reload} roles={roles} departments={departments} />;
+        return <UsersSection users={users} reload={reload} />;
       case "organizations":
-        return <OrganizationsSection organizations={organizations} departments={departments} teams={teams} users={users} reload={reload} />;
+        return <OrganizationsSection organizations={organizations} departments={departments} teams={teams} users={users} />;
       case "departments":
         return <DepartmentsSection departments={departments} teams={teams} users={users} onCreateDepartment={onCreateDepartment} />;
       case "teams":
@@ -221,21 +220,14 @@ const Dashboard = () => {
       case "roles":
         return <RolesSection roles={roles} permissions={permissions} onCreateRole={onCreateRole} />;
       default:
-        return <OverviewSection
-          stats={dashboardStats}
-          organizations={organizations}
-          surveys={surveys}
-          users={users}
-          getStatusColor={getStatusColor}
-          getSurveyTypeColor={getSurveyTypeColor}
-          setActiveTab={setActiveTab}
-        />;
+        return <OverviewSection stats={dashboardStats} />;
     }
   };
 
   const tabs = [
     { id: 'overview', name: 'Overview', icon: Home },
     { id: 'surveys', name: 'Surveys', icon: ClipboardList },
+    { id: 'questions', name: 'Questions', icon: ClipboardList },
     { id: 'users', name: 'Users', icon: Users },
     { id: 'organizations', name: 'Organization', icon: Building2 },
     { id: 'departments', name: 'Departments', icon: Users2 },
@@ -244,10 +236,10 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
+    <div className="min-h-screen bg-gray-50">
       <NavBar />
-      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
         {/* Header Section */}
         <div className="mb-10">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">
@@ -259,61 +251,45 @@ const Dashboard = () => {
                 Manage your organization, users, surveys, and more
               </p>
             </div>
-            
-            {/* Settings Button */}
-            <div className="mt-4 lg:mt-0">
-              <button className="p-2 text-gray-500 hover:text-gray-700 hover:bg-white rounded-xl transition-all duration-200 border border-gray-200 hover:shadow-md">
-                <Settings className="w-5 h-5" />
-              </button>
-            </div>
           </div>
-        </div>
 
+        </div>
         {/* Error Display */}
         {error && (
-          <div className="mb-6 bg-red-50 border border-red-200 rounded-2xl p-4 shadow-lg">
-            <div className="flex items-center text-red-800">
-              <div className="bg-red-100 p-2 rounded-xl mr-3">
-                <AlertCircle className="w-5 h-5 text-red-600" />
-              </div>
-              <div>
-                <h4 className="font-semibold">Error Loading Data</h4>
-                <p className="text-sm text-red-700">{error}</p>
-              </div>
-            </div>
+          <div className="error-box flex items-center">
+            <AlertCircle className="w-5 h-5 mr-2" />
+            {error}
           </div>
         )}
-
         {/* Loading State */}
-        {loading && <DashboardLoading message="Loading Dashboard Data..." />}
-
+        {loading && (
+          <div className="flex-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-blue-600 mr-3" />
+            <span className="text-gray-600">Loading dashboard data...</span>
+          </div>
+        )}
         {/* Navigation Tabs */}
         <div className="mb-8">
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-2">
-            <nav className="flex space-x-1 overflow-x-auto">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center space-x-2 px-4 py-3 rounded-xl font-medium text-sm transition-all duration-200 whitespace-nowrap ${
-                    activeTab === tab.id
-                      ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg'
-                      : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
-                  }`}
-                >
-                  <tab.icon className="w-4 h-4" />
-                  <span>{tab.name}</span>
-                </button>
-              ))}
-            </nav>
-          </div>
+          <nav className="flex space-x-8 border-b border-gray-200">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center space-x-2 py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === tab.id
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <tab.icon className="w-4 h-4" />
+                <span>{tab.name}</span>
+              </button>
+            ))}
+          </nav>
         </div>
-
         {/* Main Content */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-          <div className="p-6 lg:p-8">
-            {renderContent()}
-          </div>
+        <div className="card-base">
+          {renderContent()}
         </div>
       </div>
     </div>

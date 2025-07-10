@@ -1,6 +1,8 @@
 import React from "react";
+import Button from "../common/Button";
 
-const SurveyDetails = ({ survey }) => {
+
+const SurveyDetails = ({ survey, onAddQuestions }) => {
   if (!survey) return null;
 
   return (
@@ -15,6 +17,11 @@ const SurveyDetails = ({ survey }) => {
       <p><strong>Deadline:</strong> {survey.deadline ? new Date(survey.deadline).toLocaleString() : "No deadline"}</p>
       <p><strong>Locked:</strong> {survey.locked ? "Yes" : "No"}</p>
       <p><strong>Questions:</strong> {survey.questions ? survey.questions.length : "None"}</p>
+      {onAddQuestions && (
+        <div className="mt-4">
+          <Button onClick={onAddQuestions}>Add Questions</Button>
+        </div>
+      )}
     </div>
   );
 };
