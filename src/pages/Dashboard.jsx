@@ -4,8 +4,9 @@ import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux';
 import { logoutUser } from '../redux/slices/authSlice';
 import NavBar from '../components/common/NavBar';
-import DashboardLoading from '../components/common/DashboardLoading';
 import { apiService } from '../services/apiService';
+import QuestionsSection from '../components/dashboard/QuestionSection';
+
 import {
   Users,
   Building2,
@@ -41,9 +42,7 @@ import {
   Unlock,
   CheckCircle,
   Clock,
-  AlertTriangle,
-  Copy,
-  Check
+  AlertTriangle
 } from "lucide-react";
 import OverviewSection from '../components/dashboard/OverviewSection';
 import { useOverviewData } from '../hooks/useOverviewData';
@@ -60,7 +59,6 @@ const Dashboard = () => {
   
   const { user: currentUser } = useSelector(state => state.auth);
   
- 
   const {
     loading,
     error,
@@ -76,57 +74,49 @@ const Dashboard = () => {
     reload
   } = useOverviewData(currentUser);
 
-  
   const [activeTab, setActiveTab] = useState("overview");
-  const [copiedCode, setCopiedCode] = useState(false);
- 
+
   const dashboardStats = [
     {
       title: 'Organization',
       value: organizations[0]?.name || 'Loading...',
       icon: Building2,
-      color: 'from-blue-500 to-blue-600',
-      bgColor: 'bg-blue-50',
+      color: 'bg-blue-500', // This will be used for the icon background only
       description: 'Your organization'
     },
     {
       title: 'Departments',
       value: departments.length,
       icon: Users,
-      color: 'from-emerald-500 to-emerald-600',
-      bgColor: 'bg-emerald-50',
+      color: 'bg-green-500',
       description: 'In your organization'
     },
     {
       title: 'Teams',
       value: teams.length,
       icon: Users2,
-      color: 'from-purple-500 to-purple-600',
-      bgColor: 'bg-purple-50',
+      color: 'bg-purple-500',
       description: 'Active teams'
     },
     {
       title: 'Total Users',
       value: users.length,
       icon: UserCheck,
-      color: 'from-orange-500 to-orange-600',
-      bgColor: 'bg-orange-50',
+      color: 'bg-orange-500',
       description: 'In your organization'
     },
     {
       title: 'Active Surveys',
       value: surveys.filter(s => s.status === 'ACTIVE').length,
       icon: ClipboardList,
-      color: 'from-indigo-500 to-indigo-600',
-      bgColor: 'bg-indigo-50',
+      color: 'bg-indigo-500',
       description: 'Currently running'
     },
     {
       title: 'Survey Responses',
       value: surveyResponses.length,
       icon: BarChart3,
-      color: 'from-pink-500 to-pink-600',
-      bgColor: 'bg-pink-50',
+      color: 'bg-pink-500',
       description: 'Total submissions'
     }
   ];
@@ -134,20 +124,20 @@ const Dashboard = () => {
   // Helper functions
   const getStatusColor = (status) => {
     switch (status) {
-      case 'ACTIVE': return 'bg-emerald-100 text-emerald-800 border border-emerald-200';
-      case 'DRAFT': return 'bg-yellow-100 text-yellow-800 border border-yellow-200';
-      case 'COMPLETED': return 'bg-blue-100 text-blue-800 border border-blue-200';
-      case 'LOCKED': return 'bg-red-100 text-red-800 border border-red-200';
-      default: return 'bg-gray-100 text-gray-800 border border-gray-200';
+      case 'ACTIVE': return 'bg-green-100 text-green-800';
+      case 'DRAFT': return 'bg-yellow-100 text-yellow-800';
+      case 'COMPLETED': return 'bg-blue-100 text-blue-800';
+      case 'LOCKED': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
   const getSurveyTypeColor = (type) => {
     switch (type) {
-      case 'FEEDBACK': return 'bg-blue-100 text-blue-800 border border-blue-200';
-      case 'EXAM': return 'bg-purple-100 text-purple-800 border border-purple-200';
-      case 'ASSESSMENT': return 'bg-emerald-100 text-emerald-800 border border-emerald-200';
-      default: return 'bg-gray-100 text-gray-800 border border-gray-200';
+      case 'FEEDBACK': return 'bg-blue-100 text-blue-800';
+      case 'EXAM': return 'bg-purple-100 text-purple-800';
+      case 'ASSESSMENT': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -155,46 +145,34 @@ const Dashboard = () => {
     return new Date(dateString).toLocaleDateString();
   };
 
-  const handleCopyInvitationCode = async () => {
-    try {
-      await navigator.clipboard.writeText(organizations[0].id);
-      setCopiedCode(true);
-      setTimeout(() => setCopiedCode(false), 2000);
-    } catch (err) {
-      console.error('Failed to copy invitation code:', err);
-    }
-  };
-
   const onCreateSurvey = () => {
-    
     alert('Create Survey clicked!');
   };
 
- 
+  const onAddUser = () => {
+    // TODO: Implement add user modal or navigation
+    alert('Add User clicked!');
+  };
+
   const onCreateDepartment = () => {
-   
     alert('Create Department clicked!');
   };
 
   const onCreateTeam = () => {
-    
     alert('Create Team clicked!');
   };
 
   const onCreateRole = async (roleData) => {
     try {
-     
       const createdRole = await apiService.createRole({
         name: roleData.name,
         description: roleData.description
       });
 
-      
       for (const permissionId of roleData.permissions) {
         await apiService.addPermissionToRole(createdRole.id, permissionId);
       }
 
-    
       reload && reload(); 
     } catch (error) {
       console.error('Error creating role:', error);
@@ -203,8 +181,7 @@ const Dashboard = () => {
 
   const onEditRole = async (roleData) => {
     try {
-      
-      
+      // TODO: Implement edit role functionality
       reload && reload(); 
     } catch (error) {
       console.error('Error editing role:', error);
@@ -214,12 +191,31 @@ const Dashboard = () => {
   const onDeleteRole = async (roleId) => {
     try {
       await apiService.deleteRole(roleId);
-    
       reload && reload(); 
     } catch (error) {
       console.error('Error deleting role:', error);
     }
   };
+
+  // Early return for loading user
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
+
+  const tabs = [
+    { id: 'overview', name: 'Overview', icon: Home },
+    { id: 'surveys', name: 'Surveys', icon: ClipboardList },
+    { id: 'questions', name: 'Questions', icon: ClipboardList },
+    { id: 'users', name: 'Users', icon: Users },
+    { id: 'organizations', name: 'Organization', icon: Building2 },
+    { id: 'departments', name: 'Departments', icon: Users2 },
+    { id: 'teams', name: 'Teams', icon: Target },
+    { id: 'roles', name: 'Roles & Permissions', icon: Shield }
+  ];
 
   const renderContent = () => {
     switch (activeTab) {
@@ -239,27 +235,39 @@ const Dashboard = () => {
         return (
           <SurveysSection
             surveys={surveys}
-            onCreateSurvey={onCreateSurvey}
-            getStatusColor={getStatusColor}
             getSurveyTypeColor={getSurveyTypeColor}
+            getStatusColor={getStatusColor}
             formatDate={formatDate}
+            onCreateSurvey={onCreateSurvey}
+          />
+        );
+      case "questions":
+        return (
+          <QuestionsSection
+            questions={questions}
+            reload={reload} 
           />
         );
       case "users":
         return (
-          <UsersSection
-            users={users}
+          <UsersSection 
+            users={users} 
             roles={roles}
             getStatusColor={getStatusColor}
             formatDate={formatDate}
+            reload={reload} 
           />
         );
       case "organizations":
         return (
-          <OrganizationsSection
-            organizations={organizations}
+          <OrganizationsSection 
+            organizations={organizations} 
+            departments={departments} 
+            teams={teams} 
+            users={users}
             getStatusColor={getStatusColor}
             formatDate={formatDate}
+            reload={reload}
           />
         );
       case "departments":
@@ -293,14 +301,36 @@ const Dashboard = () => {
           />
         );
       default:
-        return <OverviewSection />;
+        return (
+          <OverviewSection 
+            stats={dashboardStats}
+            organizations={organizations}
+            surveys={surveys}
+            users={users}
+            getStatusColor={getStatusColor}
+            getSurveyTypeColor={getSurveyTypeColor}
+            setActiveTab={setActiveTab}
+          />
+        );
     }
   };
 
+  // Loading state
   if (loading) {
-    return <DashboardLoading />;
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <NavBar />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-blue-600 mr-3" />
+            <span className="text-gray-600">Loading dashboard data...</span>
+          </div>
+        </div>
+      </div>
+    );
   }
 
+  // Error state
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -322,53 +352,48 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <NavBar />
-      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
+        {/* Header Section */}
+        <div className="mb-10">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
               <p className="text-gray-600 mt-2">
                 Welcome back, {currentUser?.username}! Here's what's happening in your organization.
               </p>
             </div>
-            
           </div>
         </div>
+
+        {/* Error Display */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex items-center">
+            <AlertCircle className="w-5 h-5 mr-2 text-red-600" />
+            <span className="text-red-800">{error}</span>
+          </div>
+        )}
 
         {/* Navigation Tabs */}
         <div className="mb-8">
           <nav className="flex space-x-8 border-b border-gray-200">
-            {[
-              { id: "overview", label: "Overview", icon: Home },
-              { id: "surveys", label: "Surveys", icon: FileText },
-              { id: "users", label: "Users", icon: Users },
-              { id: "organizations", label: "Organizations", icon: Building2 },
-              { id: "departments", label: "Departments", icon: Users2 },
-              { id: "teams", label: "Teams", icon: UserCheck },
-              { id: "roles", label: "Roles", icon: Shield }
-            ].map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                    activeTab === tab.id
-                      ? "border-blue-500 text-blue-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  <span>{tab.label}</span>
-                </button>
-              );
-            })}
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  activeTab === tab.id
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <tab.icon className="w-4 h-4" />
+                <span>{tab.name}</span>
+              </button>
+            ))}
           </nav>
         </div>
 
-        {/* Content */}
+        {/* Main Content */}
         <div className="bg-white rounded-lg shadow">
           {renderContent()}
         </div>

@@ -1,6 +1,8 @@
 import axios from "axios";
 
+
 const GATEWAY_API_URL = process.env.REACT_APP_API_URL;
+
 
 const userApiClient = axios.create({
   baseURL: GATEWAY_API_URL,
