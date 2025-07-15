@@ -11,13 +11,12 @@ const AssignRoleModal = ({ open, user, onClose, onSuccess }) => {
   const [error, setError] = useState('');
   const [departments, setDepartments] = useState([]);
   const [selectedDepartment, setSelectedDepartment] = useState('');
-  const { token } = useSelector(state => state.auth);
 
   useEffect(() => {
     if (open) {
       apiService.getRoles().then((allRoles) => {
         setRoles(allRoles);
-        // Map user.roles (names) to role IDs
+        
         if (user?.roles && Array.isArray(user.roles)) {
           const assignedRoleIds = allRoles
             .filter(r => user.roles.includes(r.name))
@@ -51,7 +50,7 @@ const AssignRoleModal = ({ open, user, onClose, onSuccess }) => {
     setLoading(true);
     setError('');
     try {
-      // Map user.roles (names) to role IDs for comparison
+      
       const currentRoleIds = roles
         .filter(r => (user.roles || []).includes(r.name))
         .map(r => r.id);

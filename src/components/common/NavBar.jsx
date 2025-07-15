@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { LogOut, User, Building, ChevronDown, Bell, Settings, Menu, X } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
-import { logout } from '../../redux/slices/authSlice';
+import { logoutUser } from '../../redux/slices/authSlice';
 import { useNavigate } from 'react-router-dom';
 import Button from './Button';
 
@@ -12,10 +12,17 @@ const NavBar = () => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const handleLogout = () => {
-    dispatch(logout());
-    navigate('/');
-    setIsUserMenuOpen(false);
+  const handleLogout = async () => {
+    try {
+      await dispatch(logoutUser()).unwrap();
+      navigate('/');
+      setIsUserMenuOpen(false);
+    } catch (error) {
+      console.error('Logout failed:', error);
+     
+      navigate('/');
+      setIsUserMenuOpen(false);
+    }
   };
 
   const handleProfileClick = () => {

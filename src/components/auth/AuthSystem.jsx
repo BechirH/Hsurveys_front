@@ -12,13 +12,13 @@ import { createOrganization } from '../../redux/slices/organizationSlice';
 const AuthSystem = () => {
   const [currentView, setCurrentView] = useState('login');
 
-  // Login form state
+
   const [loginValues, setLoginValues] = useState({ email: '', password: '' });
 
-  // Signup form state (for organization creation)
+ 
   const [signupValues, setSignupValues] = useState({ name: '', email: '', password: '' });
 
-  // Signup user state (for joining existing organization)
+
   const [signupUserValues, setSignupUserValues] = useState({ 
     name: '', 
     email: '', 
@@ -27,7 +27,7 @@ const AuthSystem = () => {
     invitationCode: '' 
   });
 
-  // Organization form state
+
   const [orgValues, setOrgValues] = useState({ organizationName: '', type: '' });
 
   const [orgId, setOrgId] = useState(null);
@@ -35,7 +35,7 @@ const AuthSystem = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // Fixed: Consistent state access
+  
   const authState = useSelector(state => state.auth || {});
   const orgState = useSelector(state => state.organization || {});
 
@@ -93,12 +93,12 @@ const AuthSystem = () => {
     return errors;
   };
 
-  // Handlers for login form
+
   const handleLoginChange = e => {
     setLoginValues({ ...loginValues, [e.target.name]: e.target.value });
   };
 
-  // ✅ FIXED: Changed to accept formValues directly instead of event object
+ 
   const handleLoginSubmit = (formValues) => {
     const errors = validateForm(formValues, 'login');
     if (Object.keys(errors).length === 0) {
@@ -106,7 +106,7 @@ const AuthSystem = () => {
     }
   };
 
-  // Handlers for signup form (organization creation flow)
+ 
   const handleSignupChange = e => {
     setSignupValues({ ...signupValues, [e.target.name]: e.target.value });
   };
@@ -117,7 +117,7 @@ const AuthSystem = () => {
     }
   };
 
-  // Handlers for signup user (joining existing organization)
+  
   const handleSignupUserChange = e => {
     setSignupUserValues({ ...signupUserValues, [e.target.name]: e.target.value });
   };
@@ -126,20 +126,16 @@ const AuthSystem = () => {
     dispatch(registerUserForExistingOrg(userData));
   };
 
-  // ✅ NEW: Handler for organization form submission
+
   const handleOrgSubmit = (orgData) => {
     console.log('Creating organization with data:', orgData);
     dispatch(createOrganization(orgData));
   };
-
-  // Handler for organization form
   const handleOrgCreated = (createdOrgId) => {
     console.log('handleOrgCreated called with:', createdOrgId);
     setOrgId(createdOrgId);
     setCurrentView('signup');
   };
-
-  // ✅ FIXED: Watch for currentOrg changes and automatically proceed to signup
   React.useEffect(() => {
     console.log('currentOrg changed:', currentOrg);
     if (currentOrg && (currentOrg.id || currentOrg._id)) {
@@ -149,17 +145,14 @@ const AuthSystem = () => {
       setCurrentView('signup');
     }
   }, [currentOrg]);
-
-  // ✅ NEW: Watch for successful authentication and redirect to dashboard
   React.useEffect(() => {
-    const { user, token } = authState;
-    if (user && token) {
-      console.log('User authenticated, redirecting to dashboard');
+    const { user } = authState;
+    if (user) {
+  
       navigate('/dashboard', { replace: true });
     }
-  }, [authState.user, authState.token, navigate]);
+  }, [authState.user, navigate]);
 
-  // Navigation functions
   const switchToSignup = () => { dispatch(clearAuthErrors()); setCurrentView('organization'); };
   const switchToLogin = () => { dispatch(clearAuthErrors()); setCurrentView('login'); };
   const switchToJoinOrganization = () => { dispatch(clearAuthErrors()); setCurrentView('signupUser'); };

@@ -1,45 +1,20 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { authService } from "../../services/authService";
-import { organizationService } from "../../services/organizationService";
-import { apiService } from "../../services/apiService";
-import { sessionManager } from "../../utils/sessionManager";
 
-// Utility to check token expiration
-const isTokenExpired = (token) => {
-  if (!token) return true;
-  try {
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    const currentTime = Date.now() / 1000;
-    return payload.exp < currentTime;
-  } catch (error) {
-    return true;
-  }
-};
-
-// Auto-login thunk - simplified since state is preloaded
+// Auto-login thunk - check if user is authenticated via backend
 export const autoLogin = createAsyncThunk(
   "auth/autoLogin",
-  async (_, { getState, rejectWithValue }) => {
-    console.log("AutoLogin: Starting session restoration...");
-
-    // Check Redux state (which is preloaded from localStorage)
-    const { token, user } = getState().auth;
-    console.log("AutoLogin: Redux state check:", {
-      hasToken: !!token,
-      hasUser: !!user,
-      isTokenExpired: token ? isTokenExpired(token) : "no token",
-    });
-
-    if (token && user && !isTokenExpired(token)) {
-      console.log("AutoLogin: Session valid - restoring authentication");
-      authService.setAuthToken(token);
-      return { user, token };
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await authService.getCurrentUser();
+      if (response.success) {
+        return { user: response };
+      } else {
+        return rejectWithValue("Session expired");
+      }
+    } catch (error) {
+      return rejectWithValue("Session verification failed");
     }
-
-    // No valid session found
-    console.log("AutoLogin: No valid session found");
-    authService.setAuthToken(null);
-    return rejectWithValue("No valid session found");
   }
 );
 
@@ -103,11 +78,23 @@ export const registerUserForExistingOrg = createAsyncThunk(
   }
 );
 
+// Logout thunk
+export const logoutUser = createAsyncThunk(
+  "auth/logout",
+  async (_, { rejectWithValue }) => {
+    try {
+      await authService.logout();
+      return "Logged out successfully";
+    } catch (err) {
+      return "Logged out successfully";
+    }
+  }
+);
+
 const authSlice = createSlice({
   name: "auth",
   initialState: {
     user: null,
-    token: null,
     loading: false,
     errorLogin: null,
     errorRegisterNewOrg: null,
@@ -117,33 +104,17 @@ const authSlice = createSlice({
   reducers: {
     logout: (state) => {
       state.user = null;
-      state.token = null;
       state.errorLogin = null;
       state.errorRegisterNewOrg = null;
       state.errorRegisterExistingOrg = null;
-      authService.setAuthToken(null);
-      organizationService.setAuthToken(null);
-      apiService.setUserAuthToken(null);
-      apiService.setOrgAuthToken(null);
-      apiService.setSurveyAuthToken(null);
-      sessionManager.clearSession();
-      // State will be automatically saved to localStorage by StateLoader
     },
     resetAuth: (state) => {
       state.user = null;
-      state.token = null;
       state.loading = false;
       state.errorLogin = null;
       state.errorRegisterNewOrg = null;
       state.errorRegisterExistingOrg = null;
       state.isInitialized = false;
-      authService.setAuthToken(null);
-      organizationService.setAuthToken(null);
-      apiService.setUserAuthToken(null);
-      apiService.setOrgAuthToken(null);
-      apiService.setSurveyAuthToken(null);
-      sessionManager.clearSession();
-      // State will be automatically saved to localStorage by StateLoader
     },
     clearAuthErrors: (state) => {
       state.errorLogin = null;
@@ -162,26 +133,11 @@ const authSlice = createSlice({
         if (action.payload.user) {
           state.user = action.payload.user;
         }
-        if (action.payload.token) {
-          state.token = action.payload.token;
-          authService.setAuthToken(action.payload.token);
-          organizationService.setAuthToken(action.payload.token);
-          apiService.setUserAuthToken(action.payload.token);
-          apiService.setOrgAuthToken(action.payload.token);
-          apiService.setSurveyAuthToken(action.payload.token);
-          sessionManager.setSession(action.payload.token, action.payload.user);
-        }
       })
       .addCase(autoLogin.rejected, (state) => {
         state.loading = false;
         state.isInitialized = true;
         state.user = null;
-        state.token = null;
-        authService.setAuthToken(null);
-        organizationService.setAuthToken(null);
-        apiService.setUserAuthToken(null);
-        apiService.setOrgAuthToken(null);
-        apiService.setSurveyAuthToken(null);
       })
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
@@ -201,29 +157,14 @@ const authSlice = createSlice({
                 ? "admin"
                 : "user",
             organizationId: action.payload.organizationId,
+            roles: action.payload.roles,
           };
           state.user = userData;
         }
-        state.token = action.payload.token;
-        authService.setAuthToken(action.payload.token);
-        organizationService.setAuthToken(action.payload.token);
-        apiService.setUserAuthToken(action.payload.token);
-        apiService.setOrgAuthToken(action.payload.token);
-        apiService.setSurveyAuthToken(action.payload.token);
-        sessionManager.setSession(
-          action.payload.token,
-          action.payload.user || userData
-        );
-        // State will be automatically saved to localStorage by StateLoader
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
         state.errorLogin = action.payload || action.error.message;
-        authService.setAuthToken(null);
-        organizationService.setAuthToken(null);
-        apiService.setUserAuthToken(null);
-        apiService.setOrgAuthToken(null);
-        apiService.setSurveyAuthToken(null);
       })
       .addCase(registerUserForNewOrg.pending, (state) => {
         state.loading = true;
@@ -231,41 +172,19 @@ const authSlice = createSlice({
       })
       .addCase(registerUserForNewOrg.fulfilled, (state, action) => {
         state.loading = false;
-        let userData;
-        if (action.payload.user) {
-          userData = action.payload.user;
-          state.user = action.payload.user;
-        } else {
-          userData = {
+        // Set user in state from registration response
+        if (action.payload && action.payload.username) {
+          state.user = {
             username: action.payload.username,
-            role:
-              action.payload.roles && action.payload.roles.includes("ADMIN")
-                ? "admin"
-                : "user",
+            role: action.payload.roles && action.payload.roles.includes("ADMIN") ? "admin" : "user",
             organizationId: action.payload.organizationId,
+            roles: action.payload.roles,
           };
-          state.user = userData;
         }
-        state.token = action.payload.token;
-        authService.setAuthToken(action.payload.token);
-        organizationService.setAuthToken(action.payload.token);
-        apiService.setUserAuthToken(action.payload.token);
-        apiService.setOrgAuthToken(action.payload.token);
-        apiService.setSurveyAuthToken(action.payload.token);
-        sessionManager.setSession(
-          action.payload.token,
-          action.payload.user || userData
-        );
-        // State will be automatically saved to localStorage by StateLoader
       })
       .addCase(registerUserForNewOrg.rejected, (state, action) => {
         state.loading = false;
         state.errorRegisterNewOrg = action.payload || action.error.message;
-        authService.setAuthToken(null);
-        organizationService.setAuthToken(null);
-        apiService.setUserAuthToken(null);
-        apiService.setOrgAuthToken(null);
-        apiService.setSurveyAuthToken(null);
       })
       .addCase(registerUserForExistingOrg.pending, (state) => {
         state.loading = true;
@@ -273,41 +192,25 @@ const authSlice = createSlice({
       })
       .addCase(registerUserForExistingOrg.fulfilled, (state, action) => {
         state.loading = false;
-        let userData;
-        if (action.payload.user) {
-          userData = action.payload.user;
-          state.user = action.payload.user;
-        } else {
-          userData = {
+        // Set user in state from registration response
+        if (action.payload && action.payload.username) {
+          state.user = {
             username: action.payload.username,
-            role:
-              action.payload.roles && action.payload.roles.includes("ADMIN")
-                ? "admin"
-                : "user",
+            role: action.payload.roles && action.payload.roles.includes("ADMIN") ? "admin" : "user",
             organizationId: action.payload.organizationId,
+            roles: action.payload.roles,
           };
-          state.user = userData;
         }
-        state.token = action.payload.token;
-        authService.setAuthToken(action.payload.token);
-        organizationService.setAuthToken(action.payload.token);
-        apiService.setUserAuthToken(action.payload.token);
-        apiService.setOrgAuthToken(action.payload.token);
-        apiService.setSurveyAuthToken(action.payload.token);
-        sessionManager.setSession(
-          action.payload.token,
-          action.payload.user || userData
-        );
-        // State will be automatically saved to localStorage by StateLoader
       })
       .addCase(registerUserForExistingOrg.rejected, (state, action) => {
         state.loading = false;
         state.errorRegisterExistingOrg = action.payload || action.error.message;
-        authService.setAuthToken(null);
-        organizationService.setAuthToken(null);
-        apiService.setUserAuthToken(null);
-        apiService.setOrgAuthToken(null);
-        apiService.setSurveyAuthToken(null);
+      })
+      .addCase(logoutUser.fulfilled, (state) => {
+        state.user = null;
+        state.errorLogin = null;
+        state.errorRegisterNewOrg = null;
+        state.errorRegisterExistingOrg = null;
       });
   },
 });

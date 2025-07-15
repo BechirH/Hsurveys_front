@@ -77,7 +77,7 @@ const UsersSection = ({ users, onAddUser, reload, roles = [], departments = [] }
   const endIndex = startIndex + itemsPerPage;
   const currentUsers = filteredAndSortedUsers.slice(startIndex, endIndex);
 
-  // Reset page when filters change
+
   React.useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, roleFilter, departmentFilter, sortBy, sortOrder]);
@@ -204,7 +204,14 @@ const UsersSection = ({ users, onAddUser, reload, roles = [], departments = [] }
       <AddUserModal open={showModal && !selectedUser} onClose={() => setShowModal(false)} onSuccess={reload} />
       <AssignRoleModal open={showModal && !!selectedUser} user={selectedUser} onClose={handleCloseModal} onSuccess={reload} />
       <EditUserModal open={showEditModal} user={selectedUser} onClose={() => { setShowEditModal(false); setSelectedUser(null); }} onSuccess={reload} />
-      <DeleteConfirmationModal open={showDeleteModal} onClose={() => setShowDeleteModal(false)} onConfirm={handleDeleteUser} loading={deletingUserId !== null} user={selectedUser} />
+      <DeleteConfirmationModal 
+        open={showDeleteModal} 
+        onClose={() => setShowDeleteModal(false)} 
+        onConfirm={handleDeleteUser} 
+        loading={deletingUserId !== null} 
+        entity={selectedUser}
+        entityType="user"
+      />
       
       {/* Compact Header with integrated controls */}
       <div className="bg-white rounded-xl shadow-md border border-gray-200 p-4">

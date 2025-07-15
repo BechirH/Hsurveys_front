@@ -1,8 +1,16 @@
+
 import React, { useState } from "react";
 import { Building2, Edit, Users, GitBranch, Building, BarChart3, Settings } from "lucide-react";
 import EditOrganizationModal from './EditOrganizationModal';
-import InvitationCodeCard from "./InvitationCodeCard"; // ✅ make sure it's imported
-const OrganizationsSection = ({ organizations, departments, teams, users, reload }) => {
+import InvitationCodeCard from "./InvitationCodeCard"; 
+
+const OrganizationsSection = ({
+  organizations = [],
+  departments = [],
+  teams = [],
+  users = [],
+  reload
+}) => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedOrganization, setSelectedOrganization] = useState(null);
 
@@ -17,6 +25,9 @@ const OrganizationsSection = ({ organizations, departments, teams, users, reload
   };
 
   const org = organizations[0];
+  if (!org) {
+    return <div className="p-6 text-center text-gray-500">Loading organization data...</div>;
+  }
   
   return (
     <div className="space-y-6 p-6 bg-gray-50 min-h-screen">
