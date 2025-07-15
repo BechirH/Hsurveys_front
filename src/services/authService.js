@@ -1,26 +1,27 @@
 import axios from "axios";
+import { getApiBaseUrl } from "./apiService";
 
+async function createApiClient() {
+  const baseURL = await getApiBaseUrl();
+  return axios.create({
+    baseURL,
+    timeout: 10000,
+    withCredentials: true,
+  });
+}
 
-const AUTH_API_BASE_URL = process.env.REACT_APP_API_URL;
-
-
-
-const apiClient = axios.create({
-  baseURL: AUTH_API_BASE_URL,
-  timeout: 10000,
-  withCredentials: true, 
-});
-
-
-const openApiClient = axios.create({
-  baseURL: AUTH_API_BASE_URL,
-  timeout: 10000,
-  withCredentials: true,
-});
+async function createOpenApiClient() {
+  const baseURL = await getApiBaseUrl();
+  return axios.create({
+    baseURL,
+    timeout: 10000,
+    withCredentials: true,
+  });
+}
 
 export const authService = {
-  // Login for all users 
   login: async (credentials) => {
+    const openApiClient = await createOpenApiClient();
     try {
       const response = await openApiClient.post("/auth/login", credentials);
       return response.data;
@@ -29,8 +30,8 @@ export const authService = {
     }
   },
 
-  // Register user for a new organization (Step 2) 
   registerUserForNewOrg: async (orgId, userData) => {
+    const openApiClient = await createOpenApiClient();
     try {
       const response = await openApiClient.post(
         `/auth/register/${orgId}`,
@@ -42,8 +43,8 @@ export const authService = {
     }
   },
 
-  // Register user for an existing organization 
   registerUserForExistingOrg: async (userData) => {
+    const openApiClient = await createOpenApiClient();
     try {
       const response = await openApiClient.post("/auth/register", userData);
       return response.data;
@@ -52,8 +53,8 @@ export const authService = {
     }
   },
 
-  // Get current user info from backend (cookie-based)
   getCurrentUser: async () => {
+    const apiClient = await createApiClient();
     try {
       const response = await apiClient.get("/auth/me");
       return response.data;
@@ -62,8 +63,8 @@ export const authService = {
     }
   },
 
-  // Logout (clear session on backend)
   logout: async () => {
+    const apiClient = await createApiClient();
     try {
       await apiClient.post("/auth/logout");
     } catch (error) {

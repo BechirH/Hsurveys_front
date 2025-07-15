@@ -1,7 +1,23 @@
 import axios from "axios";
 
 
-const GATEWAY_API_URL = process.env.REACT_APP_API_URL;
+let configPromise = null;
+
+async function getConfig() {
+  if (!configPromise) {
+    configPromise = fetch('/config.json')
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to load config.json');
+        return res.json();
+      });
+  }
+  return configPromise;
+}
+
+export async function getApiBaseUrl() {
+  const config = await getConfig();
+  return config.API_URL;
+}
 
 
 const userApiClient = axios.create({

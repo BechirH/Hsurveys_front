@@ -1,22 +1,23 @@
 import axios from "axios";
+import { getApiBaseUrl } from "./apiService";
 
+async function createOrgApiClient() {
+  const baseURL = await getApiBaseUrl();
+  return axios.create({
+    baseURL,
+    timeout: 10000,
+    withCredentials: true,
+  });
+}
 
-const ORG_API_BASE_URL = process.env.REACT_APP_API_URL;
-
-
-const orgApiClient = axios.create({
-  baseURL: ORG_API_BASE_URL,
-  timeout: 10000,
-  withCredentials: true,
-});
-
-
-const openOrgApiClient = axios.create({
-  baseURL: ORG_API_BASE_URL,
-  timeout: 10000,
-  withCredentials: true,
-});
-
+async function createOpenOrgApiClient() {
+  const baseURL = await getApiBaseUrl();
+  return axios.create({
+    baseURL,
+    timeout: 10000,
+    withCredentials: true,
+  });
+}
 
 function getCookie(name) {
   const value = `; ${document.cookie}`;
@@ -24,19 +25,9 @@ function getCookie(name) {
   if (parts.length === 2) return parts.pop().split(';').shift();
 }
 
-orgApiClient.interceptors.request.use(config => {
-  if (["post", "put", "delete", "patch"].includes(config.method)) {
-    const xsrfToken = getCookie("XSRF-TOKEN");
-    if (xsrfToken) {
-      config.headers["X-XSRF-TOKEN"] = xsrfToken;
-    }
-  }
-  return config;
-});
-
 export const organizationService = {
-
   createOrganization: async (orgData) => {
+    const openOrgApiClient = await createOpenOrgApiClient();
     try {
       const response = await openOrgApiClient.post("/organizations/register", orgData);
       return response.data;
@@ -45,8 +36,8 @@ export const organizationService = {
     }
   },
 
-
   getCurrentOrganization: async (organizationId) => {
+    const orgApiClient = await createOrgApiClient();
     try {
       const response = await orgApiClient.get(`/organizations/${organizationId}`);
       return response.data;
@@ -55,8 +46,8 @@ export const organizationService = {
     }
   },
 
-
   getDepartments: async () => {
+    const orgApiClient = await createOrgApiClient();
     try {
       const response = await orgApiClient.get("/organizations/departments");
       return response.data;
@@ -65,8 +56,8 @@ export const organizationService = {
     }
   },
 
-  
   getTeams: async () => {
+    const orgApiClient = await createOrgApiClient();
     try {
       const response = await orgApiClient.get("/organizations/teams");
       return response.data;
