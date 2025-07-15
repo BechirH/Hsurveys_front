@@ -1,100 +1,83 @@
 import axios from "axios";
+import { getApiBaseUrl } from "./apiService";
 
-const OPTION_API_BASE_URL = "http://46.62.136.95:8083/api";
-
-const optionApiClient = axios.create({
-  baseURL: OPTION_API_BASE_URL,
-  timeout: 10000,
-});
-
-const setOptionAuthToken = (token) => {
+const setOptionAuthToken = (client, token) => {
   if (token) {
-    optionApiClient.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    client.defaults.headers.common["Authorization"] = `Bearer ${token}`;
   } else {
-    delete optionApiClient.defaults.headers.common["Authorization"];
+    delete client.defaults.headers.common["Authorization"];
   }
 };
 
 export const optionService = {
-  setOptionAuthToken,
-
-  // Créer une nouvelle option (POST /api/options)
-  createOption: async (optionData) => {
-    try {
-      const response = await optionApiClient.post("/options", optionData);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+  setOptionAuthToken: async (token) => {
+    const baseURL = await getApiBaseUrl();
+    const client = axios.create({ baseURL, timeout: 10000 });
+    setOptionAuthToken(client, token);
+    return client;
   },
 
-  // Récupérer toutes les options (GET /api/options)
-  getAllOptions: async () => {
-    try {
-      const response = await optionApiClient.get("/options");
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+  createOption: async (optionData, token) => {
+    const baseURL = await getApiBaseUrl();
+    const client = axios.create({ baseURL, timeout: 10000 });
+    setOptionAuthToken(client, token);
+    const response = await client.post("/options", optionData);
+    return response.data;
   },
 
-  // Récupérer une option par ID (GET /api/options/{id})
-  getOptionById: async (optionId) => {
-    try {
-      const response = await optionApiClient.get(`/options/${optionId}`);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+  getAllOptions: async (token) => {
+    const baseURL = await getApiBaseUrl();
+    const client = axios.create({ baseURL, timeout: 10000 });
+    setOptionAuthToken(client, token);
+    const response = await client.get("/options");
+    return response.data;
   },
 
-  // Récupérer les options d'une question (GET /api/options/byQuestion/{questionId})
-  getOptionsByQuestionId: async (questionId) => {
-    try {
-      const response = await optionApiClient.get(`/options/byQuestion/${questionId}`);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+  getOptionById: async (optionId, token) => {
+    const baseURL = await getApiBaseUrl();
+    const client = axios.create({ baseURL, timeout: 10000 });
+    setOptionAuthToken(client, token);
+    const response = await client.get(`/options/${optionId}`);
+    return response.data;
   },
 
-  // Mettre à jour une option (PUT /api/options/{id})
-  updateOption: async (optionId, optionData) => {
-    try {
-      const response = await optionApiClient.put(`/options/${optionId}`, optionData);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+  getOptionsByQuestionId: async (questionId, token) => {
+    const baseURL = await getApiBaseUrl();
+    const client = axios.create({ baseURL, timeout: 10000 });
+    setOptionAuthToken(client, token);
+    const response = await client.get(`/options/byQuestion/${questionId}`);
+    return response.data;
   },
 
-  // Supprimer une option (DELETE /api/options/{id})
-  deleteOption: async (optionId) => {
-    try {
-      const response = await optionApiClient.delete(`/options/${optionId}`);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+  updateOption: async (optionId, optionData, token) => {
+    const baseURL = await getApiBaseUrl();
+    const client = axios.create({ baseURL, timeout: 10000 });
+    setOptionAuthToken(client, token);
+    const response = await client.put(`/options/${optionId}`, optionData);
+    return response.data;
   },
 
-  // Verrouiller une option (PATCH /api/options/{id}/lock)
-  lockOption: async (optionId) => {
-    try {
-      const response = await optionApiClient.patch(`/options/${optionId}/lock`);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+  deleteOption: async (optionId, token) => {
+    const baseURL = await getApiBaseUrl();
+    const client = axios.create({ baseURL, timeout: 10000 });
+    setOptionAuthToken(client, token);
+    const response = await client.delete(`/options/${optionId}`);
+    return response.data;
   },
 
-  // Déverrouiller une option (PATCH /api/options/{id}/unlock)
-  unlockOption: async (optionId) => {
-    try {
-      const response = await optionApiClient.patch(`/options/${optionId}/unlock`);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+  lockOption: async (optionId, token) => {
+    const baseURL = await getApiBaseUrl();
+    const client = axios.create({ baseURL, timeout: 10000 });
+    setOptionAuthToken(client, token);
+    const response = await client.patch(`/options/${optionId}/lock`);
+    return response.data;
+  },
+
+  unlockOption: async (optionId, token) => {
+    const baseURL = await getApiBaseUrl();
+    const client = axios.create({ baseURL, timeout: 10000 });
+    setOptionAuthToken(client, token);
+    const response = await client.patch(`/options/${optionId}/unlock`);
+    return response.data;
   },
 };

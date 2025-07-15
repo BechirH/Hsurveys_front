@@ -1,6 +1,5 @@
 import axios from "axios";
 
-
 let configPromise = null;
 
 async function getConfig() {
@@ -19,33 +18,19 @@ export async function getApiBaseUrl() {
   return config.API_URL;
 }
 
-
-const userApiClient = axios.create({
-  baseURL: GATEWAY_API_URL,
-  timeout: 10000,
-  withCredentials: true,
-});
-
-const orgApiClient = axios.create({
-  baseURL: GATEWAY_API_URL,
-  timeout: 10000,
-  withCredentials: true,
-});
-
-const surveyApiClient = axios.create({
-  baseURL: GATEWAY_API_URL,
-  timeout: 10000,
-  withCredentials: true,
-});
-
-
 function getCookie(name) {
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
   if (parts.length === 2) return parts.pop().split(';').shift();
 }
 
-[userApiClient, orgApiClient, surveyApiClient].forEach(client => {
+async function createUserApiClient() {
+  const baseURL = await getApiBaseUrl();
+  const client = axios.create({
+    baseURL,
+    timeout: 10000,
+    withCredentials: true,
+  });
   client.interceptors.request.use(config => {
     if (["post", "put", "delete", "patch"].includes(config.method)) {
       const xsrfToken = getCookie("XSRF-TOKEN");
@@ -55,15 +40,51 @@ function getCookie(name) {
     }
     return config;
   });
-});
+  return client;
+}
+
+async function createOrgApiClient() {
+  const baseURL = await getApiBaseUrl();
+  const client = axios.create({
+    baseURL,
+    timeout: 10000,
+    withCredentials: true,
+  });
+  client.interceptors.request.use(config => {
+    if (["post", "put", "delete", "patch"].includes(config.method)) {
+      const xsrfToken = getCookie("XSRF-TOKEN");
+      if (xsrfToken) {
+        config.headers["X-XSRF-TOKEN"] = xsrfToken;
+      }
+    }
+    return config;
+  });
+  return client;
+}
+
+async function createSurveyApiClient() {
+  const baseURL = await getApiBaseUrl();
+  const client = axios.create({
+    baseURL,
+    timeout: 10000,
+    withCredentials: true,
+  });
+  client.interceptors.request.use(config => {
+    if (["post", "put", "delete", "patch"].includes(config.method)) {
+      const xsrfToken = getCookie("XSRF-TOKEN");
+      if (xsrfToken) {
+        config.headers["X-XSRF-TOKEN"] = xsrfToken;
+      }
+    }
+    return config;
+  });
+  return client;
+}
 
 export const apiService = {
-  userApiClient,
-  orgApiClient,
-  surveyApiClient,
-
   // User endpoints
   getUsers: async () => {
+    const userApiClient = await createUserApiClient();
     try {
       const response = await userApiClient.get("/users");
       return response.data;
@@ -74,6 +95,7 @@ export const apiService = {
   },
 
   addUser: async (userData) => {
+    const userApiClient = await createUserApiClient();
     try {
       const response = await userApiClient.post("/users", userData);
       return response.data;
@@ -84,6 +106,7 @@ export const apiService = {
   },
 
   getRoles: async () => {
+    const userApiClient = await createUserApiClient();
     try {
       const response = await userApiClient.get("/roles");
       return response.data;
@@ -94,6 +117,7 @@ export const apiService = {
   },
 
   getPermissions: async () => {
+    const userApiClient = await createUserApiClient();
     try {
       const response = await userApiClient.get("/permissions");
       return response.data;
@@ -104,6 +128,7 @@ export const apiService = {
   },
 
   createRole: async (roleData) => {
+    const userApiClient = await createUserApiClient();
     try {
       const response = await userApiClient.post("/roles", roleData);
       return response.data;
@@ -114,6 +139,7 @@ export const apiService = {
   },
 
   addPermissionToRole: async (roleId, permissionId) => {
+    const userApiClient = await createUserApiClient();
     try {
       const response = await userApiClient.post(`/roles/${roleId}/permissions/${permissionId}`);
       return response.data;
@@ -124,6 +150,7 @@ export const apiService = {
   },
 
   removePermissionFromRole: async (roleId, permissionId) => {
+    const userApiClient = await createUserApiClient();
     try {
       const response = await userApiClient.delete(`/roles/${roleId}/permissions/${permissionId}`);
       return response.data;
@@ -134,6 +161,7 @@ export const apiService = {
   },
 
   deleteRole: async (roleId) => {
+    const userApiClient = await createUserApiClient();
     try {
       const response = await userApiClient.delete(`/roles/${roleId}`);
       return response.data;
@@ -144,6 +172,7 @@ export const apiService = {
   },
 
   assignRoleToUser: async (userId, roleId) => {
+    const userApiClient = await createUserApiClient();
     try {
       const response = await userApiClient.post(`/users/${userId}/roles/${roleId}`);
       return response.data;
@@ -154,6 +183,7 @@ export const apiService = {
   },
 
   removeRoleFromUser: async (userId, roleId) => {
+    const userApiClient = await createUserApiClient();
     try {
       const response = await userApiClient.delete(`/users/${userId}/roles/${roleId}`);
       return response.data;
@@ -164,6 +194,7 @@ export const apiService = {
   },
 
   updateUser: async (id, userData) => {
+    const userApiClient = await createUserApiClient();
     try {
       const response = await userApiClient.put(`/users/${id}`, userData);
       return response.data;
@@ -174,6 +205,7 @@ export const apiService = {
   },
 
   deleteUser: async (id) => {
+    const userApiClient = await createUserApiClient();
     try {
       const response = await userApiClient.delete(`/users/${id}`);
       return response.data;
@@ -185,6 +217,7 @@ export const apiService = {
 
   // Organization endpoints
   getCurrentOrganization: async (organizationId) => {
+    const orgApiClient = await createOrgApiClient();
     try {
       const response = await orgApiClient.get(`/organizations/${organizationId}`);
       return response.data;
@@ -194,6 +227,7 @@ export const apiService = {
   },
 
   getDepartments: async () => {
+    const orgApiClient = await createOrgApiClient();
     try {
       const response = await orgApiClient.get("/departments");
       return response.data;
@@ -204,6 +238,7 @@ export const apiService = {
   },
 
   getTeams: async () => {
+    const orgApiClient = await createOrgApiClient();
     try {
       const response = await orgApiClient.get("/teams");
       return response.data;
@@ -214,6 +249,7 @@ export const apiService = {
   },
 
   updateOrganization: async (id, organizationData) => {
+    const orgApiClient = await createOrgApiClient();
     try {
       const response = await orgApiClient.put(`/organizations/${id}`, organizationData);
       return response.data;
@@ -225,6 +261,7 @@ export const apiService = {
 
   // Survey endpoints
   getSurveys: async () => {
+    const surveyApiClient = await createSurveyApiClient();
     try {
       const response = await surveyApiClient.get("/survey");
       return response.data;
@@ -235,6 +272,7 @@ export const apiService = {
   },
 
   getQuestions: async () => {
+    const surveyApiClient = await createSurveyApiClient();
     try {
       const response = await surveyApiClient.get("/questions");
       return response.data;
@@ -245,6 +283,7 @@ export const apiService = {
   },
 
   getSurveyResponses: async () => {
+    const surveyApiClient = await createSurveyApiClient();
     try {
       const response = await surveyApiClient.get("/survey-response");
       return response.data;

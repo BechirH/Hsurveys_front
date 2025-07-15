@@ -1,101 +1,83 @@
 import axios from "axios";
+import { getApiBaseUrl } from "./apiService";
 
-const QUESTION_API_BASE_URL = "http://46.62.136.95:8083/api";
-
-const questionApiClient = axios.create({
-  baseURL: QUESTION_API_BASE_URL,
-  timeout: 10000,
-});
-
-const setQuestionAuthToken = (token) => {
+const setQuestionAuthToken = (client, token) => {
   if (token) {
-    questionApiClient.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    client.defaults.headers.common["Authorization"] = `Bearer ${token}`;
   } else {
-    delete questionApiClient.defaults.headers.common["Authorization"];
+    delete client.defaults.headers.common["Authorization"];
   }
 };
 
 export const questionService = {
-  // Définir le token d'authentification (à appeler dès que token dispo)
-  setQuestionAuthToken,
-
-  // Récupérer toutes les questions (GET /api/questions)
-  getAllQuestions: async () => {
-    try {
-      const response = await questionApiClient.get("/questions");
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+  setQuestionAuthToken: async (token) => {
+    const baseURL = await getApiBaseUrl();
+    const client = axios.create({ baseURL, timeout: 10000 });
+    setQuestionAuthToken(client, token);
+    return client;
   },
 
-  // Créer une nouvelle question (POST /api/questions)
-  createQuestion: async (questionData) => {
-    try {
-      const response = await questionApiClient.post("/questions", questionData);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+  getAllQuestions: async (token) => {
+    const baseURL = await getApiBaseUrl();
+    const client = axios.create({ baseURL, timeout: 10000 });
+    setQuestionAuthToken(client, token);
+    const response = await client.get("/questions");
+    return response.data;
   },
 
-  // Récupérer une question par ID (GET /api/questions/{id})
-  getQuestionById: async (questionId) => {
-    try {
-      const response = await questionApiClient.get(`/questions/${questionId}`);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+  createQuestion: async (questionData, token) => {
+    const baseURL = await getApiBaseUrl();
+    const client = axios.create({ baseURL, timeout: 10000 });
+    setQuestionAuthToken(client, token);
+    const response = await client.post("/questions", questionData);
+    return response.data;
   },
 
-  // Mettre à jour une question (PUT /api/questions/{id})
-  updateQuestion: async (questionId, questionData) => {
-    try {
-      const response = await questionApiClient.put(`/questions/${questionId}`, questionData);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+  getQuestionById: async (questionId, token) => {
+    const baseURL = await getApiBaseUrl();
+    const client = axios.create({ baseURL, timeout: 10000 });
+    setQuestionAuthToken(client, token);
+    const response = await client.get(`/questions/${questionId}`);
+    return response.data;
   },
 
-  // Supprimer une question (DELETE /api/questions/{id})
-  deleteQuestion: async (questionId) => {
-    try {
-      const response = await questionApiClient.delete(`/questions/${questionId}`);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+  updateQuestion: async (questionId, questionData, token) => {
+    const baseURL = await getApiBaseUrl();
+    const client = axios.create({ baseURL, timeout: 10000 });
+    setQuestionAuthToken(client, token);
+    const response = await client.put(`/questions/${questionId}`, questionData);
+    return response.data;
   },
 
-  // Verrouiller une question (PATCH /api/questions/{id}/lock)
-  lockQuestion: async (questionId) => {
-    try {
-      const response = await questionApiClient.patch(`/questions/${questionId}/lock`);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+  deleteQuestion: async (questionId, token) => {
+    const baseURL = await getApiBaseUrl();
+    const client = axios.create({ baseURL, timeout: 10000 });
+    setQuestionAuthToken(client, token);
+    const response = await client.delete(`/questions/${questionId}`);
+    return response.data;
   },
 
-  // Déverrouiller une question (PATCH /api/questions/{id}/unlock)
-  unlockQuestion: async (questionId) => {
-    try {
-      const response = await questionApiClient.patch(`/questions/${questionId}/unlock`);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+  lockQuestion: async (questionId, token) => {
+    const baseURL = await getApiBaseUrl();
+    const client = axios.create({ baseURL, timeout: 10000 });
+    setQuestionAuthToken(client, token);
+    const response = await client.patch(`/questions/${questionId}/lock`);
+    return response.data;
   },
 
-  // Rechercher questions par sujet (GET /api/questions/subject/{subject})
-  getBySubject: async (subject) => {
-    try {
-      const response = await questionApiClient.get(`/questions/subject/${encodeURIComponent(subject)}`);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  }
+  unlockQuestion: async (questionId, token) => {
+    const baseURL = await getApiBaseUrl();
+    const client = axios.create({ baseURL, timeout: 10000 });
+    setQuestionAuthToken(client, token);
+    const response = await client.patch(`/questions/${questionId}/unlock`);
+    return response.data;
+  },
+
+  getBySubject: async (subject, token) => {
+    const baseURL = await getApiBaseUrl();
+    const client = axios.create({ baseURL, timeout: 10000 });
+    setQuestionAuthToken(client, token);
+    const response = await client.get(`/questions/subject/${encodeURIComponent(subject)}`);
+    return response.data;
+  },
 };

@@ -1,94 +1,76 @@
 import axios from "axios";
+import { getApiBaseUrl } from "./apiService";
 
-const SURVEY_API_BASE_URL = "http://46.62.136.95:8083/api";
-
-// Instance Axios
-const surveyApiClient = axios.create({
-  baseURL: SURVEY_API_BASE_URL,
-  timeout: 10000,
-});
-
-// Auth : Ajoute ou supprime le token dans les headers
-const setSurveyAuthToken = (token) => {
+const setSurveyAuthToken = (client, token) => {
   if (token) {
-    surveyApiClient.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    client.defaults.headers.common["Authorization"] = `Bearer ${token}`;
   } else {
-    delete surveyApiClient.defaults.headers.common["Authorization"];
+    delete client.defaults.headers.common["Authorization"];
   }
 };
 
 export const surveyService = {
-  // Auth
-  setSurveyAuthToken,
-
-  // Récupérer tous les surveys
-  getAllSurveys: async () => {
-    try {
-      const response = await surveyApiClient.get("/survey");
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+  setSurveyAuthToken: async (token) => {
+    const baseURL = await getApiBaseUrl();
+    const client = axios.create({ baseURL, timeout: 10000 });
+    setSurveyAuthToken(client, token);
+    return client;
   },
 
-  // Créer un survey
-  createSurvey: async (surveyData) => {
-    try {
-      const response = await surveyApiClient.post("/survey", surveyData);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+  getAllSurveys: async (token) => {
+    const baseURL = await getApiBaseUrl();
+    const client = axios.create({ baseURL, timeout: 10000 });
+    setSurveyAuthToken(client, token);
+    const response = await client.get("/survey");
+    return response.data;
   },
 
-  // Récupérer un survey par ID
-  getSurveyById: async (surveyId) => {
-    try {
-      const response = await surveyApiClient.get(`/survey/${surveyId}`);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+  createSurvey: async (surveyData, token) => {
+    const baseURL = await getApiBaseUrl();
+    const client = axios.create({ baseURL, timeout: 10000 });
+    setSurveyAuthToken(client, token);
+    const response = await client.post("/survey", surveyData);
+    return response.data;
   },
 
-  // Mettre à jour un survey
-  updateSurvey: async (surveyId, surveyData) => {
-    try {
-      const response = await surveyApiClient.put(`/survey/${surveyId}`, surveyData);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+  getSurveyById: async (surveyId, token) => {
+    const baseURL = await getApiBaseUrl();
+    const client = axios.create({ baseURL, timeout: 10000 });
+    setSurveyAuthToken(client, token);
+    const response = await client.get(`/survey/${surveyId}`);
+    return response.data;
   },
 
-  // Supprimer un survey
-  deleteSurvey: async (surveyId) => {
-    try {
-      const response = await surveyApiClient.delete(`/survey/${surveyId}`);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+  updateSurvey: async (surveyId, surveyData, token) => {
+    const baseURL = await getApiBaseUrl();
+    const client = axios.create({ baseURL, timeout: 10000 });
+    setSurveyAuthToken(client, token);
+    const response = await client.put(`/survey/${surveyId}`, surveyData);
+    return response.data;
   },
 
-  // Assigner une question à un survey
-  assignQuestionToSurvey: async (surveyId, questionId) => {
-    try {
-      const response = await surveyApiClient.post(`/survey/${surveyId}/question/${questionId}`);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+  deleteSurvey: async (surveyId, token) => {
+    const baseURL = await getApiBaseUrl();
+    const client = axios.create({ baseURL, timeout: 10000 });
+    setSurveyAuthToken(client, token);
+    const response = await client.delete(`/survey/${surveyId}`);
+    return response.data;
   },
 
-  // ❌ Détacher une question d'un survey
-  unassignQuestionFromSurvey: async (surveyId, questionId) => {
-    try {
-      const response = await surveyApiClient.delete(`/survey/${surveyId}/question/${questionId}`);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+  assignQuestionToSurvey: async (surveyId, questionId, token) => {
+    const baseURL = await getApiBaseUrl();
+    const client = axios.create({ baseURL, timeout: 10000 });
+    setSurveyAuthToken(client, token);
+    const response = await client.post(`/survey/${surveyId}/question/${questionId}`);
+    return response.data;
+  },
+
+  unassignQuestionFromSurvey: async (surveyId, questionId, token) => {
+    const baseURL = await getApiBaseUrl();
+    const client = axios.create({ baseURL, timeout: 10000 });
+    setSurveyAuthToken(client, token);
+    const response = await client.delete(`/survey/${surveyId}/question/${questionId}`);
+    return response.data;
   },
 };
 
