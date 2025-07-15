@@ -9,7 +9,7 @@ const OrganizationSetup = ({
   loading = false, 
   error = null,
   onBack = () => {}, 
-  onSubmit = null, // ✅ NOW: Accept onSubmit prop
+  onSubmit = null, 
   onSwitchToJoinOrganization = () => {},
   onOrgCreated = () => {}
 }) => {
@@ -26,15 +26,14 @@ const OrganizationSetup = ({
   const dispatch = useDispatch();
   const navigate = useNavigate();
   
-  // ✅ FIXED: Added fallback object to prevent destructuring undefined
+  
   const { 
     loading: orgLoading = false, 
     error: orgError = null, 
     currentOrg = null 
   } = useSelector(state => state.organization || {});
 
-  // ✅ FIXED: Remove the useEffect that was causing issues
-  // The parent component (AuthSystem) will handle the organization creation response
+
   
   const validate = (fieldValues = values) => {
     let tempErrors = { ...errors };
@@ -65,19 +64,15 @@ const OrganizationSetup = ({
     setTouched({ name: true });
     
     if (validate()) {
-      console.log('OrganizationSetup: Form is valid, submitting with data:', { name: values.name });
-      
+     
       if (onSubmit) {
-        // ✅ FIXED: Use the onSubmit prop if provided
-        console.log('OrganizationSetup: Using onSubmit prop');
+       
         onSubmit({ name: values.name });
       } else {
-        // ✅ FALLBACK: Direct dispatch if no onSubmit prop
-        console.log('OrganizationSetup: Using direct dispatch');
+        
+       
         dispatch(createOrganization({ name: values.name }));
       }
-    } else {
-      console.log('OrganizationSetup: Form validation failed');
     }
   };
 

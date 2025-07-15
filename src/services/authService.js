@@ -1,30 +1,23 @@
 import axios from "axios";
 
-const AUTH_API_BASE_URL = "http://localhost:8081/api";
+const AUTH_API_BASE_URL = process.env.REACT_APP_API_URL;
 
-// Create axios instance for authenticated endpoints
+
 const apiClient = axios.create({
   baseURL: AUTH_API_BASE_URL,
   timeout: 10000,
+  withCredentials: true, 
 });
 
-// Create a separate axios instance for open APIs (no auth required)
+
 const openApiClient = axios.create({
   baseURL: AUTH_API_BASE_URL,
   timeout: 10000,
+  withCredentials: true,
 });
 
-// Helper to set token header
-const setAuthToken = (token) => {
-  if (token) {
-    apiClient.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-  } else {
-    delete apiClient.defaults.headers.common["Authorization"];
-  }
-};
-
 export const authService = {
-  // Login for all users (OPEN API - no authentication required)
+  // Login for all users 
   login: async (credentials) => {
     try {
       const response = await openApiClient.post("/auth/login", credentials);
@@ -34,7 +27,7 @@ export const authService = {
     }
   },
 
-  // Register user for a new organization (Step 2) (OPEN API - no authentication required)
+  // Register user for a new organization (Step 2) 
   registerUserForNewOrg: async (orgId, userData) => {
     try {
       const response = await openApiClient.post(
@@ -47,7 +40,7 @@ export const authService = {
     }
   },
 
-  // Register user for an existing organization (OPEN API - no authentication required)
+  // Register user for an existing organization 
   registerUserForExistingOrg: async (userData) => {
     try {
       const response = await openApiClient.post("/auth/register", userData);
@@ -57,29 +50,22 @@ export const authService = {
     }
   },
 
-  // Validate token with backend (REQUIRES AUTH)
-  validateToken: async (token) => {
-    setAuthToken(token);
+  // Get current user info from backend (cookie-based)
+  getCurrentUser: async () => {
     try {
-      const response = await apiClient.get("/auth/validate");
+      const response = await apiClient.get("/auth/me");
       return response.data;
     } catch (error) {
       throw error;
     }
   },
 
-  // Set token for future requests (only affects authenticated endpoints)
-  setAuthToken,
-
-  // Logout (clear session on backend if needed) (REQUIRES AUTH)
-  logout: async (token) => {
-    setAuthToken(token);
+  // Logout (clear session on backend)
+  logout: async () => {
     try {
       await apiClient.post("/auth/logout");
     } catch (error) {
       console.error("Backend logout failed:", error);
-    } finally {
-      setAuthToken(null);
     }
   },
 };

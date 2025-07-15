@@ -24,7 +24,7 @@ const LoginForm = ({
   const dispatch = useDispatch();
   const navigate = useNavigate();
   
-  // ✅ FIXED: Added fallback object to prevent destructuring undefined
+ 
   const { 
     loading: reduxLoading = false, 
     errorLogin: reduxError = null, 
@@ -41,7 +41,7 @@ const LoginForm = ({
     }
   }, [user, navigate]);
 
-  // Clear errors when component mounts or when switching views
+  
   useEffect(() => {
     dispatch(clearAuthErrors());
   }, [dispatch]);
@@ -78,7 +78,7 @@ const LoginForm = ({
     setFormErrors(errors);
   };
 
-  // ✅ FIXED: This is the main fix - handle both cases properly
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const errors = validate(formValues);
@@ -90,10 +90,10 @@ const LoginForm = ({
 
     if (Object.keys(errors).length === 0) {
       if (onSubmit) {
-        // If onSubmit prop is provided, call it with the form values
+       
         onSubmit(formValues);
       } else {
-        // Otherwise dispatch the action directly
+        
         dispatch(loginUser(formValues));
       }
     }
@@ -223,20 +223,3 @@ const LoginForm = ({
 
 export default LoginForm;
 
-// Also need to update AuthSystem.jsx handleLoginSubmit to not expect event object:
-// Change from:
-// const handleLoginSubmit = e => {
-//   e.preventDefault();
-//   const errors = validateForm(loginValues, 'login');
-//   if (Object.keys(errors).length === 0) {
-//     dispatch(loginUser(loginValues));
-//   }
-// };
-
-// To:
-// const handleLoginSubmit = (formValues) => {
-//   const errors = validateForm(formValues, 'login');
-//   if (Object.keys(errors).length === 0) {
-//     dispatch(loginUser(formValues));
-//   }
-// };

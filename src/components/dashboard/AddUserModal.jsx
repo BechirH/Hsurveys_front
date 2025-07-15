@@ -9,7 +9,7 @@ const AddUserModal = ({ open, onClose, onSuccess }) => {
   const [form, setForm] = useState({ username: "", email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const { token } = useSelector(state => state.auth);
+ 
 
   if (!open) return null;
 
@@ -22,7 +22,7 @@ const AddUserModal = ({ open, onClose, onSuccess }) => {
     setLoading(true);
     setError("");
     try {
-      apiService.setUserAuthToken(token);
+     
       await apiService.addUser(form);
       setForm({ username: "", email: "", password: "" });
       onSuccess && onSuccess();

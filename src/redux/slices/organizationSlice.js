@@ -8,7 +8,7 @@ export const createOrganization = createAsyncThunk(
       const response = await organizationService.createOrganization(orgData);
       return response;
     } catch (err) {
-      // Try to get backend error message
+   
       if (err.response && err.response.data && err.response.data.message) {
         return rejectWithValue(err.response.data.message);
       }

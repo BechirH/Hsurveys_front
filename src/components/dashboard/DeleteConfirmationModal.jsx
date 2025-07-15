@@ -15,7 +15,7 @@ const DeleteConfirmationModal = ({
 }) => {
   if (!open || !entity) return null;
 
-  // Default configurations for different entity types
+  
   const getEntityConfig = (type) => {
     const configs = {
       user: {

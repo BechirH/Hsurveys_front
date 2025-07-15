@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux';
-import { logout } from '../redux/slices/authSlice';
+import { logoutUser } from '../redux/slices/authSlice';
 import NavBar from '../components/common/NavBar';
 import DashboardLoading from '../components/common/DashboardLoading';
 import { apiService } from '../services/apiService';
@@ -58,9 +58,9 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   
-  const { user: currentUser, token } = useSelector(state => state.auth);
+  const { user: currentUser } = useSelector(state => state.auth);
   
-  // Use the new overview data hook
+ 
   const {
     loading,
     error,
@@ -76,7 +76,7 @@ const Dashboard = () => {
     reload
   } = useOverviewData(currentUser);
 
-  // State management
+  
   const [activeTab, setActiveTab] = useState("overview");
   const [copiedCode, setCopiedCode] = useState(false);
  
@@ -166,234 +166,211 @@ const Dashboard = () => {
   };
 
   const onCreateSurvey = () => {
-    // TODO: Implement survey creation modal or navigation
+    
     alert('Create Survey clicked!');
   };
 
  
   const onCreateDepartment = () => {
-    // TODO: Implement create department modal or navigation
+   
     alert('Create Department clicked!');
   };
 
   const onCreateTeam = () => {
-    // TODO: Implement create team modal or navigation
+    
     alert('Create Team clicked!');
   };
 
   const onCreateRole = async (roleData) => {
     try {
-      // Create the role first
+     
       const createdRole = await apiService.createRole({
         name: roleData.name,
         description: roleData.description
       });
 
-      // Add permissions to the role
+      
       for (const permissionId of roleData.permissions) {
         await apiService.addPermissionToRole(createdRole.id, permissionId);
       }
 
-      console.log('Role created successfully:', createdRole);
-      reload && reload(); // Refresh the data
+    
+      reload && reload(); 
     } catch (error) {
       console.error('Error creating role:', error);
-      alert(`Failed to create role: ${error.response?.data?.message || error.message}`);
     }
   };
 
   const onEditRole = async (roleData) => {
     try {
-      // Note: Edit role name/description is not implemented yet
-      console.log('Editing role:', roleData);
-      alert('Edit role name and description is not implemented yet. Only permissions can be managed.');
       
-      // For now, we can only manage permissions
-      // This would need to be implemented when the backend supports it
+      
+      reload && reload(); 
     } catch (error) {
       console.error('Error editing role:', error);
-      alert(`Failed to edit role: ${error.response?.data?.message || error.message}`);
     }
   };
 
   const onDeleteRole = async (roleId) => {
     try {
       await apiService.deleteRole(roleId);
-      console.log('Role deleted successfully');
-      reload && reload(); // Refresh the data
+    
+      reload && reload(); 
     } catch (error) {
       console.error('Error deleting role:', error);
-      alert(`Failed to delete role: ${error.response?.data?.message || error.message}`);
     }
   };
-
-  if (!currentUser) {
-    return <DashboardLoading message="Loading your dashboard..." />;
-  }
 
   const renderContent = () => {
     switch (activeTab) {
       case "overview":
-        return <OverviewSection
-          stats={dashboardStats}
-          organizations={organizations}
-          surveys={surveys}
-          users={users}
-          getStatusColor={getStatusColor}
-          getSurveyTypeColor={getSurveyTypeColor}
-          setActiveTab={setActiveTab}
-        />;
+        return (
+          <OverviewSection
+            stats={dashboardStats}
+            organizations={organizations}
+            surveys={surveys}
+            users={users}
+            getStatusColor={getStatusColor}
+            getSurveyTypeColor={getSurveyTypeColor}
+            setActiveTab={setActiveTab}
+          />
+        );
       case "surveys":
-        return <SurveysSection
-          surveys={surveys}
-          getSurveyTypeColor={getSurveyTypeColor}
-          getStatusColor={getStatusColor}
-          formatDate={formatDate}
-          onCreateSurvey={onCreateSurvey}
-        />;
+        return (
+          <SurveysSection
+            surveys={surveys}
+            onCreateSurvey={onCreateSurvey}
+            getStatusColor={getStatusColor}
+            getSurveyTypeColor={getSurveyTypeColor}
+            formatDate={formatDate}
+          />
+        );
       case "users":
-        return <UsersSection users={users} reload={reload} roles={roles} departments={departments} />;
+        return (
+          <UsersSection
+            users={users}
+            roles={roles}
+            getStatusColor={getStatusColor}
+            formatDate={formatDate}
+          />
+        );
       case "organizations":
-        return <OrganizationsSection organizations={organizations} departments={departments} teams={teams} users={users} reload={reload} />;
+        return (
+          <OrganizationsSection
+            organizations={organizations}
+            getStatusColor={getStatusColor}
+            formatDate={formatDate}
+          />
+        );
       case "departments":
-        return <DepartmentsSection departments={departments} teams={teams} users={users} onCreateDepartment={onCreateDepartment} />;
+        return (
+          <DepartmentsSection
+            departments={departments}
+            onCreateDepartment={onCreateDepartment}
+            getStatusColor={getStatusColor}
+            formatDate={formatDate}
+          />
+        );
       case "teams":
-        return <TeamsSection teams={teams} departments={departments} users={users} onCreateTeam={onCreateTeam} />;
+        return (
+          <TeamsSection
+            teams={teams}
+            onCreateTeam={onCreateTeam}
+            getStatusColor={getStatusColor}
+            formatDate={formatDate}
+          />
+        );
       case "roles":
-        return <RolesSection 
-          roles={roles} 
-          permissions={permissions} 
-          onCreateRole={onCreateRole}
-          onEditRole={onEditRole}
-          onDeleteRole={onDeleteRole}
-        />;
+        return (
+          <RolesSection
+            roles={roles}
+            permissions={permissions}
+            onCreateRole={onCreateRole}
+            onEditRole={onEditRole}
+            onDeleteRole={onDeleteRole}
+            getStatusColor={getStatusColor}
+            formatDate={formatDate}
+          />
+        );
       default:
-        return <OverviewSection
-          stats={dashboardStats}
-          organizations={organizations}
-          surveys={surveys}
-          users={users}
-          getStatusColor={getStatusColor}
-          getSurveyTypeColor={getSurveyTypeColor}
-          setActiveTab={setActiveTab}
-        />;
+        return <OverviewSection />;
     }
   };
 
-  const tabs = [
-    { id: 'overview', name: 'Overview', icon: Home },
-    { id: 'surveys', name: 'Surveys', icon: ClipboardList },
-    { id: 'users', name: 'Users', icon: Users },
-    { id: 'organizations', name: 'Organization', icon: Building2 },
-    { id: 'departments', name: 'Departments', icon: Users2 },
-    { id: 'teams', name: 'Teams', icon: Target },
-    { id: 'roles', name: 'Roles', icon: Shield }
-  ];
+  if (loading) {
+    return <DashboardLoading />;
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Error Loading Dashboard</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
+    <div className="min-h-screen bg-gray-50">
       <NavBar />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header Section */}
-        <div className="mb-10">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-800 via-gray-700 to-gray-600 bg-clip-text text-transparent mb-2">
-                Admin Dashboard
-              </h1>
-              <p className="text-gray-600 text-lg">
-                Manage your organization, users, surveys, and more
+              <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+              <p className="text-gray-600 mt-2">
+                Welcome back, {currentUser?.username}! Here's what's happening in your organization.
               </p>
             </div>
             
-            {/* Settings Button */}
-            <div className="mt-4 lg:mt-0">
-              <button className="p-2 text-gray-500 hover:text-gray-700 hover:bg-white rounded-xl transition-all duration-200 border border-gray-200 hover:shadow-md">
-                <Settings className="w-5 h-5" />
-              </button>
-            </div>
           </div>
-
-          {/* Invitation Code Card - Compact */}
-          {organizations[0]?.id && (
-            <div className="bg-white rounded-xl shadow-md border border-gray-200 p-4 hover:shadow-lg transition-shadow duration-300 max-w-sm">
-              <div className="flex items-center space-x-3">
-                <div className="bg-gradient-to-br from-purple-600 to-indigo-600 p-1.5 rounded-lg flex-shrink-0">
-                  <Globe className="w-4 h-4 text-white" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-sm font-medium text-gray-800 mb-1">Invitation Code</h3>
-                  <div className="flex items-center space-x-2">
-                    <code className="font-mono text-sm font-semibold text-gray-800 bg-gray-100 px-2 py-1 rounded border break-all">
-                      {organizations[0].id}
-                    </code>
-                    <button
-                      onClick={handleCopyInvitationCode}
-                      className="flex items-center justify-center p-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-all duration-200 flex-shrink-0"
-                      title="Copy invitation code"
-                    >
-                      {copiedCode ? (
-                        <Check className="w-4 h-4 text-green-600" />
-                      ) : (
-                        <Copy className="w-4 h-4 text-blue-600" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <p className="text-xs text-gray-500 mt-2">
-                Share this code with new members
-              </p>
-            </div>
-          )}
         </div>
-
-        {/* Error Display */}
-        {error && (
-          <div className="mb-6 bg-red-50 border border-red-200 rounded-2xl p-4 shadow-lg">
-            <div className="flex items-center text-red-800">
-              <div className="bg-red-100 p-2 rounded-xl mr-3">
-                <AlertCircle className="w-5 h-5 text-red-600" />
-              </div>
-              <div>
-                <h4 className="font-semibold">Error Loading Data</h4>
-                <p className="text-sm text-red-700">{error}</p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Loading State */}
-        {loading && <DashboardLoading message="Loading Dashboard Data..." />}
 
         {/* Navigation Tabs */}
         <div className="mb-8">
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-2">
-            <nav className="flex space-x-1 overflow-x-auto">
-              {tabs.map((tab) => (
+          <nav className="flex space-x-8 border-b border-gray-200">
+            {[
+              { id: "overview", label: "Overview", icon: Home },
+              { id: "surveys", label: "Surveys", icon: FileText },
+              { id: "users", label: "Users", icon: Users },
+              { id: "organizations", label: "Organizations", icon: Building2 },
+              { id: "departments", label: "Departments", icon: Users2 },
+              { id: "teams", label: "Teams", icon: UserCheck },
+              { id: "roles", label: "Roles", icon: Shield }
+            ].map((tab) => {
+              const Icon = tab.icon;
+              return (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center space-x-2 px-4 py-3 rounded-xl font-medium text-sm transition-all duration-200 whitespace-nowrap ${
+                  className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                     activeTab === tab.id
-                      ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg'
-                      : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   }`}
                 >
-                  <tab.icon className="w-4 h-4" />
-                  <span>{tab.name}</span>
+                  <Icon className="w-4 h-4" />
+                  <span>{tab.label}</span>
                 </button>
-              ))}
-            </nav>
-          </div>
+              );
+            })}
+          </nav>
         </div>
 
-        {/* Main Content */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-          <div className="p-6 lg:p-8">
-            {renderContent()}
-          </div>
+        {/* Content */}
+        <div className="bg-white rounded-lg shadow">
+          {renderContent()}
         </div>
       </div>
     </div>

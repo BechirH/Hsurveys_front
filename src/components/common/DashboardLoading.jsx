@@ -25,17 +25,17 @@ const DashboardLoading = ({ message = "Loading your dashboard..." }) => {
             ></div>
           </div>
           
-          {/* Loading message with gradient text */}
+       
           <p className="text-gray-800 font-semibold text-center text-xl mb-2 bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
             {message}
           </p>
           
-          {/* Subtitle */}
+  
           <p className="text-gray-500 text-sm text-center">
             Please wait while we prepare your data...
           </p>
           
-          {/* Progress bar animation */}
+      
           <div className="w-full bg-gray-200 rounded-full h-1 mt-6 overflow-hidden">
             <div className="h-1 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-full animate-pulse" style={{ width: '60%' }}></div>
           </div>

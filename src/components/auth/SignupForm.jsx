@@ -30,7 +30,7 @@ const SignupForm = ({
   const dispatch = useDispatch();
   const navigate = useNavigate();
   
-  // Fixed: Use correct state path
+
   const { loading: reduxLoading, error: reduxError, user } = useSelector(state => state.auth || {});
 
   useEffect(() => {
@@ -112,7 +112,7 @@ const SignupForm = ({
           <p className="text-gray-600">Step 2: Your credentials</p>
         </div>
         <div className="space-y-6">
-          {/* Fixed: Show both prop error and redux error */}
+        
           {(error || reduxError) && (
             <div className="bg-red-100 border border-red-300 text-red-700 px-4 py-2 rounded mb-4 text-center animate-fade-in">
               <span className="font-semibold">

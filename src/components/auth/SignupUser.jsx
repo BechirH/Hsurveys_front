@@ -30,7 +30,7 @@ const SignupUser = ({
   const dispatch = useDispatch();
   const navigate = useNavigate();
   
-  // ✅ FIXED: Added fallback object to prevent destructuring undefined
+
   const { 
     loading: reduxLoading = false, 
     errorRegisterExistingOrg: reduxError = null, 

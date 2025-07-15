@@ -1,20 +1,36 @@
 import { configureStore } from "@reduxjs/toolkit";
 import authReducer from "./slices/authSlice";
 import organizationReducer from "./slices/organizationSlice";
-import StateLoader from "../utils/stateLoader";
 
-// Create state loader instance
-const stateLoader = new StateLoader();
+// --- Persistence ---
+const loadState = () => {
+  try {
+    const serializedState = localStorage.getItem("authState");
+    if (serializedState === null) {
+      return undefined;
+    }
+    return { auth: JSON.parse(serializedState) };
+  } catch (err) {
+    return undefined;
+  }
+};
 
-// Load initial state from localStorage
-const preloadedState = stateLoader.loadState();
+const saveState = (state) => {
+  try {
+    const serializedState = JSON.stringify(state.auth);
+    localStorage.setItem("authState", serializedState);
+  } catch {
+
+  }
+};
+
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
     organization: organizationReducer,
   },
-  preloadedState,
+  preloadedState: loadState(),
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
@@ -23,10 +39,6 @@ export const store = configureStore({
     }),
 });
 
-// Subscribe to store changes and save state to localStorage
 store.subscribe(() => {
-  stateLoader.saveState(store.getState());
+  saveState(store.getState());
 });
-
-// Export the state loader for manual operations if needed
-export { stateLoader };

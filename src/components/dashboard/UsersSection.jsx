@@ -77,7 +77,7 @@ const UsersSection = ({ users, onAddUser, reload, roles = [], departments = [] }
   const endIndex = startIndex + itemsPerPage;
   const currentUsers = filteredAndSortedUsers.slice(startIndex, endIndex);
 
-  // Reset page when filters change
+
   React.useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, roleFilter, departmentFilter, sortBy, sortOrder]);
