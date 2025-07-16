@@ -1,12 +1,6 @@
 import axios from "axios";
 import { getApiBaseUrl } from "./apiService";
 
-function getCookie(name) {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop().split(";").shift();
-}
-
 async function createOptionApiClient() {
   const baseURL = await getApiBaseUrl();
   const client = axios.create({
@@ -15,9 +9,13 @@ async function createOptionApiClient() {
     withCredentials: true,
   });
 
+  // Intercepteur pour ajouter token CSRF sur méthodes modifiant les données
   client.interceptors.request.use((config) => {
     if (["post", "put", "delete", "patch"].includes(config.method)) {
-      const xsrfToken = getCookie("XSRF-TOKEN");
+      const xsrfToken = document.cookie
+        .split("; ")
+        .find(row => row.startsWith("XSRF-TOKEN="))
+        ?.split("=")[1];
       if (xsrfToken) {
         config.headers["X-XSRF-TOKEN"] = xsrfToken;
       }
@@ -28,52 +26,54 @@ async function createOptionApiClient() {
   return client;
 }
 
-export const optionService = {
-  createOption: async (optionData) => {
-    const client = await createOptionApiClient();
-    const response = await client.post("/options", optionData);
-    return response.data;
-  },
+async function handleRequest(promise) {
+  try {
+    const res = await promise;
+    return res.data;
+  } catch (error) {
+    console.error("[optionService] error", error.response?.status, error.response?.data);
+    throw error;
+  }
+}
 
+export const optionService = {
   getAllOptions: async () => {
     const client = await createOptionApiClient();
-    const response = await client.get("/options");
-    return response.data;
+    return handleRequest(client.get("/options"));
   },
 
   getOptionById: async (optionId) => {
     const client = await createOptionApiClient();
-    const response = await client.get(`/options/${optionId}`);
-    return response.data;
+    return handleRequest(client.get(`/options/${optionId}`));
   },
 
   getOptionsByQuestionId: async (questionId) => {
     const client = await createOptionApiClient();
-    const response = await client.get(`/options/byQuestion/${questionId}`);
-    return response.data;
+    return handleRequest(client.get(`/options/byQuestion/${questionId}`));
+  },
+
+  createOption: async (optionData) => {
+    const client = await createOptionApiClient();
+    return handleRequest(client.post("/options", optionData));
   },
 
   updateOption: async (optionId, optionData) => {
     const client = await createOptionApiClient();
-    const response = await client.put(`/options/${optionId}`, optionData);
-    return response.data;
+    return handleRequest(client.put(`/options/${optionId}`, optionData));
   },
 
   deleteOption: async (optionId) => {
     const client = await createOptionApiClient();
-    const response = await client.delete(`/options/${optionId}`);
-    return response.data;
+    return handleRequest(client.delete(`/options/${optionId}`));
   },
 
   lockOption: async (optionId) => {
     const client = await createOptionApiClient();
-    const response = await client.patch(`/options/${optionId}/lock`);
-    return response.data;
+    return handleRequest(client.patch(`/options/${optionId}/lock`));
   },
 
   unlockOption: async (optionId) => {
     const client = await createOptionApiClient();
-    const response = await client.patch(`/options/${optionId}/unlock`);
-    return response.data;
+    return handleRequest(client.patch(`/options/${optionId}/unlock`));
   },
 };
