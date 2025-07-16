@@ -1,82 +1,78 @@
 import axios from "axios";
 import { getApiBaseUrl } from "./apiService";
 
-const setOptionAuthToken = (client, token) => {
-  if (token) {
-    client.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-  } else {
-    delete client.defaults.headers.common["Authorization"];
-  }
-};
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(";").shift();
+}
+
+async function createOptionApiClient() {
+  const baseURL = await getApiBaseUrl();
+  const client = axios.create({
+    baseURL,
+    timeout: 10000,
+    withCredentials: true,
+  });
+
+  client.interceptors.request.use((config) => {
+    if (["post", "put", "delete", "patch"].includes(config.method)) {
+      const xsrfToken = getCookie("XSRF-TOKEN");
+      if (xsrfToken) {
+        config.headers["X-XSRF-TOKEN"] = xsrfToken;
+      }
+    }
+    return config;
+  });
+
+  return client;
+}
 
 export const optionService = {
-  setOptionAuthToken: async (token) => {
-    const baseURL = await getApiBaseUrl();
-    const client = axios.create({ baseURL, timeout: 10000 });
-    setOptionAuthToken(client, token);
-    return client;
-  },
-
-  createOption: async (optionData, token) => {
-    const baseURL = await getApiBaseUrl();
-    const client = axios.create({ baseURL, timeout: 10000 });
-    setOptionAuthToken(client, token);
+  createOption: async (optionData) => {
+    const client = await createOptionApiClient();
     const response = await client.post("/options", optionData);
     return response.data;
   },
 
-  getAllOptions: async (token) => {
-    const baseURL = await getApiBaseUrl();
-    const client = axios.create({ baseURL, timeout: 10000 });
-    setOptionAuthToken(client, token);
+  getAllOptions: async () => {
+    const client = await createOptionApiClient();
     const response = await client.get("/options");
     return response.data;
   },
 
-  getOptionById: async (optionId, token) => {
-    const baseURL = await getApiBaseUrl();
-    const client = axios.create({ baseURL, timeout: 10000 });
-    setOptionAuthToken(client, token);
+  getOptionById: async (optionId) => {
+    const client = await createOptionApiClient();
     const response = await client.get(`/options/${optionId}`);
     return response.data;
   },
 
-  getOptionsByQuestionId: async (questionId, token) => {
-    const baseURL = await getApiBaseUrl();
-    const client = axios.create({ baseURL, timeout: 10000 });
-    setOptionAuthToken(client, token);
+  getOptionsByQuestionId: async (questionId) => {
+    const client = await createOptionApiClient();
     const response = await client.get(`/options/byQuestion/${questionId}`);
     return response.data;
   },
 
-  updateOption: async (optionId, optionData, token) => {
-    const baseURL = await getApiBaseUrl();
-    const client = axios.create({ baseURL, timeout: 10000 });
-    setOptionAuthToken(client, token);
+  updateOption: async (optionId, optionData) => {
+    const client = await createOptionApiClient();
     const response = await client.put(`/options/${optionId}`, optionData);
     return response.data;
   },
 
-  deleteOption: async (optionId, token) => {
-    const baseURL = await getApiBaseUrl();
-    const client = axios.create({ baseURL, timeout: 10000 });
-    setOptionAuthToken(client, token);
+  deleteOption: async (optionId) => {
+    const client = await createOptionApiClient();
     const response = await client.delete(`/options/${optionId}`);
     return response.data;
   },
 
-  lockOption: async (optionId, token) => {
-    const baseURL = await getApiBaseUrl();
-    const client = axios.create({ baseURL, timeout: 10000 });
-    setOptionAuthToken(client, token);
+  lockOption: async (optionId) => {
+    const client = await createOptionApiClient();
     const response = await client.patch(`/options/${optionId}/lock`);
     return response.data;
   },
 
-  unlockOption: async (optionId, token) => {
-    const baseURL = await getApiBaseUrl();
-    const client = axios.create({ baseURL, timeout: 10000 });
-    setOptionAuthToken(client, token);
+  unlockOption: async (optionId) => {
+    const client = await createOptionApiClient();
     const response = await client.patch(`/options/${optionId}/unlock`);
     return response.data;
   },
