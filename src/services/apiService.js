@@ -143,123 +143,123 @@ export const apiService = {
   // ----- Survey endpoints -----
   getAllSurveys: async () => {
     const client = await createApiClient();
-    return handleRequest(client.get("/api/surveys"));
+    return handleRequest(client.get("/surveys"));
   },
 
   createSurvey: async (surveyData) => {
     const client = await createApiClient();
-    return handleRequest(client.post("/api/surveys", surveyData));
+    return handleRequest(client.post("/surveys", surveyData));
   },
 
   getSurveyById: async (surveyId) => {
     const client = await createApiClient();
-    return handleRequest(client.get(`/api/surveys/${surveyId}`));
+    return handleRequest(client.get(`/surveys/${surveyId}`));
   },
 
   updateSurvey: async (surveyId, surveyData) => {
     const client = await createApiClient();
-    return handleRequest(client.put(`/api/surveys/${surveyId}`, surveyData));
+    return handleRequest(client.put(`/surveys/${surveyId}`, surveyData));
   },
 
   deleteSurvey: async (surveyId) => {
     const client = await createApiClient();
-    return handleRequest(client.delete(`/api/surveys/${surveyId}`));
+    return handleRequest(client.delete(`/surveys/${surveyId}`));
   },
 
   assignQuestionToSurvey: async (surveyId, questionId) => {
     const client = await createApiClient();
-    return handleRequest(client.post(`/api/surveys/${surveyId}/question/${questionId}`));
+    return handleRequest(client.post(`/surveys/${surveyId}/question/${questionId}`));
   },
 
   unassignQuestionFromSurvey: async (surveyId, questionId) => {
     const client = await createApiClient();
-    return handleRequest(client.delete(`/api/surveys/${surveyId}/question/${questionId}`));
+    return handleRequest(client.delete(`/surveys/${surveyId}/question/${questionId}`));
   },
 
   lockSurvey: async (surveyId) => {
     const client = await createApiClient();
-    return handleRequest(client.patch(`/api/surveys/${surveyId}/lock`));
+    return handleRequest(client.patch(`/surveys/${surveyId}/lock`));
   },
 
   unlockSurvey: async (surveyId) => {
     const client = await createApiClient();
-    return handleRequest(client.patch(`/api/surveys/${surveyId}/unlock`));
+    return handleRequest(client.patch(`/surveys/${surveyId}/unlock`));
   },
 
   surveyExists: async (surveyId) => {
     const client = await createApiClient();
-    return handleRequest(client.get(`/api/surveys/${surveyId}/exists`));
+    return handleRequest(client.get(`/surveys/${surveyId}/exists`));
   },
 
   // ----- Question endpoints -----
   getAllQuestions: async () => {
     const client = await createApiClient();
-    return handleRequest(client.get("/api/questions"));
+    return handleRequest(client.get("/questions"));
   },
 
   getQuestionById: async (questionId) => {
     const client = await createApiClient();
-    return handleRequest(client.get(`/api/questions/${questionId}`));
+    return handleRequest(client.get(`/questions/${questionId}`));
   },
 
   createQuestion: async (questionData) => {
     const client = await createApiClient();
-    return handleRequest(client.post("/api/questions", questionData));
+    return handleRequest(client.post("/questions", questionData));
   },
 
   updateQuestion: async (questionId, questionData) => {
     const client = await createApiClient();
-    return handleRequest(client.put(`/api/questions/${questionId}`, questionData));
+    return handleRequest(client.put(`/questions/${questionId}`, questionData));
   },
 
   deleteQuestion: async (questionId) => {
     const client = await createApiClient();
-    return handleRequest(client.delete(`/api/questions/${questionId}`));
+    return handleRequest(client.delete(`/questions/${questionId}`));
   },
 
   questionExists: async (questionId) => {
     const client = await createApiClient();
-    return handleRequest(client.get(`/api/questions/${questionId}/exists`));
+    return handleRequest(client.get(`/questions/${questionId}/exists`));
   },
 
   // ----- Option endpoints -----
   getAllOptions: async () => {
     const client = await createApiClient();
-    return handleRequest(client.get("/api/options"));
+    return handleRequest(client.get("/options"));
   },
 
   getOptionById: async (optionId) => {
     const client = await createApiClient();
-    return handleRequest(client.get(`/api/options/${optionId}`));
+    return handleRequest(client.get(`/options/${optionId}`));
   },
 
   getOptionsByQuestionId: async (questionId) => {
     const client = await createApiClient();
-    return handleRequest(client.get(`/api/options/byQuestion/${questionId}`));
+    return handleRequest(client.get(`/options/byQuestion/${questionId}`));
   },
 
   createOption: async (optionData) => {
     const client = await createApiClient();
-    return handleRequest(client.post("/api/options", optionData));
+    return handleRequest(client.post("/options", optionData));
   },
 
   updateOption: async (optionId, optionData) => {
     const client = await createApiClient();
-    return handleRequest(client.put(`/api/options/${optionId}`, optionData));
+    return handleRequest(client.put(`/options/${optionId}`, optionData));
   },
 
   deleteOption: async (optionId) => {
     const client = await createApiClient();
-    return handleRequest(client.delete(`/api/options/${optionId}`));
+    return handleRequest(client.delete(`/options/${optionId}`));
   },
 
   lockOption: async (optionId) => {
     const client = await createApiClient();
-    return handleRequest(client.patch(`/api/options/${optionId}/lock`));
+    return handleRequest(client.patch(`/options/${optionId}/lock`));
   },
 
   unlockOption: async (optionId) => {
     const client = await createApiClient();
-    return handleRequest(client.patch(`/api/options/${optionId}/unlock`));
+    return handleRequest(client.patch(`/options/${optionId}/unlock`));
   },
 };

@@ -84,7 +84,7 @@ export const useOverviewData = (currentUser) => {
 
   const loadSurveys = async () => {
     try {
-      const data = await apiService.getSurveys();
+      const data = await apiService.getAllSurveys();
       setSurveys(data);
     } catch (err) {
       console.error("Failed to load surveys:", err);
@@ -111,7 +111,7 @@ export const useOverviewData = (currentUser) => {
 
   const loadQuestions = async () => {
     try {
-      const data = await apiService.getQuestions();
+      const data = await apiService.getAllQuestions();
       setQuestions(data);
     } catch (err) {
       console.error("Failed to load questions:", err);
