@@ -13,7 +13,9 @@ export const autoLogin = createAsyncThunk(
         return rejectWithValue("Session expired");
       }
     } catch (error) {
-      return rejectWithValue("Session verification failed");
+      // If refresh also fails, clear storage and return a clear error
+      localStorage.removeItem("authState");
+      return rejectWithValue("Session verification and refresh failed. Please log in again.");
     }
   }
 );
@@ -84,8 +86,10 @@ export const logoutUser = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       await authService.logout();
+      localStorage.removeItem("authState");
       return "Logged out successfully";
     } catch (err) {
+      localStorage.removeItem("authState");
       return "Logged out successfully";
     }
   }
