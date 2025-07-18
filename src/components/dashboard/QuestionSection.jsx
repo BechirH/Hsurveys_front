@@ -5,29 +5,29 @@ import { questionService } from "../../services/questionService";
 import { Eye, Edit, Lock, Unlock, Plus } from "lucide-react";
 import Button from "../common/Button";
 
-const QuestionsSection = ({ questions, reload }) => {
+const QuestionsSection = ({ questions = [], reload }) => {
+  console.log("Questions prop:", questions);
   const [showCreateForm, setShowCreateForm] = useState(false);
 
   const handleSubmitQuestion = async (formData) => {
     try {
-      // Appel API pour créer la question
       await questionService.createQuestion({
         subject: formData.subject,
         questionText: formData.questionText,
         questionType: formData.questionType,
         locked: formData.locked,
+        options: formData.options,
       });
-      // Recharge la liste globale
       await reload();
       setShowCreateForm(false);
     } catch (err) {
-      console.error("Erreur lors de la création :", err);
+      console.error("Erreur lors de la création de la question :", err);
     }
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between">
+      <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Gestion des questions</h2>
         <Button
           icon={Plus}
@@ -73,15 +73,15 @@ const QuestionsSection = ({ questions, reload }) => {
                   </td>
                   <td className="table-cell-base text-sm font-medium">
                     <div className="flex items-center space-x-2">
-                      <button className="icon-btn" aria-label="Voir question">
+                      <button className="icon-btn" aria-label="Voir les détails de la question">
                         <Eye className="w-4 h-4" />
                       </button>
-                      <button className="icon-btn-green" aria-label="Modifier question">
+                      <button className="icon-btn-green" aria-label="Modifier cette question">
                         <Edit className="w-4 h-4" />
                       </button>
                       <button
-                        className={`text-orange-600 hover:text-orange-900`}
-                        aria-label="Verrouiller question"
+                        className="text-orange-600 hover:text-orange-900"
+                        aria-label={question.locked ? "Déverrouiller la question" : "Verrouiller la question"}
                       >
                         {question.locked ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
                       </button>
