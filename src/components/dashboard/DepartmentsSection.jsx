@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
-import { Plus, Users2, Eye, Edit, UserPlus, Search, Filter, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Users2, Eye, Edit, UserPlus, Search, Filter, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 
-const DepartmentsSection = ({ departments, teams, users, onCreateDepartment }) => {
+const DepartmentsSection = ({ departments, users, onCreateDepartment, onEditDepartment, onDeleteDepartment, onManageUsers }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("name");
   const [sortOrder, setSortOrder] = useState("asc");
@@ -15,25 +15,8 @@ const DepartmentsSection = ({ departments, teams, users, onCreateDepartment }) =
     );
 
     filtered.sort((a, b) => {
-      let aValue, bValue;
-      
-      switch (sortBy) {
-        case "name":
-          aValue = a.name.toLowerCase();
-          bValue = b.name.toLowerCase();
-          break;
-        case "teams":
-          aValue = teams.filter(team => team.departmentId === a.id).length;
-          bValue = teams.filter(team => team.departmentId === b.id).length;
-          break;
-        case "members":
-          aValue = users.filter(user => user.departmentId === a.id).length;
-          bValue = users.filter(user => user.departmentId === b.id).length;
-          break;
-        default:
-          aValue = a.name.toLowerCase();
-          bValue = b.name.toLowerCase();
-      }
+      let aValue = a.name.toLowerCase();
+      let bValue = b.name.toLowerCase();
 
       if (sortOrder === "asc") {
         return aValue > bValue ? 1 : -1;
@@ -43,7 +26,7 @@ const DepartmentsSection = ({ departments, teams, users, onCreateDepartment }) =
     });
 
     return filtered;
-  }, [departments, teams, users, searchTerm, sortBy, sortOrder]);
+  }, [departments, searchTerm, sortBy, sortOrder]);
 
   // Pagination
   const totalPages = Math.ceil(filteredAndSortedDepartments.length / itemsPerPage);
@@ -140,7 +123,7 @@ const DepartmentsSection = ({ departments, teams, users, onCreateDepartment }) =
             </div>
             <div>
               <h2 className="text-xl font-bold text-gray-800">Department Management</h2>
-              <p className="text-sm text-gray-500">Manage organizational departments and their structure</p>
+              <p className="text-sm text-gray-500">Manage organizational departments</p>
             </div>
           </div>
           
@@ -174,20 +157,6 @@ const DepartmentsSection = ({ departments, teams, users, onCreateDepartment }) =
 
           {/* Sort Controls */}
           <div className="flex gap-2">
-            <div className="relative">
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="appearance-none bg-white border border-gray-200 rounded-lg px-3 py-2 pr-8 text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-blue-300"
-              >
-                <option value="name">Sort by Name</option>
-                <option value="teams">Sort by Teams</option>
-                <option value="members">Sort by Members</option>
-              </select>
-              <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                <Filter className="w-3 h-3 text-gray-400" />
-              </div>
-            </div>
             <button
               onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
               className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors duration-200 text-gray-700 text-sm"
@@ -219,34 +188,8 @@ const DepartmentsSection = ({ departments, teams, users, onCreateDepartment }) =
                   onClick={() => handleSort("name")}
                 >
                   <div className="flex items-center gap-2">
-                    Department
+                    Department Name
                     {sortBy === "name" && (
-                      <span className="text-blue-600">
-                        {sortOrder === "asc" ? "↑" : "↓"}
-                      </span>
-                    )}
-                  </div>
-                </th>
-                <th 
-                  className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors duration-200"
-                  onClick={() => handleSort("teams")}
-                >
-                  <div className="flex items-center gap-2">
-                    Teams
-                    {sortBy === "teams" && (
-                      <span className="text-blue-600">
-                        {sortOrder === "asc" ? "↑" : "↓"}
-                      </span>
-                    )}
-                  </div>
-                </th>
-                <th 
-                  className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors duration-200"
-                  onClick={() => handleSort("members")}
-                >
-                  <div className="flex items-center gap-2">
-                    Members
-                    {sortBy === "members" && (
                       <span className="text-blue-600">
                         {sortOrder === "asc" ? "↑" : "↓"}
                       </span>
@@ -261,7 +204,7 @@ const DepartmentsSection = ({ departments, teams, users, onCreateDepartment }) =
             <tbody className="bg-white divide-y divide-gray-200">
               {currentDepartments.length === 0 ? (
                 <tr>
-                  <td colSpan="4" className="px-6 py-12 text-center">
+                  <td colSpan="2" className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center justify-center">
                       <Users2 className="w-12 h-12 text-gray-300 mb-4" />
                       <h3 className="text-lg font-medium text-gray-900 mb-2">No departments found</h3>
@@ -285,7 +228,7 @@ const DepartmentsSection = ({ departments, teams, users, onCreateDepartment }) =
                   <tr key={dept.id} className="hover:bg-gray-50 transition-colors duration-200">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg mr-4">
+                        <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg mr-4">
                           <Users2 className="w-5 h-5 text-white" />
                         </div>
                         <div>
@@ -294,30 +237,28 @@ const DepartmentsSection = ({ departments, teams, users, onCreateDepartment }) =
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <span className="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full border border-blue-200">
-                          {teams.filter(team => team.departmentId === dept.id).length} teams
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <span className="bg-purple-100 text-purple-800 text-sm font-medium px-3 py-1 rounded-full border border-purple-200">
-                          {users.filter(user => user.departmentId === dept.id).length} members
-                        </span>
-                      </div>
-                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex items-center gap-2">
-                        <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200 border border-blue-200 hover:border-blue-300" title="View Details">
-                          <Eye className="w-4 h-4" />
-                        </button>
-                        <button className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-200 border border-green-200 hover:border-green-300" title="Edit Department">
+                        <button 
+                          onClick={() => onEditDepartment && onEditDepartment(dept)}
+                          className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-200 border border-green-200 hover:border-green-300" 
+                          title="Edit Department"
+                        >
                           <Edit className="w-4 h-4" />
                         </button>
-                        <button className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors duration-200 border border-orange-200 hover:border-orange-300" title="Add Members">
+                        <button 
+                          onClick={() => onManageUsers && onManageUsers(dept)}
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200 border border-blue-200 hover:border-blue-300" 
+                          title="Manage Users"
+                        >
                           <UserPlus className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => onDeleteDepartment && onDeleteDepartment(dept)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200 border border-red-200 hover:border-red-300" 
+                          title="Delete Department"
+                        >
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </td>

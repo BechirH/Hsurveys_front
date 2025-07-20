@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { authService } from "../../services/authService";
 
-// Auto-login thunk - check if user is authenticated via backend
+
 export const autoLogin = createAsyncThunk(
   "auth/autoLogin",
   async (_, { rejectWithValue }) => {
@@ -13,7 +13,7 @@ export const autoLogin = createAsyncThunk(
         return rejectWithValue("Session expired");
       }
     } catch (error) {
-      // If refresh also fails, clear storage and return a clear error
+      
       localStorage.removeItem("authState");
       return rejectWithValue("Session verification and refresh failed. Please log in again.");
     }
@@ -40,7 +40,7 @@ export const loginUser = createAsyncThunk(
   }
 );
 
-// Register user for a new organization (Step 2)
+
 export const registerUserForNewOrg = createAsyncThunk(
   "auth/registerUserForNewOrg",
   async ({ orgId, userData }, { rejectWithValue }) => {
@@ -60,7 +60,7 @@ export const registerUserForNewOrg = createAsyncThunk(
   }
 );
 
-// Register user for an existing organization
+
 export const registerUserForExistingOrg = createAsyncThunk(
   "auth/registerUserForExistingOrg",
   async (userData, { rejectWithValue }) => {
@@ -176,7 +176,7 @@ const authSlice = createSlice({
       })
       .addCase(registerUserForNewOrg.fulfilled, (state, action) => {
         state.loading = false;
-        // Set user in state from registration response
+        
         if (action.payload && action.payload.username) {
           state.user = {
             username: action.payload.username,
@@ -196,7 +196,7 @@ const authSlice = createSlice({
       })
       .addCase(registerUserForExistingOrg.fulfilled, (state, action) => {
         state.loading = false;
-        // Set user in state from registration response
+        
         if (action.payload && action.payload.username) {
           state.user = {
             username: action.payload.username,
