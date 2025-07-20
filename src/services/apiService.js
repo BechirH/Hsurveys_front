@@ -2,7 +2,7 @@ import axios from "axios";
 
 let configPromise = null;
 
-// Charge config (ex: API_URL)
+
 async function getConfig() {
   if (!configPromise) {
     configPromise = fetch("/config.json").then((res) => {
@@ -13,20 +13,23 @@ async function getConfig() {
   return configPromise;
 }
 
-// Retourne base URL de l'API
+
 export async function getApiBaseUrl() {
-  const config = await getConfig();
-  return config.API_URL;
+  try {
+    const config = await getConfig();
+    return config.API_URL;
+  } catch (error) {
+    console.warn("Failed to load config.json, using fallback URL for local development");
+    return "http://localhost:8080/api";
+  }
 }
 
-// Récupère cookie par nom (ex: XSRF-TOKEN)
+
 function getCookie(name) {
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
   if (parts.length === 2) return parts.pop().split(";").shift();
 }
-
-// Création d'un client axios avec interception automatique du token CSRF
 async function createApiClient() {
   const baseURL = await getApiBaseUrl();
   const client = axios.create({
@@ -128,6 +131,36 @@ export const apiService = {
   getDepartments: async () => {
     const client = await createApiClient();
     return handleRequest(client.get("/departments"));
+  },
+
+  createDepartment: async (departmentData) => {
+    const client = await createApiClient();
+    return handleRequest(client.post("/departments", departmentData));
+  },
+
+  updateDepartment: async (id, departmentData) => {
+    const client = await createApiClient();
+    return handleRequest(client.put(`/departments/${id}`, departmentData));
+  },
+
+  deleteDepartment: async (id) => {
+    const client = await createApiClient();
+    return handleRequest(client.delete(`/departments/${id}`));
+  },
+
+  assignUserToDepartment: async (departmentId, userId) => {
+    const client = await createApiClient();
+    return handleRequest(client.post(`/departments/${departmentId}/assign-user/${userId}`));
+  },
+
+  removeUserFromDepartment: async (departmentId, userId) => {
+    const client = await createApiClient();
+    return handleRequest(client.post(`/departments/${departmentId}/remove-user/${userId}`));
+  },
+
+  getDepartmentUsers: async (departmentId) => {
+    const client = await createApiClient();
+    return handleRequest(client.get(`/departments/${departmentId}/users`));
   },
 
   getTeams: async () => {
@@ -261,5 +294,41 @@ export const apiService = {
   unlockOption: async (optionId) => {
     const client = await createApiClient();
     return handleRequest(client.patch(`/options/${optionId}/unlock`));
+  },
+
+  // ----- Team endpoints -----
+  getTeamsByDepartment: async (departmentId) => {
+    const client = await createApiClient();
+    return handleRequest(client.get(`/teams/department/${departmentId}`));
+  },
+
+  getTeamUsers: async (teamId) => {
+    const client = await createApiClient();
+    return handleRequest(client.get(`/teams/${teamId}/users`));
+  },
+
+  assignUserToTeam: async (teamId, userId) => {
+    const client = await createApiClient();
+    return handleRequest(client.post(`/teams/${teamId}/assign-user/${userId}`));
+  },
+
+  removeUserFromTeam: async (teamId, userId) => {
+    const client = await createApiClient();
+    return handleRequest(client.post(`/teams/${teamId}/remove-user/${userId}`));
+  },
+
+  createTeam: async (teamData) => {
+    const client = await createApiClient();
+    return handleRequest(client.post(`/teams`, teamData));
+  },
+
+  updateTeam: async (teamId, teamData) => {
+    const client = await createApiClient();
+    return handleRequest(client.put(`/teams/${teamId}`, teamData));
+  },
+
+  deleteTeam: async (teamId) => {
+    const client = await createApiClient();
+    return handleRequest(client.delete(`/teams/${teamId}`));
   },
 };

@@ -51,7 +51,13 @@ import UsersSection from '../components/dashboard/UsersSection';
 import OrganizationsSection from '../components/dashboard/OrganizationsSection';
 import DepartmentsSection from '../components/dashboard/DepartmentsSection';
 import TeamsSection from '../components/dashboard/TeamsSection';
+import DepartmentTeamsModal from '../components/dashboard/DepartmentTeamsModal';
+import TeamUsersModal from '../components/dashboard/TeamUsersModal';
 import RolesSection from '../components/dashboard/RolesSection';
+import AddDepartmentModal from '../components/dashboard/AddDepartmentModal';
+import EditDepartmentModal from '../components/dashboard/EditDepartmentModal';
+import DeleteConfirmationModal from '../components/dashboard/DeleteConfirmationModal';
+import DepartmentUsersModal from '../components/dashboard/DepartmentUsersModal';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -75,6 +81,16 @@ const Dashboard = () => {
   } = useOverviewData(currentUser);
 
   const [activeTab, setActiveTab] = useState("overview");
+  const [showAddDepartmentModal, setShowAddDepartmentModal] = useState(false);
+  const [showEditDepartmentModal, setShowEditDepartmentModal] = useState(false);
+  const [showDeleteDepartmentModal, setShowDeleteDepartmentModal] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [showDepartmentUsersModal, setShowDepartmentUsersModal] = useState(false);
+  const [selectedDepartment, setSelectedDepartment] = useState(null);
+  const [showDepartmentTeamsModal, setShowDepartmentTeamsModal] = useState(false);
+  const [selectedDepartmentForTeams, setSelectedDepartmentForTeams] = useState(null);
+  const [showTeamUsersModal, setShowTeamUsersModal] = useState(false);
+  const [selectedTeam, setSelectedTeam] = useState(null);
 
   const dashboardStats = [
     {
@@ -155,7 +171,48 @@ const Dashboard = () => {
   };
 
   const onCreateDepartment = () => {
-    alert('Create Department clicked!');
+    setShowAddDepartmentModal(true);
+  };
+
+  const onEditDepartment = (department) => {
+    setSelectedDepartment(department);
+    setShowEditDepartmentModal(true);
+  };
+
+  const onDeleteDepartment = (department) => {
+    setSelectedDepartment(department);
+    setShowDeleteDepartmentModal(true);
+  };
+
+  const handleDeleteDepartment = async () => {
+    if (!selectedDepartment) return;
+    
+    setDeleteLoading(true);
+    try {
+      await apiService.deleteDepartment(selectedDepartment.id);
+      setShowDeleteDepartmentModal(false);
+      setSelectedDepartment(null);
+      reload && reload();
+    } catch (error) {
+      console.error('Error deleting department:', error);
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  const onManageUsers = (department) => {
+    setSelectedDepartment(department);
+    setShowDepartmentUsersModal(true);
+  };
+
+  const onDepartmentTeams = (department) => {
+    setSelectedDepartmentForTeams(department);
+    setShowDepartmentTeamsModal(true);
+  };
+
+  const onManageTeamUsers = (team) => {
+    setSelectedTeam(team);
+    setShowTeamUsersModal(true);
   };
 
   const onCreateTeam = () => {
@@ -274,7 +331,11 @@ const Dashboard = () => {
         return (
           <DepartmentsSection
             departments={departments}
+            users={users}
             onCreateDepartment={onCreateDepartment}
+            onEditDepartment={onEditDepartment}
+            onDeleteDepartment={onDeleteDepartment}
+            onManageUsers={onManageUsers}
             getStatusColor={getStatusColor}
             formatDate={formatDate}
           />
@@ -282,10 +343,8 @@ const Dashboard = () => {
       case "teams":
         return (
           <TeamsSection
-            teams={teams}
-            onCreateTeam={onCreateTeam}
-            getStatusColor={getStatusColor}
-            formatDate={formatDate}
+            departments={departments}
+            onDepartmentClick={onDepartmentTeams}
           />
         );
       case "roles":
@@ -398,6 +457,76 @@ const Dashboard = () => {
           {renderContent()}
         </div>
       </div>
+
+      {/* Add Department Modal */}
+      <AddDepartmentModal
+        open={showAddDepartmentModal}
+        onClose={() => setShowAddDepartmentModal(false)}
+        onSuccess={() => {
+          setShowAddDepartmentModal(false);
+          reload && reload();
+        }}
+      />
+
+      {/* Edit Department Modal */}
+      <EditDepartmentModal
+        open={showEditDepartmentModal}
+        onClose={() => setShowEditDepartmentModal(false)}
+        onSuccess={() => {
+          setShowEditDepartmentModal(false);
+          setSelectedDepartment(null);
+          reload && reload();
+        }}
+        department={selectedDepartment}
+      />
+
+      {/* Delete Department Modal */}
+      <DeleteConfirmationModal
+        open={showDeleteDepartmentModal}
+        onClose={() => setShowDeleteDepartmentModal(false)}
+        onConfirm={handleDeleteDepartment}
+        loading={deleteLoading}
+        entity={selectedDepartment}
+        entityType="department"
+        title="Delete Department"
+        description="This action cannot be undone"
+        warningItems={[
+          'Remove department and all its data',
+          'Users in this department will be affected',
+          'Cannot be recovered once deleted'
+        ]}
+        entityDisplay={(dept) => ({
+          avatar: dept.name?.charAt(0).toUpperCase(),
+          name: dept.name,
+          subtitle: `Department ID: ${dept.id}`
+        })}
+      />
+
+      {/* Department Users Modal */}
+      <DepartmentUsersModal
+        open={showDepartmentUsersModal}
+        onClose={() => setShowDepartmentUsersModal(false)}
+        onSuccess={() => {
+          // Don't close modal or reload - let user continue managing users
+        }}
+        department={selectedDepartment}
+        allUsers={users}
+      />
+      {/* Department Teams Modal */}
+      <DepartmentTeamsModal
+        open={showDepartmentTeamsModal}
+        onClose={() => { setShowDepartmentTeamsModal(false); setSelectedDepartmentForTeams(null); }}
+        department={selectedDepartmentForTeams}
+        allUsers={users}
+        onManageTeamUsers={onManageTeamUsers}
+      />
+      {/* Team Users Modal */}
+      <TeamUsersModal
+        open={showTeamUsersModal}
+        onClose={() => { setShowTeamUsersModal(false); setSelectedTeam(null); }}
+        team={selectedTeam}
+        allUsers={users}
+      />
     </div>
   );
 };
