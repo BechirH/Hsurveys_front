@@ -23,12 +23,8 @@ const AppRoutes = () => {
 
   // Auto-login on app start
   useEffect(() => {
-    console.log("🚀 AppRoutes: Checking initialization", { isInitialized });
-    if (!isInitialized) {
-      console.log("🚀 Starting auto-login...");
-      dispatch(autoLogin());
-    }
-  }, [dispatch, isInitialized]);
+    dispatch(autoLogin());
+  }, [dispatch]);
 
   
   if (!isInitialized) {

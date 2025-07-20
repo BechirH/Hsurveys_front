@@ -53,12 +53,33 @@ export const authService = {
     }
   },
 
+  refreshToken: async () => {
+    const apiClient = await createApiClient();
+    try {
+      const response = await apiClient.post("/auth/refresh");
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
   getCurrentUser: async () => {
     const apiClient = await createApiClient();
     try {
       const response = await apiClient.get("/auth/me");
       return response.data;
     } catch (error) {
+      if (error.response && error.response.status === 401) {
+        // Try to refresh token
+        try {
+          await authService.refreshToken();
+          // Retry /auth/me
+          const retryResponse = await apiClient.get("/auth/me");
+          return retryResponse.data;
+        } catch (refreshError) {
+          throw refreshError;
+        }
+      }
       throw error;
     }
   },
