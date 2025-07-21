@@ -7,43 +7,7 @@ import NavBar from '../components/common/NavBar';
 import { apiService } from '../services/apiService';
 import QuestionsSection from '../components/dashboard/QuestionSection';
 
-import {
-  Users,
-  Building2,
-  FileText,
-  Shield,
-  Plus,
-  Edit,
-  Trash2,
-  Search,
-  Filter,
-  Settings,
-  BarChart3,
-  UserCheck,
-  Globe,
-  MapPin,
-  Home,
-  Bell,
-  LogOut,
-  ChevronDown,
-  Eye,
-  UserPlus,
-  ShieldCheck,
-  Users2,
-  Loader2,
-  AlertCircle,
-  X,
-  ClipboardList,
-  Target,
-  TrendingUp,
-  Calendar,
-  Award,
-  Lock,
-  Unlock,
-  CheckCircle,
-  Clock,
-  AlertTriangle
-} from "lucide-react";
+import {Users,Building2,FileText,Shield,Plus,Edit,Trash2,Search,Filter,Settings,BarChart3,UserCheck,Globe,MapPin,Home,  Bell,  LogOut,  ChevronDown,  Eye,  UserPlus,  ShieldCheck,  Users2,  Loader2,  AlertCircle,  X,  ClipboardList,  Target,  TrendingUp,  Calendar,  Award,  Lock,  Unlock,  CheckCircle,  Clock,  AlertTriangle} from "lucide-react";
 import OverviewSection from '../components/dashboard/OverviewSection';
 import { useOverviewData } from '../hooks/useOverviewData';
 import SurveysSection from '../components/dashboard/SurveysSection';
@@ -97,7 +61,7 @@ const Dashboard = () => {
       title: 'Organization',
       value: organizations[0]?.name || 'Loading...',
       icon: Building2,
-      color: 'bg-blue-500', // This will be used for the icon background only
+      color: 'bg-blue-500',
       description: 'Your organization'
     },
     {
@@ -166,7 +130,6 @@ const Dashboard = () => {
   };
 
   const onAddUser = () => {
-    // TODO: Implement add user modal or navigation
     alert('Add User clicked!');
   };
 
@@ -296,6 +259,7 @@ const Dashboard = () => {
             getStatusColor={getStatusColor}
             formatDate={formatDate}
             onCreateSurvey={onCreateSurvey}
+            reload={reload}
           />
         );
       case "questions":

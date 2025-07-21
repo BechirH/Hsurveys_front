@@ -2,7 +2,6 @@ import axios from "axios";
 
 let configPromise = null;
 
-
 async function getConfig() {
   if (!configPromise) {
     configPromise = fetch("/config.json").then((res) => {
@@ -12,7 +11,6 @@ async function getConfig() {
   }
   return configPromise;
 }
-
 
 export async function getApiBaseUrl() {
   try {
@@ -24,12 +22,12 @@ export async function getApiBaseUrl() {
   }
 }
 
-
 function getCookie(name) {
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
   if (parts.length === 2) return parts.pop().split(";").shift();
 }
+
 async function createApiClient() {
   const baseURL = await getApiBaseUrl();
   const client = axios.create({
@@ -49,7 +47,6 @@ async function createApiClient() {
   return client;
 }
 
-// Helper pour gérer les appels avec gestion d'erreur simple
 async function handleRequest(promise) {
   try {
     const res = await promise;
@@ -131,36 +128,6 @@ export const apiService = {
   getDepartments: async () => {
     const client = await createApiClient();
     return handleRequest(client.get("/departments"));
-  },
-
-  createDepartment: async (departmentData) => {
-    const client = await createApiClient();
-    return handleRequest(client.post("/departments", departmentData));
-  },
-
-  updateDepartment: async (id, departmentData) => {
-    const client = await createApiClient();
-    return handleRequest(client.put(`/departments/${id}`, departmentData));
-  },
-
-  deleteDepartment: async (id) => {
-    const client = await createApiClient();
-    return handleRequest(client.delete(`/departments/${id}`));
-  },
-
-  assignUserToDepartment: async (departmentId, userId) => {
-    const client = await createApiClient();
-    return handleRequest(client.post(`/departments/${departmentId}/assign-user/${userId}`));
-  },
-
-  removeUserFromDepartment: async (departmentId, userId) => {
-    const client = await createApiClient();
-    return handleRequest(client.post(`/departments/${departmentId}/remove-user/${userId}`));
-  },
-
-  getDepartmentUsers: async (departmentId) => {
-    const client = await createApiClient();
-    return handleRequest(client.get(`/departments/${departmentId}/users`));
   },
 
   getTeams: async () => {
@@ -294,41 +261,5 @@ export const apiService = {
   unlockOption: async (optionId) => {
     const client = await createApiClient();
     return handleRequest(client.patch(`/options/${optionId}/unlock`));
-  },
-
-  // ----- Team endpoints -----
-  getTeamsByDepartment: async (departmentId) => {
-    const client = await createApiClient();
-    return handleRequest(client.get(`/teams/department/${departmentId}`));
-  },
-
-  getTeamUsers: async (teamId) => {
-    const client = await createApiClient();
-    return handleRequest(client.get(`/teams/${teamId}/users`));
-  },
-
-  assignUserToTeam: async (teamId, userId) => {
-    const client = await createApiClient();
-    return handleRequest(client.post(`/teams/${teamId}/assign-user/${userId}`));
-  },
-
-  removeUserFromTeam: async (teamId, userId) => {
-    const client = await createApiClient();
-    return handleRequest(client.post(`/teams/${teamId}/remove-user/${userId}`));
-  },
-
-  createTeam: async (teamData) => {
-    const client = await createApiClient();
-    return handleRequest(client.post(`/teams`, teamData));
-  },
-
-  updateTeam: async (teamId, teamData) => {
-    const client = await createApiClient();
-    return handleRequest(client.put(`/teams/${teamId}`, teamData));
-  },
-
-  deleteTeam: async (teamId) => {
-    const client = await createApiClient();
-    return handleRequest(client.delete(`/teams/${teamId}`));
   },
 };
