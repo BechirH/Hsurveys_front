@@ -4,7 +4,7 @@ import { questionService } from "../../services/questionService";
 import { surveyService } from "../../services/surveyService";
 import QuestionForm from "./QuestionForm";
 
-const SurveyDetails = ({ survey, onAddQuestions }) => {
+const SurveyDetails = ({ survey, onAddQuestions, reloadGlobalQuestions }) => {
   const [questions, setQuestions] = useState([]);
 
   const fetchQuestions = useCallback(async (assignedQuestions = survey.assignedQuestions) => {
@@ -21,8 +21,12 @@ const SurveyDetails = ({ survey, onAddQuestions }) => {
   }, [survey]);
 
   useEffect(() => {
-    fetchQuestions();
-  }, [fetchQuestions]);
+  if (!survey?.assignedQuestions || survey.assignedQuestions.length === 0) {
+    setQuestions([]);
+  } else {
+    fetchQuestions(survey.assignedQuestions);
+  }
+}, [survey?.assignedQuestions, fetchQuestions]);
 
   const handleRemoveQuestion = async (questionId) => {
     try {
@@ -38,13 +42,19 @@ const SurveyDetails = ({ survey, onAddQuestions }) => {
     try {
       const createdQuestion = await questionService.createQuestion({
         ...questionData,
-        organizationId: survey.organizationId,
+      organizationId: survey.organizationId,
       });
 
       await surveyService.assignQuestionToSurvey(survey.surveyId, createdQuestion.questionId);
+      setQuestions(prev =>[...prev,createdQuestion]);
+
+      if (reloadGlobalQuestions) {
+        await reloadGlobalQuestions();
+      }
 
       const updatedSurvey = await surveyService.getSurveyById(survey.surveyId);
       await fetchQuestions(updatedSurvey.assignedQuestions);
+
     } catch (error) {
       console.error("Error creating and assigning question", error);
     }

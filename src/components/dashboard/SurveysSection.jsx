@@ -12,7 +12,7 @@ import QuestionsTable from "../survey/QuestionsTable";
 const SURVEY_STATUSES = ["DRAFT", "ACTIVE", "CLOSED"];
 const SURVEY_TYPES = ["FEEDBACK", "EXAM"];
 
-const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate }) => {
+const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate, reload  }) => {
   const { token } = useSelector(state => state.auth);
 
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -29,20 +29,13 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate }) => {
   const [error, setError] = useState("");
   const [selectedSurvey, setSelectedSurvey] = useState(null);
 
-  // Nouvelle partie: gérer la liste des questions et modal d’ajout
+
   const [showQuestionsList, setShowQuestionsList] = useState(false);
   const [questions, setQuestions] = useState([]);
   const [selectedQuestions, setSelectedQuestions] = useState(new Set());
 
   useEffect(() => {
-    if (token) {
-      surveyService.setSurveyAuthToken(token);
-      questionService.setQuestionAuthToken(token);
-    } else {
-      console.warn("❌ Aucun token détecté dans Redux.");
-    }
-
-    const fetchSurveys = async () => {
+        const fetchSurveys = async () => {
       setLoading(true);
       setError("");
       try {
@@ -50,7 +43,7 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate }) => {
         setSurveysLocal(data);
       } catch (err) {
         console.error("📛 Erreur API:", err.response?.data || err.message);
-        setError("Erreur lors du chargement des sondages.");
+        setError("Error loading surveys.");
       } finally {
         setLoading(false);
       }
@@ -64,13 +57,12 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate }) => {
     const surveyData = await surveyService.getSurveyById(surveyId);
     setSelectedSurvey(surveyData);
   } catch (error) {
-    console.error("Erreur chargement survey:", error);
+    console.error("Survey loading error:", error);
   } finally {
     setLoading(false);
   }
 };
 
-  // Fonction pour charger les questions quand on veut les ajouter
   const handleAddQuestionsClick = async () => {
     setLoading(true);
     try {
@@ -79,14 +71,13 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate }) => {
       setSelectedQuestions(new Set());
       setShowQuestionsList(true);
     } catch (err) {
-      console.error("Erreur chargement questions:", err);
-      setError("Erreur lors du chargement des questions.");
+      console.error("Questions loading error:", err);
+      setError("Error loading questions.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Sélection/désélection questions dans la liste
   const toggleQuestionSelection = (questionId) => {
     setSelectedQuestions(prev => {
       const copy = new Set(prev);
@@ -99,10 +90,9 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate }) => {
     });
   };
 
-  // Valider l’ajout des questions sélectionnées au sondage (doit être un sondage existant)
   const handleAssignQuestions = async () => {
     if (!selectedSurvey) {
-      alert("Veuillez d'abord sélectionner un sondage.");
+      alert("Please select a survey first.");
       return;
     }
     setLoading(true);
@@ -110,13 +100,12 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate }) => {
       for (const questionId of selectedQuestions) {
         await surveyService.assignQuestionToSurvey(selectedSurvey.surveyId, questionId);
       }
-      // Reload survey details
       const updatedSurvey = await surveyService.getSurveyById(selectedSurvey.surveyId);
       setSelectedSurvey(updatedSurvey);
       setShowQuestionsList(false);
     } catch (err) {
-      console.error("Erreur assignation questions:", err);
-      setError("Erreur lors de l'ajout des questions au sondage.");
+      console.error("Error assigning questions:", err);
+      setError("Error adding questions to the survey.");
     } finally {
       setLoading(false);
     }
@@ -124,7 +113,7 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate }) => {
 
   const handleAddQuestionToSurvey = async (questionId) => {
   if (!selectedSurvey) {
-    alert("Veuillez d'abord sélectionner un sondage.");
+    alert("Please select a survey first.");
     return;
   }
   setLoading(true);
@@ -133,14 +122,13 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate }) => {
     const updatedSurvey = await surveyService.getSurveyById(selectedSurvey.surveyId);
     setSelectedSurvey(updatedSurvey);
   } catch (err) {
-    console.error("Erreur assignation question:", err);
-    setError("Erreur lors de l'ajout de la question au sondage.");
+    console.error("Error assigning questions:", err);
+    setError("Error adding questions to the survey.");
   } finally {
     setLoading(false);
   }
 };
 
-   // Lors de la création d’un sondage on peut directement l’ouvrir (et donc sélectionner)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -158,17 +146,22 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate }) => {
       });
       setShowCreateForm(false);
       setSelectedSurvey(createdSurvey);
-      // Afficher direct la liste questions après création
       setSelectedQuestions(new Set());
-      // Charger questions (optionnel, sinon on attend le clic sur Add Questions)
       const questionsData = await questionService.getAllQuestions();
       setQuestions(questionsData);
     } catch {
-      setError("Erreur lors de la création du sondage.");
+      setError("Error creating the survey.");
     } finally {
       setLoading(false);
     }
   };
+  const reloadAndFetchQuestions = async () => {
+  try {
+    const allQuestions = await questionService.getAllQuestions(); 
+    setQuestions(allQuestions);
+  } catch (error) {
+    console.error("Error reloading questions.", error);
+  }};
 
   return (
     <div className="space-y-6">
@@ -243,7 +236,7 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate }) => {
                   {selectedSurvey && selectedSurvey.surveyId === survey.surveyId && (
                     <tr>
                       <td colSpan={5} className="bg-gray-100 p-4 space-y-4">
-                        <SurveyDetails survey={selectedSurvey} onAddQuestions={handleAddQuestionsClick} />
+                        <SurveyDetails survey={selectedSurvey} onAddQuestions={handleAddQuestionsClick} reloadGlobalQuestions={reloadAndFetchQuestions} />
                         {showQuestionsList && (
                           <QuestionsTable
                           questions={questions}

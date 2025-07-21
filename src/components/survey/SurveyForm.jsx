@@ -54,7 +54,7 @@ const SurveyForm = ({ form, setForm, onSubmit, loading, error}) => {
         ))}
       </select>
 
-      <label className="block font-semibold mb-1" htmlFor="status">Statut</label>
+      <label className="block font-semibold mb-1" htmlFor="status">Status</label>
       <select
         id="status"
         name="status"

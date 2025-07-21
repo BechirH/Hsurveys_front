@@ -58,8 +58,8 @@ const QuestionForm = ({ onSubmit, loading, error }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await onSubmit(form); // attend que la soumission soit terminée
-    setForm(initialForm); // ✅ reset le formulaire après succès
+    await onSubmit(form); 
+    setForm(initialForm); 
   };
 
   return (
@@ -86,7 +86,7 @@ const QuestionForm = ({ onSubmit, loading, error }) => {
         disabled={loading}
       />
 
-      <label htmlFor="questionType" className="block font-semibold mb-1">Type de question</label>
+      <label htmlFor="questionType" className="block font-semibold mb-1">Question type</label>
       <select
         id="questionType"
         name="questionType"
@@ -112,7 +112,7 @@ const QuestionForm = ({ onSubmit, loading, error }) => {
           className="mr-2"
           disabled={loading}
         />
-        <label htmlFor="locked" className="font-semibold">Verrouiller la question</label>
+        <label htmlFor="locked" className="font-semibold">Lock question</label>
       </div>
 
       {form.questionType !== "FREE_TEXT" && (
@@ -125,7 +125,7 @@ const QuestionForm = ({ onSubmit, loading, error }) => {
               variant="primary"
               disabled={loading}
             >
-              Ajouter une option
+              Add option
             </Button>
           </div>
 
@@ -177,7 +177,7 @@ const QuestionForm = ({ onSubmit, loading, error }) => {
 
       <div className="mt-6">
         <Button type="submit" loading={loading} fullWidth disabled={loading}>
-          Créer la question
+          Create question
         </Button>
       </div>
     </form>

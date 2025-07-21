@@ -9,7 +9,6 @@ async function createQuestionApiClient() {
     withCredentials: true,
   });
 
-  // Intercepteur pour ajouter le token CSRF si nécessaire
   client.interceptors.request.use((config) => {
     if (["post", "put", "delete", "patch"].includes(config.method)) {
       const xsrfToken = document.cookie

@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Plus } from "lucide-react";
 import Button from "../common/Button";
-import { questionService } from "../../services/questionService"; // Import du service
+import { questionService } from "../../services/questionService"; 
 
 const QuestionsTable = ({ questions, onAddToSurvey }) => {
   const [searchSubject, setSearchSubject] = useState("");
   const [filteredQuestions, setFilteredQuestions] = useState(questions || []);
   const [loading, setLoading] = useState(false);
 
-  // Lorsqu'on reçoit une nouvelle liste 'questions' en props, on la copie dans filteredQuestions
   useEffect(() => {
     setFilteredQuestions(questions);
   }, [questions]);
@@ -20,17 +19,15 @@ const QuestionsTable = ({ questions, onAddToSurvey }) => {
   setLoading(true);
   try {
     if (value.trim() === "") {
-      // Recharge toutes les questions depuis l’API
       const allQuestions = await questionService.getAllQuestions();
       setFilteredQuestions(allQuestions);
     } else {
-      // Recherche filtrée
       const results = await questionService.getBySubject(value);
       setFilteredQuestions(results);
     }
   } catch (error) {
     console.error("Erreur lors de la recherche par sujet", error);
-    setFilteredQuestions([]); // Affiche liste vide si erreur
+    setFilteredQuestions([]); 
   } finally {
     setLoading(false);
   }
@@ -38,7 +35,7 @@ const QuestionsTable = ({ questions, onAddToSurvey }) => {
 
   return (
     <div className="card-base overflow-hidden">
-      {/* Zone de recherche */}
+
       <div className="mb-4">
         <input
           type="text"
@@ -53,7 +50,7 @@ const QuestionsTable = ({ questions, onAddToSurvey }) => {
         <table className="w-full">
           <thead className="bg-gray-50">
             <tr>
-              <th className="table-header-base">Sujet</th>
+              <th className="table-header-base">Subject</th>
               <th className="table-header-base">Question</th>
               <th className="table-header-base">Options</th>
               <th className="table-header-base">Actions</th>
@@ -63,7 +60,7 @@ const QuestionsTable = ({ questions, onAddToSurvey }) => {
             {loading ? (
               <tr>
                 <td colSpan={4} className="text-center py-4 text-gray-500">
-                  Chargement...
+                  Loading...
                 </td>
               </tr>
             ) : filteredQuestions.length > 0 ? (
@@ -84,7 +81,7 @@ const QuestionsTable = ({ questions, onAddToSurvey }) => {
                         ))}
                       </ul>
                     ) : (
-                      <span className="text-gray-400 italic">Aucune option</span>
+                      <span className="text-gray-400 italic">No options</span>
                     )}
                   </td>
                   <td className="table-cell-base text-sm font-medium">
@@ -101,7 +98,7 @@ const QuestionsTable = ({ questions, onAddToSurvey }) => {
             ) : (
               <tr>
                 <td colSpan={4} className="text-center py-4 text-gray-500 italic">
-                  Aucune question trouvée
+                  no questions found
                 </td>
               </tr>
             )}

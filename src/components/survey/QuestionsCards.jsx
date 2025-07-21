@@ -48,7 +48,7 @@ const QuestionsCards = ({ questions, onAddToSurvey }) => {
 
       {/* Cartes de questions */}
       {loading ? (
-        <div className="text-center text-gray-500 py-4">Chargement...</div>
+        <div className="text-center text-gray-500 py-4">Loading...</div>
       ) : filteredQuestions.length > 0 ? (
         <div className="grid gap-4">
           {filteredQuestions.map((question) => (
@@ -73,7 +73,7 @@ const QuestionsCards = ({ questions, onAddToSurvey }) => {
                   </ul>
                 ) : (
                   <div className="text-sm italic text-gray-400">
-                    Aucune option
+                    No options
                   </div>
                 )}
               </div>
@@ -93,7 +93,7 @@ const QuestionsCards = ({ questions, onAddToSurvey }) => {
         </div>
       ) : (
         <div className="text-center text-gray-500 italic py-4">
-          Aucune question trouvée
+          No questions found
         </div>
       )}
     </div>
