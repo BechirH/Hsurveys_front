@@ -76,7 +76,7 @@ const SurveyForm = ({ form, setForm, onSubmit, loading, error}) => {
         name="deadline"
         type="datetime-local"
         value={form.deadline}
-        onChange={handleChange}
+        onChange={e => setForm({...form, deadline: e.target.value})}
         disabled={loading}
       />
 

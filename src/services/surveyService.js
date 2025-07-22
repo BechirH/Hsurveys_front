@@ -75,12 +75,12 @@ export const surveyService = {
 
   lockSurvey: async (surveyId) => {
     const client = await createSurveyApiClient();
-    return handleRequest(client.patch(`/surveys/${surveyId}/lock`));
+    return handleRequest(client.patch(`/surveys/${surveyId}/lock`, {}));
   },
 
   unlockSurvey: async (surveyId) => {
     const client = await createSurveyApiClient();
-    return handleRequest(client.patch(`/surveys/${surveyId}/unlock`));
+    return handleRequest(client.patch(`/surveys/${surveyId}/unlock`, {}));
   },
 
   surveyExists: async (surveyId) => {

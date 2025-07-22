@@ -11,8 +11,17 @@ const QuestionsSection = ({ questions = [], reload }) => {
     const [localQuestions, setLocalQuestions] = useState(questions);
 
   useEffect(() => {
-    setLocalQuestions(questions);
-  }, [questions]);
+  const fetchQuestions = async () => {
+    try {
+      const res = await questionService.getAllQuestions();
+      setLocalQuestions(res);
+    } catch (err) {
+      console.error("Error while fetching questions:", err);
+    }
+  };
+
+  fetchQuestions();
+}, [reload]);
 
   const handleSubmitQuestion = async (formData) => {
     try {

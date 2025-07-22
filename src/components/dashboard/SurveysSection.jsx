@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Plus, Eye, Edit, Lock, Unlock, Check } from "lucide-react";
+import { Plus, Eye, Edit, Lock, Unlock, Check, Trash } from "lucide-react";
 import Button from "../common/Button";
 import { surveyService } from '../../services/surveyService';
 import { questionService } from '../../services/questionService';
@@ -33,6 +33,8 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate, reload
   const [showQuestionsList, setShowQuestionsList] = useState(false);
   const [questions, setQuestions] = useState([]);
   const [selectedQuestions, setSelectedQuestions] = useState(new Set());
+  const [editingSurvey, setEditingSurvey] = useState(null);
+
 
   useEffect(() => {
         const fetchSurveys = async () => {
@@ -51,17 +53,82 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate, reload
 
     fetchSurveys();
   }, [token]);
-  const handleViewSurvey = async (surveyId) => {
-  setLoading(true);
+
+  const handleToggleLockSurvey = async (surveyId, isCurrentlyLocked) => {
   try {
-    const surveyData = await surveyService.getSurveyById(surveyId);
-    setSelectedSurvey(surveyData);
+    if (isCurrentlyLocked) {
+      await surveyService.unlockSurvey(surveyId);
+    } else {
+      await surveyService.lockSurvey(surveyId);
+    }
+
+    
+    setSurveysLocal((prev) =>
+      prev.map((s) =>
+        s.surveyId === surveyId ? { ...s, locked: !isCurrentlyLocked } : s
+      )
+    );
+
+   
+    if (selectedSurvey?.surveyId === surveyId) {
+      setSelectedSurvey((prev) => ({
+        ...prev,
+        locked: !isCurrentlyLocked,
+      }));
+    }
   } catch (error) {
-    console.error("Survey loading error:", error);
-  } finally {
-    setLoading(false);
+    console.error("Error toggling survey lock:", error);
+    setError("Error toggling lock state.");
   }
 };
+
+
+  const handleViewSurvey = async (surveyId) => {
+    if (selectedSurvey && selectedSurvey.surveyId === surveyId) {
+      setSelectedSurvey(null);
+      return;
+    }
+    setLoading(true);
+    try {
+      const surveyData = await surveyService.getSurveyById(surveyId);
+      setSelectedSurvey(surveyData);
+    } catch (error) {
+      console.error("Survey loading error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  const handleEditSurvey = (survey) => {
+    setEditingSurvey(survey);
+    setShowCreateForm(true);
+    setForm({
+      title: survey.title,
+      description: survey.description,
+      type: survey.type,
+      status: survey.status,
+      deadline: survey.deadline ? survey.deadline.slice(0, 16) : "",
+      locked: survey.locked,
+    });
+  };
+  const handleUpdateSurvey = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    try {
+      const updatedSurvey = await surveyService.updateSurvey(editingSurvey.surveyId, form);
+      setSurveysLocal((prev) =>
+        prev.map((s) => (s.surveyId === updatedSurvey.surveyId ? updatedSurvey : s))
+      );
+      setEditingSurvey(null);
+      setShowCreateForm(false);
+      setSelectedSurvey(updatedSurvey);
+    } catch {
+      setError("Error updating the survey.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   const handleAddQuestionsClick = async () => {
     setLoading(true);
@@ -77,35 +144,19 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate, reload
       setLoading(false);
     }
   };
-
-  const toggleQuestionSelection = (questionId) => {
-    setSelectedQuestions(prev => {
-      const copy = new Set(prev);
-      if (copy.has(questionId)) {
-        copy.delete(questionId);
-      } else {
-        copy.add(questionId);
-      }
-      return copy;
-    });
-  };
-
-  const handleAssignQuestions = async () => {
-    if (!selectedSurvey) {
-      alert("Please select a survey first.");
+  const handleDeleteSurvey = async (surveyId) => {
+    if (!window.confirm("Are you sure you want to delete this survey?")) 
       return;
-    }
     setLoading(true);
     try {
-      for (const questionId of selectedQuestions) {
-        await surveyService.assignQuestionToSurvey(selectedSurvey.surveyId, questionId);
+      await surveyService.deleteSurvey(surveyId);
+      setSurveysLocal((prev) => prev.filter(s => s.surveyId !== surveyId));
+      if (selectedSurvey && selectedSurvey.surveyId === surveyId) {
+        setSelectedSurvey(null);
       }
-      const updatedSurvey = await surveyService.getSurveyById(selectedSurvey.surveyId);
-      setSelectedSurvey(updatedSurvey);
-      setShowQuestionsList(false);
     } catch (err) {
-      console.error("Error assigning questions:", err);
-      setError("Error adding questions to the survey.");
+      console.error("Error deleting survey:", err);
+      setError("Error deleting the survey.");
     } finally {
       setLoading(false);
     }
@@ -130,31 +181,35 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate, reload
 };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-    try {
-      const createdSurvey = await surveyService.createSurvey(form);
-      setSurveysLocal((prev) => [...prev, createdSurvey]);
-      setForm({
-        title: "",
-        description: "",
-        type: SURVEY_TYPES[0],
-        status: SURVEY_STATUSES[0],
-        deadline: "",
-        locked: false,
-      });
-      setShowCreateForm(false);
-      setSelectedSurvey(createdSurvey);
-      setSelectedQuestions(new Set());
-      const questionsData = await questionService.getAllQuestions();
-      setQuestions(questionsData);
-    } catch {
-      setError("Error creating the survey.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  e.preventDefault();
+  if (editingSurvey) {
+    return;
+  }
+  setLoading(true);
+  setError("");
+  try {
+    const createdSurvey = await surveyService.createSurvey(form);
+    setSurveysLocal(prev => [...prev, createdSurvey]);
+    setForm({
+      title: "",
+      description: "",
+      type: SURVEY_TYPES[0],
+      status: SURVEY_STATUSES[0],
+      deadline: "",
+      locked: false,
+    });
+    setShowCreateForm(false);
+    setSelectedSurvey(createdSurvey);
+    setSelectedQuestions(new Set());
+    const questionsData = await questionService.getAllQuestions();
+    setQuestions(questionsData);
+  } catch {
+    setError("Error creating the survey.");
+  } finally {
+    setLoading(false);
+  }};
+
+
   const reloadAndFetchQuestions = async () => {
   try {
     const allQuestions = await questionService.getAllQuestions(); 
@@ -169,9 +224,24 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate, reload
         <h2 className="text-2xl font-bold text-gray-800">Survey Management</h2>
         <div className="flex space-x-2">
           <Button
-            onClick={() => setShowCreateForm((prev) => !prev)}
-            icon={Plus}
-            variant="primary"
+          onClick={() => {
+            setShowCreateForm(prev => {
+              if (!prev) { 
+                setForm({
+                  title: "",
+                  description: "",
+                  type: SURVEY_TYPES[0],
+                  status: SURVEY_STATUSES[0],
+                  deadline: "",
+                  locked: false,
+                });
+                setEditingSurvey(null);
+              }
+              return !prev;
+            });
+          }}
+          icon={Plus}
+          variant="primary"
           >
             {showCreateForm ? "Cancel" : "Create Survey"}
           </Button>
@@ -182,7 +252,7 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate, reload
         <SurveyForm
           form={form}
           setForm={setForm}
-          onSubmit={handleSubmit}
+          onSubmit={editingSurvey ? handleUpdateSurvey : handleSubmit}
           loading={loading}
           error={error}
         />
@@ -224,11 +294,32 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate, reload
                         <button className="icon-btn" onClick={() => handleViewSurvey(survey.surveyId)}>
                           <Eye className="w-4 h-4" />
                         </button>
-                        <button className="icon-btn-green" onClick={() => setSelectedSurvey(survey)}>
+                        <button className="icon-btn-green" onClick={() => {
+                          setSelectedSurvey(survey);
+                          setForm({
+                            title: survey.title,
+                            description: survey.description,
+                            type: survey.type,
+                            status: survey.status,
+                            deadline: survey.deadline ? survey.deadline.slice(0, 16) : "",
+                            locked: survey.locked,
+                          });
+                          setShowCreateForm(true); 
+                          setEditingSurvey(survey); 
+                          }}>
                           <Edit className="w-4 h-4" />
                         </button>
-                        <button className="text-orange-600 hover:text-orange-900">
+
+                        <button
+                         className="text-orange-600 hover:text-orange-900"
+                          onClick={() => handleToggleLockSurvey(survey.surveyId, survey.locked)}
+                          title={survey.locked ? "Unlock Survey" : "Lock Survey"}
+                        >
                           {survey.locked ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
+                        </button>
+
+                        <button className="text-red-600 hover:text-red-900" onClick={() => handleDeleteSurvey(survey.surveyId)}>
+                          <Trash className="w-4 h-4" />
                         </button>
                       </div>
                     </td>
