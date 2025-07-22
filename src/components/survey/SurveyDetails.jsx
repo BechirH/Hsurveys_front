@@ -31,8 +31,9 @@ const SurveyDetails = ({ survey, onAddQuestions, reloadGlobalQuestions }) => {
   const handleRemoveQuestion = async (questionId) => {
     try {
       await surveyService.unassignQuestionFromSurvey(survey.surveyId, questionId);
-      const updatedSurvey = await surveyService.getSurveyById(survey.surveyId);
-      await fetchQuestions(updatedSurvey.assignedQuestions);
+      setQuestions((prevQuestions) => 
+      prevQuestions.filter((q) => q.questionId !== questionId)
+    );
     } catch (error) {
       console.error("Error removing question", error);
     }
@@ -66,16 +67,18 @@ const SurveyDetails = ({ survey, onAddQuestions, reloadGlobalQuestions }) => {
     <div className="p-6 bg-white rounded-xl border border-gray-200 shadow-sm space-y-6">
       
 
-      {/* Informations survey */}
+      
       <div className="space-y-2 text-gray-600">
         <h2 className="text-2xl font-semibold text-gray-700">Survey Details</h2>
         <p><strong>Title:</strong> {survey.title}</p>
         <p><strong>Description:</strong> {survey.description}</p>
         <p><strong>Status:</strong> <span className={`font-medium ${survey.status === "DRAFT" ? "text-yellow-600" : "text-green-600"}`}>{survey.status}</span></p>
         <p><strong>Questions:</strong> {questions.length > 0 ? questions.length : "None"}</p>
+        <p><strong>Deadline:</strong> {survey.deadline ? new Date(survey.deadline).toLocaleString() : "None"}</p>
+
       </div>
 
-      {/* Liste des questions */}
+      
       <div className="space-y-4">
         {questions.length > 0 ? (
           <div className="space-y-4">
@@ -112,13 +115,13 @@ const SurveyDetails = ({ survey, onAddQuestions, reloadGlobalQuestions }) => {
           <p className="text-gray-400 italic">No questions assigned</p>
         )}
       </div>
-      {/* Formulaire de création */}
+      
       <div>
         <h3 className="text-xl font-semibold mb-2">Create and Assign a New Question</h3>
         <QuestionForm onSubmit={handleCreateQuestionAndAssign} />
       </div>
 
-      {/* Bouton Add Questions */}
+     
       {onAddQuestions && (
         <div className="pt-4">
           <Button onClick={onAddQuestions}>Add Existing Questions</Button>
