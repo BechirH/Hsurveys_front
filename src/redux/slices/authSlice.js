@@ -135,7 +135,12 @@ const authSlice = createSlice({
         state.loading = false;
         state.isInitialized = true;
         if (action.payload.user) {
-          state.user = action.payload.user;
+          const user = action.payload.user;
+          // Ensure 'role' is always set for UI consistency
+          if (!user.role && user.roles) {
+            user.role = user.roles.includes("ADMIN") ? "admin" : "user";
+          }
+          state.user = user;
         }
       })
       .addCase(autoLogin.rejected, (state) => {

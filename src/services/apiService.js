@@ -124,21 +124,88 @@ export const apiService = {
     const client = await createApiClient();
     return handleRequest(client.get(`/organizations/${organizationId}`));
   },
-
+  updateOrganization: async (id, organizationData) => {
+    const client = await createApiClient();
+    return handleRequest(client.put(`/organizations/${id}`, organizationData));
+  },
+// ----- department endpoints -----
   getDepartments: async () => {
     const client = await createApiClient();
     return handleRequest(client.get("/departments"));
   },
 
+  createDepartment: async (departmentData) => {
+    const client = await createApiClient();
+    return handleRequest(client.post("/departments", departmentData));
+  },
+
+  updateDepartment: async (id, departmentData) => {
+    const client = await createApiClient();
+    return handleRequest(client.put(`/departments/${id}`, departmentData));
+  },
+
+  deleteDepartment: async (id) => {
+    const client = await createApiClient();
+    return handleRequest(client.delete(`/departments/${id}`));
+  },
+
+  assignUserToDepartment: async (departmentId, userId) => {
+    const client = await createApiClient();
+    return handleRequest(client.post(`/departments/${departmentId}/assign-user/${userId}`));
+  },
+
+  removeUserFromDepartment: async (departmentId, userId) => {
+    const client = await createApiClient();
+    return handleRequest(client.post(`/departments/${departmentId}/remove-user/${userId}`));
+  },
+
+  getDepartmentUsers: async (departmentId) => {
+    const client = await createApiClient();
+    return handleRequest(client.get(`/departments/${departmentId}/users`));
+  },
+
+// ----- Team endpoints -----
   getTeams: async () => {
     const client = await createApiClient();
     return handleRequest(client.get("/teams"));
   },
-
-  updateOrganization: async (id, organizationData) => {
+  
+  getTeamsByDepartment: async (departmentId) => {
     const client = await createApiClient();
-    return handleRequest(client.put(`/organizations/${id}`, organizationData));
+    return handleRequest(client.get(`/teams/department/${departmentId}`));
   },
+
+  getTeamUsers: async (teamId) => {
+    const client = await createApiClient();
+    return handleRequest(client.get(`/teams/${teamId}/users`));
+  },
+
+  assignUserToTeam: async (teamId, userId) => {
+    const client = await createApiClient();
+    return handleRequest(client.post(`/teams/${teamId}/assign-user/${userId}`));
+  },
+
+  removeUserFromTeam: async (teamId, userId) => {
+    const client = await createApiClient();
+    return handleRequest(client.post(`/teams/${teamId}/remove-user/${userId}`));
+  },
+
+  createTeam: async (teamData) => {
+    const client = await createApiClient();
+    return handleRequest(client.post(`/teams`, teamData));
+  },
+
+  updateTeam: async (teamId, teamData) => {
+    const client = await createApiClient();
+    return handleRequest(client.put(`/teams/${teamId}`, teamData));
+  },
+
+  deleteTeam: async (teamId) => {
+    const client = await createApiClient();
+    return handleRequest(client.delete(`/teams/${teamId}`));
+  },
+
+ 
 
   // ----- Survey endpoints -----
   getAllSurveys: async () => {
