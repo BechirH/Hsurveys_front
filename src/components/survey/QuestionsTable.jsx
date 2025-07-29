@@ -34,7 +34,7 @@ const QuestionsTable = ({ questions, onAddToSurvey }) => {
 };
 
   return (
-    <div className="card-base overflow-hidden">
+    <div className="max-h-60 overflow-y-auto border rounded p-2">
 
       <div className="mb-4">
         <input
