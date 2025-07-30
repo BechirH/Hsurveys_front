@@ -16,10 +16,10 @@ const AssignRoleModal = ({ open, user, onClose, onSuccess }) => {
     if (open) {
       apiService.getRoles().then((allRoles) => {
         setRoles(allRoles);
-        
+       
         if (user?.roles && Array.isArray(user.roles)) {
           const assignedRoleIds = allRoles
-            .filter(r => user.roles.includes(r.name))
+            .filter(r => user.roles.includes(r.id) || user.roles.includes(r.name))
             .map(r => r.id);
           setSelectedRoles(assignedRoleIds);
         } else {
@@ -28,7 +28,7 @@ const AssignRoleModal = ({ open, user, onClose, onSuccess }) => {
       }).catch(() => setRoles([]));
       apiService.getDepartments().then((allDepartments) => {
         setDepartments(allDepartments);
-        setSelectedDepartment(user?.department || '');
+        setSelectedDepartment(user?.departmentId || '');
       }).catch(() => setDepartments([]));
     }
   }, [open, user]);
@@ -50,17 +50,30 @@ const AssignRoleModal = ({ open, user, onClose, onSuccess }) => {
     setLoading(true);
     setError('');
     try {
-      
+      // Use IDs for current roles
       const currentRoleIds = roles
-        .filter(r => (user.roles || []).includes(r.name))
+        .filter(r => (user.roles || []).includes(r.id) || (user.roles || []).includes(r.name))
         .map(r => r.id);
       const toAdd = selectedRoles.filter((r) => !currentRoleIds.includes(r));
       const toRemove = currentRoleIds.filter((r) => !selectedRoles.includes(r));
-      await Promise.all([
+      const promises = [
         ...toAdd.map((roleId) => apiService.assignRoleToUser(user.id, roleId)),
         ...toRemove.map((roleId) => apiService.removeRoleFromUser(user.id, roleId)),
-        apiService.updateUser(user.id, { department: selectedDepartment }),
-      ]);
+      ];
+      // Department logic
+      const prevDeptId = user.departmentId || user.department || '';
+      if (selectedDepartment && selectedDepartment !== prevDeptId) {
+        // Assign to new department
+        promises.push(apiService.assignUserToDepartment(selectedDepartment, user.id));
+        // Remove from previous department if existed
+        if (prevDeptId) {
+          promises.push(apiService.removeUserFromDepartment(prevDeptId, user.id));
+        }
+      } else if (!selectedDepartment && prevDeptId) {
+        // Remove from department if unassigned
+        promises.push(apiService.removeUserFromDepartment(prevDeptId, user.id));
+      }
+      await Promise.all(promises);
       onSuccess && onSuccess();
       onClose();
     } catch (err) {
@@ -180,7 +193,7 @@ const AssignRoleModal = ({ open, user, onClose, onSuccess }) => {
               >
                 <option value="">No department assigned</option>
                 {departments.map((dept) => (
-                  <option key={dept.id || dept._id || dept.name} value={dept.name}>
+                  <option key={dept.id || dept._id || dept.name} value={dept.id || dept._id}>
                     {dept.name}
                   </option>
                 ))}
