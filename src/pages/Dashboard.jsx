@@ -201,8 +201,31 @@ const Dashboard = () => {
 
   const onEditRole = async (roleData) => {
     try {
-      // TODO: Implement edit role functionality
-      reload && reload(); 
+      // 1. Update role name and description
+      await apiService.updateRole(roleData.id, {
+        name: roleData.name,
+        description: roleData.description
+      });
+
+      // 2. Find the old role object
+      const oldRole = roles.find(r => r.id === roleData.id);
+      const oldPermissions = (oldRole?.permissions || []).map(p => typeof p === "object" ? p.id : p);
+      const newPermissions = roleData.permissions || [];
+
+      // 3. Calculate permissions to add and remove
+      const toAdd = newPermissions.filter(pid => !oldPermissions.includes(pid));
+      const toRemove = oldPermissions.filter(pid => !newPermissions.includes(pid));
+
+      // 4. Assign new permissions
+      for (const permissionId of toAdd) {
+        await apiService.addPermissionToRole(roleData.id, permissionId);
+      }
+      // 5. Remove unselected permissions
+      for (const permissionId of toRemove) {
+        await apiService.removePermissionFromRole(roleData.id, permissionId);
+      }
+
+      reload && reload();
     } catch (error) {
       console.error('Error editing role:', error);
     }
@@ -382,7 +405,7 @@ const Dashboard = () => {
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
               <p className="text-gray-600 mt-2">
-                Welcome back, {currentUser?.username}! Here's what's happening in your organization.
+                Welcome back, {currentUser?.username}! 
               </p>
             </div>
           </div>

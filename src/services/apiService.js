@@ -89,6 +89,11 @@ export const apiService = {
     return handleRequest(client.post("/roles", roleData));
   },
 
+  updateRole: async (roleId, data) => {
+    const client = await createApiClient();
+    return handleRequest(client.put(`/roles/${roleId}`, data));
+  },
+
   deleteRole: async (roleId) => {
     const client = await createApiClient();
     return handleRequest(client.delete(`/roles/${roleId}`));
