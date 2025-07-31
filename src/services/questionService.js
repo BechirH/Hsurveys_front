@@ -53,6 +53,8 @@ export const questionService = {
 
   updateQuestion: async (questionId, questionData) => {
     const client = await createQuestionApiClient();
+     console.log("Updating question ID:", questionId);
+     console.log("Payload being sent:", questionData);
     return handleRequest(client.put(`/questions/${questionId}`, questionData));
   },
 

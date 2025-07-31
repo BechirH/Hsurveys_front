@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect,useMemo } from "react";
 import { Plus, Eye, Edit, Lock, Unlock,Trash2 } from "lucide-react";
 import Button from "../common/Button";
 import { surveyService } from '../../services/surveyService';
@@ -9,6 +9,8 @@ import QuestionsTable from "../survey/QuestionsTable";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
 import EditSurveyModal from "./EditSurveyModal";
 import CreateSurveyModal from "./CreateSurveyModal";
+import { Search } from "lucide-react";
+
 
 
 const SURVEY_STATUSES = ["DRAFT", "ACTIVE", "CLOSED"];
@@ -41,6 +43,7 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate, reload
   const [surveyToDelete, setSurveyToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
 
   useEffect(() => {
@@ -60,6 +63,13 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate, reload
 
     fetchSurveys();
   }, [token]);
+
+  const filteredSurveys = useMemo(() => {
+    return surveysLocal.filter(survey =>
+      survey.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      survey.description.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [searchTerm, surveysLocal]);
 
   const handleToggleLockSurvey = async (surveyId, isCurrentlyLocked) => {
   try {
@@ -216,34 +226,41 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate, reload
   }};
 
   return (
-    <div className="space-y-6 p-4">
-      <div className="flex-between">
-        <h2 className="text-2xl font-bold text-gray-800">Survey Management</h2>
-        <div className="flex space-x-2">
+    <div className="space-y-4">
+      {/* Header + bouton création */}
+      <div className="bg-white rounded-xl shadow-md border border-gray-200 p-4">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-bold text-gray-800">Survey Management</h2>
+            <p className="text-sm text-gray-500">Manage your list of surveys</p>
+          </div>
           <Button
-          onClick={() => {
-            setShowCreateForm(prev => {
-              if (!prev) { 
-                setForm({
-                  title: "",
-                  description: "",
-                  type: SURVEY_TYPES[0],
-                  status: SURVEY_STATUSES[0],
-                  deadline: "",
-                  locked: false,
-                });
-                setEditingSurvey(null);
-              }
-              return !prev;
-            });
-          }}
           icon={Plus}
           variant="primary"
+          onClick={() => setShowCreateForm(prev => !prev)}
           >
             {showCreateForm ? "Cancel" : "Create Survey"}
           </Button>
         </div>
-      </div>
+        {/* Barre de recherche + résumé total */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mt-4 pt-4 border-t border-gray-100">
+          <div className="flex-1 relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="w-4 h-4 text-gray-400" />
+            </div>
+            <input
+            type="text"
+            placeholder="Search surveys by title or description..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm"
+            />
+            </div>
+            <div className="text-sm text-gray-500">
+              {filteredSurveys.length} result{filteredSurveys.length !== 1 && "s"} • {surveysLocal.length} total
+            </div>
+          </div>
+        </div>
 
       <CreateSurveyModal
       open={showCreateForm}
@@ -256,8 +273,10 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate, reload
       />
 
 
-      <div className="card-base overflow-hidden">
+<div className="bg-white rounded-xl shadow-md border border-gray-200 p-4">
+    
         <div className="overflow-x-auto">
+        
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
@@ -269,7 +288,13 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate, reload
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {surveysLocal.map((survey) => (
+              {filteredSurveys.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className="text-center text-gray-500 py-4">
+                    No surveys found.
+                  </td>
+                </tr>
+                ) : filteredSurveys.map((survey) => (       
                 <React.Fragment key={survey.surveyId}>
                   <tr className="hover:bg-gray-50">
                     <td className="table-cell-base">
@@ -380,6 +405,7 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate, reload
      
       </div>      
     </div>
+    
     
   );
 };
