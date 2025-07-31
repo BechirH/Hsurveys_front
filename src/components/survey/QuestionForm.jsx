@@ -12,7 +12,7 @@ const QUESTION_TYPES = [
   "YES_NO"
 ];
 
-const QuestionForm = ({ onSubmit, loading, error }) => {
+const QuestionForm = ({ onSubmit, loading, error, initialValues, onChange, showSubmitButton = true, submitText = "Submit" }) => {
   const initialForm = {
     subject: "",
     questionText: "",
@@ -21,45 +21,61 @@ const QuestionForm = ({ onSubmit, loading, error }) => {
     options: [],
   };
 
-  const [form, setForm] = useState(initialForm);
+  const [form, setForm] = useState(initialValues || initialForm);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setForm((prev) => ({
-      ...prev,
+    const newForm = {
+      ...form,
       [name]: type === "checkbox" ? checked : value,
-    }));
+    };
+    setForm(newForm);
+    if (onChange) {
+      onChange(newForm);
+    }
   };
 
   const handleAddOption = () => {
-    setForm((prev) => ({
-      ...prev,
+    const newForm = {
+      ...form,
       options: [
-        ...prev.options,
+        ...form.options,
         { optionText: "", optionScore: 0, isCorrect: false, isLocked: false },
       ],
-    }));
+    };
+    setForm(newForm);
+    if (onChange) {
+      onChange(newForm);
+    }
   };
 
   const handleRemoveOption = (index) => {
-    setForm((prev) => ({
-      ...prev,
-      options: prev.options.filter((_, i) => i !== index),
-    }));
+    const newForm = {
+      ...form,
+      options: form.options.filter((_, i) => i !== index),
+    };
+    setForm(newForm);
+    if (onChange) {
+      onChange(newForm);
+    }
   };
 
   const handleOptionChange = (index, field, value) => {
-    setForm((prev) => {
-      const updatedOptions = [...prev.options];
-      updatedOptions[index] = { ...updatedOptions[index], [field]: value };
-      return { ...prev, options: updatedOptions };
-    });
+    const updatedOptions = [...form.options];
+    updatedOptions[index] = { ...updatedOptions[index], [field]: value };
+    const newForm = { ...form, options: updatedOptions };
+    setForm(newForm);
+    if (onChange) {
+      onChange(newForm);
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     await onSubmit(form); 
-    setForm(initialForm); 
+    if (!initialValues) {
+      setForm(initialForm); 
+    }
   };
 
   return (
@@ -175,11 +191,13 @@ const QuestionForm = ({ onSubmit, loading, error }) => {
 
       {error && <p className="text-red-600 mb-3">{error}</p>}
 
-      <div className="mt-6">
-        <Button type="submit" loading={loading} fullWidth disabled={loading}>
-          Create question
-        </Button>
-      </div>
+      {showSubmitButton && (
+        <div className="mt-6">
+          <Button type="submit" loading={loading} fullWidth disabled={loading}>
+            {submitText}
+          </Button>
+        </div>
+      )}
     </form>
   );
 };

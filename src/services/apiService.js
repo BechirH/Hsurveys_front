@@ -18,7 +18,7 @@ export async function getApiBaseUrl() {
     return config.API_URL;
   } catch (error) {
     console.warn("Failed to load config.json, using fallback URL for local development");
-    return "http://localhost:8080/api";
+    return "http://localhost:8085/api";
   }
 }
 
