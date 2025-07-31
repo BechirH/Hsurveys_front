@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect} from "react";
 import InputField from "../common/InputField";
 import Button from "../common/Button";
 
@@ -12,8 +12,8 @@ const QUESTION_TYPES = [
   "YES_NO"
 ];
 
-const QuestionForm = ({ onSubmit, loading, error }) => {
-  const initialForm = {
+const QuestionForm = ({ onSubmit, onCancel, submitLabel = "Submit", loading, error, initialData }) => {
+  const initialForm = initialData || {
     subject: "",
     questionText: "",
     questionType: QUESTION_TYPES[0],
@@ -22,6 +22,17 @@ const QuestionForm = ({ onSubmit, loading, error }) => {
   };
 
   const [form, setForm] = useState(initialForm);
+
+  useEffect(() => {
+  if (initialData) {
+    console.log("Initial options:", initialData.options);
+    const correctedOptions = (initialData.options || []).map(opt => ({
+      ...opt,
+      correct: opt.correct === true || opt.correct === "true",
+    }));
+    setForm({ ...initialData, options: correctedOptions });
+  }
+}, [initialData]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -152,9 +163,9 @@ const QuestionForm = ({ onSubmit, loading, error }) => {
               <label className="text-sm flex items-center space-x-1">
                 <input
                   type="checkbox"
-                  checked={option.isCorrect}
+                  checked={option.correct}
                   onChange={(e) =>
-                    handleOptionChange(index, "isCorrect", e.target.checked)
+                    handleOptionChange(index, "correct", e.target.checked)
                   }
                 />
                 <span>Correct</span>
@@ -175,11 +186,16 @@ const QuestionForm = ({ onSubmit, loading, error }) => {
 
       {error && <p className="text-red-600 mb-3">{error}</p>}
 
-      <div className="mt-6">
-        <Button type="submit" loading={loading} fullWidth disabled={loading}>
-          Create question
-        </Button>
-      </div>
+      <div className="flex gap-4 justify-center mt-4">
+  {onCancel && (
+    <Button type="button" onClick={onCancel} variant="secondary" disabled={loading}>
+      Cancel
+    </Button>
+  )}
+  <Button type="submit" disabled={loading}>
+    {submitLabel || (initialData ? "Save Changes" : "Submit")}
+  </Button>
+</div>
     </form>
   );
 };

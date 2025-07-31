@@ -1,13 +1,16 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Plus, Eye, Edit, Lock, Unlock, Search } from "lucide-react";
+import { Plus, Edit, Lock, Unlock, Search, Trash2 } from "lucide-react";
 import Button from "../common/Button";
-import QuestionForm from "../survey/QuestionForm";
 import { questionService } from "../../services/questionService";
+import CreateQuestionModal from "./CreateQuestionModal";
+import EditQuestionModal from "./EditQuestionModal";
 
 const QuestionsSection = ({ reload }) => {
   const [questions, setQuestions] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editQuestion, setEditQuestion] = useState(null);
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -22,10 +25,24 @@ const QuestionsSection = ({ reload }) => {
     fetchQuestions();
   }, [reload]);
 
+const handleEditQuestion = async (updatedData) => {
+  try {
+    const updated = await questionService.updateQuestion(updatedData.questionId, updatedData);
+    setQuestions((prev) =>
+      prev.map((q) => (q.questionId === updated.questionId ? updated : q))
+    );
+    setShowEditModal(false);
+    setEditQuestion(null);
+  } catch (err) {
+    console.error("Error updating question:", err);
+  }
+};
+
   const handleSubmitQuestion = async (formData) => {
     try {
       const created = await questionService.createQuestion(formData);
       setQuestions((prev) => [...prev, created]);
+      setShowCreateModal(false);
     } catch (err) {
       console.error("Error creating question:", err);
     }
@@ -47,11 +64,10 @@ const QuestionsSection = ({ reload }) => {
             <p className="text-sm text-gray-500">Manage your list of questions</p>
           </div>
           <Button
-            icon={Plus}
-            variant="primary"
-            onClick={() => setShowCreateForm((prev) => !prev)}
-          >
-            {showCreateForm ? "Cancel" : "Create Question"}
+          icon={Plus}
+          variant="primary"  
+          onClick={() => setShowCreateModal((prev) => !prev)}>
+            {showCreateModal ? "Cancel" : "Create Question"}
           </Button>
         </div>
 
@@ -85,7 +101,7 @@ const QuestionsSection = ({ reload }) => {
           filteredQuestions.map((q) => (
             <div
               key={q.id || q.questionId}
-              className="p-4 rounded-lg border border-gray-100 hover:shadow transition flex flex-col gap-2"
+              className="p-4 rounded-lg border border-gray-100 bg-gray-50 hover:shadow transition flex flex-col gap-2"
             >
               <div className="flex justify-between items-start">
                 <div>
@@ -94,11 +110,19 @@ const QuestionsSection = ({ reload }) => {
 
                 </div>
                 <div className="flex items-center gap-2">
-                  <button className="icon-btn" title="View"><Eye className="w-4 h-4" /></button>
-                  <button className="icon-btn-green" title="Edit"><Edit className="w-4 h-4" /></button>
+                  <button
+                  className="icon-btn-green"
+                  title="Edit"
+                  onClick={() => {
+                    setEditQuestion(q);
+                    setShowEditModal(true);
+                    }}>
+                      <Edit className="w-4 h-4" />
+                  </button>
                   <button className="text-orange-600 hover:text-orange-900" title={q.locked ? "Unlock" : "Lock"}>
                     {q.locked ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
                   </button>
+                  <button className="text-red-600 hover:text-red-900" title="Delete"><Trash2 className="w-4 h-4" /></button>
                 </div>
               </div>
               {q.options?.length > 0 && (
@@ -115,12 +139,19 @@ const QuestionsSection = ({ reload }) => {
         )}
       </div>
 
-      {/* Question Form */}
-      {showCreateForm && (
-        <div className="bg-white rounded-xl shadow-md border border-gray-200 p-4">
-          <QuestionForm onSubmit={handleSubmitQuestion} />
-        </div>
-      )}
+      <CreateQuestionModal
+      open={showCreateModal}
+      onClose={() => setShowCreateModal(false)}
+      onSubmit={handleSubmitQuestion}
+      />
+
+      <EditQuestionModal
+      open={showEditModal}
+      onClose={() => setShowEditModal(false)}
+      question={editQuestion}
+      onSubmit={handleEditQuestion}
+      />
+
     </div>
   );
 };

@@ -21,12 +21,16 @@ const CreateQuestionModal = ({ open, onClose, onSubmit }) => {
             <PlusCircle className="w-7 h-7 text-white" />
           </div>
           <div>
-            <h3 className="text-2xl font-bold text-gray-800">Créer une nouvelle question</h3>
-            <p className="text-gray-600 mt-1">Remplissez le formulaire ci-dessous pour créer et associer une question.</p>
+            <h3 className="text-2xl font-bold text-gray-800">Create a New Question</h3>
+            <p className="text-gray-600 mt-1">Fill out the form below to create and associate a question.</p>
           </div>
         </div>
 
-        <QuestionForm onSubmit={onSubmit} />
+        <QuestionForm
+        onSubmit={onSubmit}
+        onCancel={onClose}
+        submitLabel="Submit"       
+        />
       </div>
 
       <style jsx>{`
