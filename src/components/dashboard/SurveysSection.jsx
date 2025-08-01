@@ -9,7 +9,8 @@ import QuestionsTable from "../survey/QuestionsTable";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
 import EditSurveyModal from "./EditSurveyModal";
 import CreateSurveyModal from "./CreateSurveyModal";
-import { Search } from "lucide-react";
+import LockConfirmationModal from "./LockConfirmationModal";
+import { Search,ClipboardList } from "lucide-react";
 
 
 
@@ -44,6 +45,8 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate, reload
   const [deleting, setDeleting] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [showLockModal, setShowLockModal] = useState(false);
+  const [surveyToToggleLock, setSurveyToToggleLock] = useState(null);
 
 
   useEffect(() => {
@@ -230,13 +233,20 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate, reload
       {/* Header + bouton création */}
       <div className="bg-white rounded-xl shadow-md border border-gray-200 p-4">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h2 className="text-xl font-bold text-gray-800">Survey Management</h2>
-            <p className="text-sm text-gray-500">Manage your list of surveys</p>
-          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-7 h-7 bg-gradient-to-r from-sky-400 to-sky-500 rounded-lg flex items-center justify-center shadow-md">
+              <ClipboardList className="w-4 h-4 text-white" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-800">Survey Management</h2>
+                <p className="text-sm text-gray-500">Manage your list of surveys</p>
+              </div>
+            </div>
           <Button
           icon={Plus}
           variant="primary"
+          className="bg-gradient-to-r from-sky-400 to-sky-500 text-white hover:from-sky-500 hover:to-sky-600"
+
           onClick={() => setShowCreateForm(prev => !prev)}
           >
             {showCreateForm ? "Cancel" : "Create Survey"}
@@ -329,7 +339,10 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate, reload
 
                         <button
                          className="text-orange-600 hover:text-orange-900"
-                          onClick={() => handleToggleLockSurvey(survey.surveyId, survey.locked)}
+                          onClick={() => {
+                            setSurveyToToggleLock(survey);
+                            setShowLockModal(true);
+                          }}
                           title={survey.locked ? "Unlock Survey" : "Lock Survey"}
                         >
                           {survey.locked ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
@@ -402,6 +415,27 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate, reload
       setSelectedSurvey(updated.find(s => s.surveyId === selectedSurvey.surveyId));
       setShowEditModal(false);
     }}/>
+
+    <LockConfirmationModal
+    open={showLockModal}
+    onClose={() => {
+      setShowLockModal(false);
+      setSurveyToToggleLock(null);
+    }}
+    onConfirm={async () => {
+      if (!surveyToToggleLock) return;
+      const id = surveyToToggleLock.surveyId;
+      const locked = surveyToToggleLock.locked;
+      setShowLockModal(false);
+      try {
+        await handleToggleLockSurvey(id, locked);
+      } finally {
+        setSurveyToToggleLock(null);
+      }
+    }}
+    loading={loading}
+    entity={surveyToToggleLock}
+    entityType="survey"/>
      
       </div>      
     </div>

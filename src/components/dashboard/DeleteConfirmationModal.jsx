@@ -59,7 +59,20 @@ const DeleteConfirmationModal = ({
           name: survey.title,
           subtitle: survey.description
         })
-      }
+      },
+      question: {
+        title: 'Delete Question',
+        description: 'This action cannot be undone',
+        warningItems: [
+          'All related options will be lost',
+          'Cannot be recovered once deleted'
+        ],
+        entityDisplay: (question) => ({
+          avatar: question.subject?.charAt(0).toUpperCase(),
+          name: question.subject || question.questionText,
+          subtitle: question.questionText
+        })
+      } 
     };
     return configs[type] || configs.user;
   };
