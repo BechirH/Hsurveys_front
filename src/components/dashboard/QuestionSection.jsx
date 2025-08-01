@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Plus, Edit, Lock, Unlock, Search, Trash2 } from "lucide-react";
+import { Plus, Edit, Lock, Unlock, Search, Trash2, ImageOff } from "lucide-react";
 import Button from "../common/Button";
 import { questionService } from "../../services/questionService";
 import CreateQuestionModal from "./CreateQuestionModal";
 import EditQuestionModal from "./EditQuestionModal";
+import LockConfirmationModal from "./LockConfirmationModal";
+import DeleteConfirmationModal from "./DeleteConfirmationModal";
+import { ClipboardList } from "lucide-react"; 
 
 const QuestionsSection = ({ reload }) => {
   const [questions, setQuestions] = useState([]);
@@ -11,6 +14,13 @@ const QuestionsSection = ({ reload }) => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editQuestion, setEditQuestion] = useState(null);
+  const [showLockModal, setShowLockModal] = useState(false);
+  const [questionToToggleLock, setQuestionToToggleLock] = useState(null);
+  const [loading, setLoading] = useState(false); 
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [questionToDelete, setQuestionToDelete] = useState(null);
+  const [loadingDelete, setLoadingDelete] = useState(false);
+
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -25,18 +35,16 @@ const QuestionsSection = ({ reload }) => {
     fetchQuestions();
   }, [reload]);
 
-const handleEditQuestion = async (updatedData) => {
-  try {
-    const updated = await questionService.updateQuestion(updatedData.questionId, updatedData);
-    setQuestions((prev) =>
-      prev.map((q) => (q.questionId === updated.questionId ? updated : q))
-    );
-    setShowEditModal(false);
-    setEditQuestion(null);
-  } catch (err) {
-    console.error("Error updating question:", err);
-  }
-};
+  const handleEditQuestion = async (updatedData) => {
+    try {
+      const updated = await questionService.updateQuestion(updatedData.questionId, updatedData);
+      setQuestions((prev) =>
+        prev.map((q) => (q.questionId === updated.questionId ? updated : q)));
+      setShowEditModal(false);
+      setEditQuestion(null);
+    } catch (err) {
+      console.error("Error updating question:", err);
+    }};
 
   const handleSubmitQuestion = async (formData) => {
     try {
@@ -54,18 +62,56 @@ const handleEditQuestion = async (updatedData) => {
     );
   }, [searchTerm, questions]);
 
+  const handleToggleLockQuestion = async (questionId, isCurrentlyLocked) => {
+  try {
+    if (isCurrentlyLocked) {
+      await questionService.unlockQuestion(questionId);
+    } else {
+      await questionService.lockQuestion(questionId);
+    }
+
+    setQuestions((prev) =>
+      prev.map((q) =>
+        q.questionId === questionId ? { ...q, locked: !isCurrentlyLocked } : q
+      )
+    );
+  } catch (error) {
+    console.error("Error toggling question lock:", error);
+  }};
+
+  const handleDeleteQuestion = async (questionId) => {
+    try {
+      setLoadingDelete(true);
+      await questionService.deleteQuestion(questionId);  
+      setQuestions((prev) => prev.filter(q => q.questionId !== questionId));
+      setShowDeleteModal(false);
+      setQuestionToDelete(null);
+    } catch (error) {
+      console.error("Error deleting question:", error);
+    } finally {
+      setLoadingDelete(false);
+    }};
+
+
+
   return (
     <div className="space-y-4">
       {/* Header */}
       <div className="bg-white rounded-xl shadow-md border border-gray-200 p-4">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h2 className="text-xl font-bold text-gray-800">Question Management</h2>
-            <p className="text-sm text-gray-500">Manage your list of questions</p>
-          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-7 h-7 bg-gradient-to-r from-amber-500 to-amber-600 rounded-lg flex items-center justify-center shadow-md">
+              <ClipboardList className="w-4 h-4 text-white" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-800">Question Management</h2>
+                <p className="text-sm text-gray-500">Manage your list of questions</p>
+              </div>
+            </div>
           <Button
           icon={Plus}
           variant="primary"  
+          className="bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:from-amber-600 hover:to-amber-700"
           onClick={() => setShowCreateModal((prev) => !prev)}>
             {showCreateModal ? "Cancel" : "Create Question"}
           </Button>
@@ -119,10 +165,24 @@ const handleEditQuestion = async (updatedData) => {
                     }}>
                       <Edit className="w-4 h-4" />
                   </button>
-                  <button className="text-orange-600 hover:text-orange-900" title={q.locked ? "Unlock" : "Lock"}>
-                    {q.locked ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
+                  <button
+                  className="text-orange-600 hover:text-orange-900"
+                  title={q.locked ? "Unlock" : "Lock"}
+                  onClick={() => {
+                    setQuestionToToggleLock(q);
+                    setShowLockModal(true);
+                    }}>
+                  {q.locked ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
                   </button>
-                  <button className="text-red-600 hover:text-red-900" title="Delete"><Trash2 className="w-4 h-4" /></button>
+                  <button
+                  className="text-red-600 hover:text-red-900"
+                  title="Delete"
+                  onClick={() => {
+                    setQuestionToDelete(q);
+                    setShowDeleteModal(true);
+                  }}>
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
               {q.options?.length > 0 && (
@@ -150,6 +210,42 @@ const handleEditQuestion = async (updatedData) => {
       onClose={() => setShowEditModal(false)}
       question={editQuestion}
       onSubmit={handleEditQuestion}
+      />
+
+      <LockConfirmationModal
+      open={showLockModal}
+      onClose={() => {
+        setShowLockModal(false);
+        setQuestionToToggleLock(null);
+      }}
+      onConfirm={async () => {
+        if (!questionToToggleLock) return;
+        const id = questionToToggleLock.questionId;
+        const locked = questionToToggleLock.locked;
+        setShowLockModal(false);
+        try {
+          await handleToggleLockQuestion(id, locked);
+        } finally {
+          setQuestionToToggleLock(null);
+        }
+      }}
+      loading={loading}
+      entity={questionToToggleLock}
+      entityType="question"/>
+
+      <DeleteConfirmationModal
+      open={showDeleteModal}
+      onClose={() => {
+        setShowDeleteModal(false);
+        setQuestionToDelete(null);
+      }}
+      onConfirm={async () => {
+        if (!questionToDelete) return;
+        await handleDeleteQuestion(questionToDelete.questionId);
+      }}
+      loading={loadingDelete}
+      entity={questionToDelete}
+      entityType="question"
       />
 
     </div>
