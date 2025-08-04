@@ -1,12 +1,17 @@
-import React, { useState, useEffect } from "react";
-import { Plus, Eye, Edit, Lock, Unlock, Check, Trash } from "lucide-react";
+import React, { useState, useEffect,useMemo } from "react";
+import { Plus, Eye, Edit, Lock, Unlock,Trash2 } from "lucide-react";
 import Button from "../common/Button";
 import { surveyService } from '../../services/surveyService';
 import { questionService } from '../../services/questionService';
 import { useSelector } from 'react-redux';
 import SurveyDetails from '../survey/SurveyDetails';
-import SurveyForm from "../survey/SurveyForm";
 import QuestionsTable from "../survey/QuestionsTable";
+import DeleteConfirmationModal from "./DeleteConfirmationModal";
+import EditSurveyModal from "./EditSurveyModal";
+import CreateSurveyModal from "./CreateSurveyModal";
+import LockConfirmationModal from "./LockConfirmationModal";
+import { Search,ClipboardList } from "lucide-react";
+
 
 
 const SURVEY_STATUSES = ["DRAFT", "ACTIVE", "CLOSED"];
@@ -35,6 +40,14 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate, reload
   const [selectedQuestions, setSelectedQuestions] = useState(new Set());
   const [editingSurvey, setEditingSurvey] = useState(null);
 
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [surveyToDelete, setSurveyToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showLockModal, setShowLockModal] = useState(false);
+  const [surveyToToggleLock, setSurveyToToggleLock] = useState(null);
+
 
   useEffect(() => {
         const fetchSurveys = async () => {
@@ -53,6 +66,13 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate, reload
 
     fetchSurveys();
   }, [token]);
+
+  const filteredSurveys = useMemo(() => {
+    return surveysLocal.filter(survey =>
+      survey.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      survey.description.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [searchTerm, surveysLocal]);
 
   const handleToggleLockSurvey = async (surveyId, isCurrentlyLocked) => {
   try {
@@ -98,18 +118,7 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate, reload
       setLoading(false);
     }
   };
-  const handleEditSurvey = (survey) => {
-    setEditingSurvey(survey);
-    setShowCreateForm(true);
-    setForm({
-      title: survey.title,
-      description: survey.description,
-      type: survey.type,
-      status: survey.status,
-      deadline: survey.deadline ? survey.deadline.slice(0, 16) : "",
-      locked: survey.locked,
-    });
-  };
+  
   const handleUpdateSurvey = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -144,23 +153,24 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate, reload
       setLoading(false);
     }
   };
-  const handleDeleteSurvey = async (surveyId) => {
-    if (!window.confirm("Are you sure you want to delete this survey?")) 
-      return;
-    setLoading(true);
-    try {
-      await surveyService.deleteSurvey(surveyId);
-      setSurveysLocal((prev) => prev.filter(s => s.surveyId !== surveyId));
-      if (selectedSurvey && selectedSurvey.surveyId === surveyId) {
-        setSelectedSurvey(null);
-      }
-    } catch (err) {
-      console.error("Error deleting survey:", err);
-      setError("Error deleting the survey.");
-    } finally {
-      setLoading(false);
+  const handleDeleteSurvey = async () => {
+    if (!surveyToDelete) return;
+  setDeleting(true);
+  try {
+    await surveyService.deleteSurvey(surveyToDelete.surveyId);
+    setSurveysLocal((prev) => prev.filter(s => s.surveyId !== surveyToDelete.surveyId));
+    if (selectedSurvey && selectedSurvey.surveyId === surveyToDelete.surveyId) {
+      setSelectedSurvey(null);
     }
-  };
+    setShowDeleteModal(false);
+    setSurveyToDelete(null);
+  } catch (err) {
+    console.error("Error deleting survey:", err);
+    setError("Error deleting the survey.");
+  } finally {
+    setDeleting(false);
+  }
+};
 
   const handleAddQuestionToSurvey = async (questionId) => {
   if (!selectedSurvey) {
@@ -199,7 +209,7 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate, reload
       locked: false,
     });
     setShowCreateForm(false);
-    setSelectedSurvey(createdSurvey);
+  
     setSelectedQuestions(new Set());
     const questionsData = await questionService.getAllQuestions();
     setQuestions(questionsData);
@@ -219,47 +229,64 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate, reload
   }};
 
   return (
-    <div className="space-y-6">
-      <div className="flex-between">
-        <h2 className="text-2xl font-bold text-gray-800">Survey Management</h2>
-        <div className="flex space-x-2">
+    <div className="space-y-4">
+      {/* Header + bouton création */}
+      <div className="bg-white rounded-xl shadow-md border border-gray-200 p-4">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-7 h-7 bg-gradient-to-r from-sky-400 to-sky-500 rounded-lg flex items-center justify-center shadow-md">
+              <ClipboardList className="w-4 h-4 text-white" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-800">Survey Management</h2>
+                <p className="text-sm text-gray-500">Manage your list of surveys</p>
+              </div>
+            </div>
           <Button
-          onClick={() => {
-            setShowCreateForm(prev => {
-              if (!prev) { 
-                setForm({
-                  title: "",
-                  description: "",
-                  type: SURVEY_TYPES[0],
-                  status: SURVEY_STATUSES[0],
-                  deadline: "",
-                  locked: false,
-                });
-                setEditingSurvey(null);
-              }
-              return !prev;
-            });
-          }}
           icon={Plus}
           variant="primary"
+          className="bg-gradient-to-r from-sky-400 to-sky-500 text-white hover:from-sky-500 hover:to-sky-600"
+
+          onClick={() => setShowCreateForm(prev => !prev)}
           >
             {showCreateForm ? "Cancel" : "Create Survey"}
           </Button>
         </div>
-      </div>
+        {/* Barre de recherche + résumé total */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mt-4 pt-4 border-t border-gray-100">
+          <div className="flex-1 relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="w-4 h-4 text-gray-400" />
+            </div>
+            <input
+            type="text"
+            placeholder="Search surveys by title or description..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm"
+            />
+            </div>
+            <div className="text-sm text-gray-500">
+              {filteredSurveys.length} result{filteredSurveys.length !== 1 && "s"} • {surveysLocal.length} total
+            </div>
+          </div>
+        </div>
 
-      {showCreateForm && (
-        <SurveyForm
-          form={form}
-          setForm={setForm}
-          onSubmit={editingSurvey ? handleUpdateSurvey : handleSubmit}
-          loading={loading}
-          error={error}
-        />
-      )}
+      <CreateSurveyModal
+      open={showCreateForm}
+      onClose={() => setShowCreateForm(false)}
+      form={form}
+      setForm={setForm}
+      onSubmit={editingSurvey ? handleUpdateSurvey : handleSubmit}
+      loading={loading}
+      error={error}
+      />
 
-      <div className="card-base overflow-hidden">
+
+<div className="bg-white rounded-xl shadow-md border border-gray-200 p-4">
+    
         <div className="overflow-x-auto">
+        
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
@@ -271,7 +298,13 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate, reload
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {surveysLocal.map((survey) => (
+              {filteredSurveys.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className="text-center text-gray-500 py-4">
+                    No surveys found.
+                  </td>
+                </tr>
+                ) : filteredSurveys.map((survey) => (       
                 <React.Fragment key={survey.surveyId}>
                   <tr className="hover:bg-gray-50">
                     <td className="table-cell-base">
@@ -294,32 +327,34 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate, reload
                         <button className="icon-btn" onClick={() => handleViewSurvey(survey.surveyId)}>
                           <Eye className="w-4 h-4" />
                         </button>
-                        <button className="icon-btn-green" onClick={() => {
+                        <button
+                        className="icon-btn-green"
+                        onClick={() => {
                           setSelectedSurvey(survey);
-                          setForm({
-                            title: survey.title,
-                            description: survey.description,
-                            type: survey.type,
-                            status: survey.status,
-                            deadline: survey.deadline ? survey.deadline.slice(0, 16) : "",
-                            locked: survey.locked,
-                          });
-                          setShowCreateForm(true); 
-                          setEditingSurvey(survey); 
-                          }}>
-                          <Edit className="w-4 h-4" />
+                          setShowEditModal(true);
+                          }}
+                          >
+                            <Edit className="w-4 h-4" />
                         </button>
 
                         <button
                          className="text-orange-600 hover:text-orange-900"
-                          onClick={() => handleToggleLockSurvey(survey.surveyId, survey.locked)}
+                          onClick={() => {
+                            setSurveyToToggleLock(survey);
+                            setShowLockModal(true);
+                          }}
                           title={survey.locked ? "Unlock Survey" : "Lock Survey"}
                         >
                           {survey.locked ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
                         </button>
 
-                        <button className="text-red-600 hover:text-red-900" onClick={() => handleDeleteSurvey(survey.surveyId)}>
-                          <Trash className="w-4 h-4" />
+                        <button
+                        onClick={() => {
+                          setSurveyToDelete(survey);
+                          setShowDeleteModal(true);
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </td>
@@ -343,9 +378,69 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate, reload
           </table>
         </div>
       </div>
+      <div>
+    {/* Ton tableau ou liste de surveys ici */}
+    
+    {/* Modale de suppression */}
+    <DeleteConfirmationModal
+      open={showDeleteModal}
+      onClose={() => {
+        setShowDeleteModal(false);
+        setSurveyToDelete(null);
+      }}
+      onConfirm={handleDeleteSurvey}
+      loading={deleting}
+      entity={surveyToDelete}
+      entityType="survey"
+      title="Delete Survey"
+      description="This action is irreversible. The survey and its links will be permanently deleted."
+      warningItems={[
+        "All associated questions will remain, but the link to this survey will be removed.",
+        "Results and participations related to this survey will be lost.",
+        "There will be no way to restore this data after deletion."
+      ]}
+      entityDisplay={(survey) => ({
+        avatar: survey.title?.charAt(0).toUpperCase(),
+        name: survey.title,
+        subtitle: survey.description
+      })}
+    />
+    <EditSurveyModal
+    open={showEditModal}
+    onClose={() => setShowEditModal(false)}
+    survey={selectedSurvey}
+    onSuccess={async () => {
+      const updated = await surveyService.getAllSurveys();
+      setSurveysLocal(updated);
+      setSelectedSurvey(updated.find(s => s.surveyId === selectedSurvey.surveyId));
+      setShowEditModal(false);
+    }}/>
 
-      
+    <LockConfirmationModal
+    open={showLockModal}
+    onClose={() => {
+      setShowLockModal(false);
+      setSurveyToToggleLock(null);
+    }}
+    onConfirm={async () => {
+      if (!surveyToToggleLock) return;
+      const id = surveyToToggleLock.surveyId;
+      const locked = surveyToToggleLock.locked;
+      setShowLockModal(false);
+      try {
+        await handleToggleLockSurvey(id, locked);
+      } finally {
+        setSurveyToToggleLock(null);
+      }
+    }}
+    loading={loading}
+    entity={surveyToToggleLock}
+    entityType="survey"/>
+     
+      </div>      
     </div>
+    
+    
   );
 };
 

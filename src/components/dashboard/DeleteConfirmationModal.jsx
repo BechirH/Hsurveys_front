@@ -46,6 +46,20 @@ const DeleteConfirmationModal = ({
           subtitle: role.description
         })
       },
+      survey: {
+        title: 'Delete Survey',
+        description: 'This action cannot be undone',
+        warningItems: [
+          'All related questions associations will be lost',
+          'Existing responses (if any) will be removed',
+          'This operation is irreversible'
+        ],
+        entityDisplay: (survey) => ({
+          avatar: survey.title?.charAt(0).toUpperCase(),
+          name: survey.title,
+          subtitle: survey.description
+        })
+      },
       question: {
         title: 'Delete Question',
         description: 'This action cannot be undone',

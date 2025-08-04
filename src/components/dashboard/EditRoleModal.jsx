@@ -1,21 +1,27 @@
 import React, { useState, useEffect } from "react";
-import { X, Shield, Check, AlertCircle } from "lucide-react";
+import { X, Shield, Check, AlertCircle, Edit3 } from "lucide-react";
+import Button from "../common/Button";
 
 const EditRoleModal = ({ isOpen, onClose, role, permissions, onSave }) => {
   const [roleName, setRoleName] = useState("");
   const [roleDescription, setRoleDescription] = useState("");
   const [selectedPermissions, setSelectedPermissions] = useState([]);
-  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   // Initialize form when role changes
   useEffect(() => {
-    if (role) {
+    if (isOpen && role) {
       setRoleName(role.name || "");
       setRoleDescription(role.description || "");
-      setSelectedPermissions(role.permissions || []);
-      setErrors({});
+      setSelectedPermissions(
+        Array.isArray(role.permissions)
+          ? role.permissions.map(p => typeof p === "object" ? p.id : p)
+          : []
+      );
+      setError("");
     }
-  }, [role]);
+  }, [isOpen, role]);
 
   const handlePermissionToggle = (permissionId) => {
     setSelectedPermissions(prev => 
@@ -25,174 +31,214 @@ const EditRoleModal = ({ isOpen, onClose, role, permissions, onSave }) => {
     );
   };
 
-  const handleSave = () => {
-    const newErrors = {};
-    
+  const handleSave = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
     if (!roleName.trim()) {
-      newErrors.name = "Role name is required";
+      setError("Role name is required");
+      setLoading(false);
+      return;
     }
     
     if (!roleDescription.trim()) {
-      newErrors.description = "Role description is required";
+      setError("Role description is required");
+      setLoading(false);
+      return;
     }
     
     if (selectedPermissions.length === 0) {
-      newErrors.permissions = "At least one permission must be selected";
-    }
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+      setError("At least one permission must be selected");
+      setLoading(false);
       return;
     }
 
-    onSave({
-      id: role.id,
-      name: roleName.trim(),
-      description: roleDescription.trim(),
-      permissions: selectedPermissions
-    });
-
-    onClose();
+    try {
+      await onSave({
+        id: role.id,
+        name: roleName.trim(),
+        description: roleDescription.trim(),
+        permissions: selectedPermissions
+      });
+      onClose();
+    } catch (err) {
+      setError(err.message || "Error updating role");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleClose = () => {
-    setErrors({});
+    setError("");
     onClose();
   };
 
   if (!isOpen || !role) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
+      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto relative transform transition-all duration-300 scale-100 animate-slide-up border border-gray-100">
+        <button 
+          onClick={handleClose} 
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-full transition-colors duration-200"
+        >
+          <X className="w-5 h-5" />
+        </button>
+        
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <div className="flex items-center space-x-3">
-            <div className="bg-gradient-to-br from-green-600 to-emerald-600 p-2 rounded-xl">
-              <Shield className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-gray-800">Edit Role</h2>
-              <p className="text-sm text-gray-500">Update role details and permissions</p>
-            </div>
+        <div className="flex items-center gap-4 mb-8">
+          <div className="w-14 h-14 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+            <Edit3 className="w-7 h-7 text-white" />
           </div>
-          <button
-            onClick={handleClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <X className="w-6 h-6" />
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="p-6 space-y-6">
-          {/* Role Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Role Name *
+            <h3 className="text-2xl font-bold text-gray-800">Edit Role</h3>
+            <p className="text-gray-600 mt-1">
+              Update role details for <span className="font-semibold text-gray-800">{role.name}</span>
+            </p>
+          </div>
+        </div>
+        
+        <form onSubmit={handleSave} className="space-y-6">
+          {/* Role Name */}
+          <div className="space-y-2">
+            <label htmlFor="roleName" className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+              <Shield className="w-4 h-4 text-gray-500" />
+              Role Name
             </label>
-            <input
-              type="text"
-              value={roleName}
-              onChange={(e) => setRoleName(e.target.value)}
-              className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all ${
-                errors.name ? 'border-red-300 bg-red-50' : 'border-gray-300'
-              }`}
-              placeholder="Enter role name"
-            />
-            {errors.name && (
-              <div className="flex items-center mt-2 text-red-600 text-sm">
-                <AlertCircle className="w-4 h-4 mr-1" />
-                {errors.name}
-              </div>
-            )}
+            <div className="relative">
+              <input
+                id="roleName"
+                name="roleName"
+                type="text"
+                value={roleName}
+                onChange={(e) => setRoleName(e.target.value)}
+                required
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white text-gray-800 font-medium transition-all duration-200 hover:border-indigo-300"
+                placeholder="Enter role name"
+              />
+            </div>
           </div>
 
           {/* Role Description */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Role Description *
+          <div className="space-y-2">
+            <label htmlFor="roleDescription" className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+              <AlertCircle className="w-4 h-4 text-gray-500" />
+              Role Description
             </label>
-            <textarea
-              value={roleDescription}
-              onChange={(e) => setRoleDescription(e.target.value)}
-              rows={3}
-              className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all resize-none ${
-                errors.description ? 'border-red-300 bg-red-50' : 'border-gray-300'
-              }`}
-              placeholder="Enter role description"
-            />
-            {errors.description && (
-              <div className="flex items-center mt-2 text-red-600 text-sm">
-                <AlertCircle className="w-4 h-4 mr-1" />
-                {errors.description}
-              </div>
-            )}
+            <div className="relative">
+              <textarea
+                id="roleDescription"
+                name="roleDescription"
+                value={roleDescription}
+                onChange={(e) => setRoleDescription(e.target.value)}
+                rows={3}
+                required
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white text-gray-800 font-medium transition-all duration-200 hover:border-indigo-300 resize-none"
+                placeholder="Enter role description"
+              />
+            </div>
           </div>
 
           {/* Permissions Selection */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">
-              Assigned Permissions *
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+              <Check className="w-4 h-4 text-gray-500" />
+              Assigned Permissions
             </label>
-            <div className="max-h-64 overflow-y-auto border border-gray-200 rounded-xl p-4">
+            <div className="max-h-64 overflow-y-auto border-2 border-gray-200 rounded-xl p-4 bg-gray-50">
               {permissions.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   <Shield className="w-12 h-12 mx-auto mb-3 text-gray-300" />
                   <p>No permissions available</p>
                 </div>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {permissions.map((permission) => (
                     <label
                       key={permission.id}
-                      className="flex items-center p-3 rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer transition-all"
+                      className="flex items-center p-4 rounded-xl border-2 border-gray-200 hover:border-indigo-300 hover:bg-white cursor-pointer transition-all duration-200 bg-white shadow-sm"
                     >
                       <input
                         type="checkbox"
                         checked={selectedPermissions.includes(permission.id)}
                         onChange={() => handlePermissionToggle(permission.id)}
-                        className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                        className="w-5 h-5 text-indigo-600 border-2 border-gray-300 rounded focus:ring-indigo-500 focus:ring-2"
                       />
-                      <div className="ml-3 flex-1">
-                        <p className="font-medium text-gray-800">{permission.name}</p>
-                        <p className="text-sm text-gray-500">{permission.description}</p>
+                      <div className="ml-4 flex-1">
+                        <p className="font-semibold text-gray-800">{permission.name}</p>
+                        <p className="text-sm text-gray-600 mt-1">{permission.description}</p>
                       </div>
                       {selectedPermissions.includes(permission.id) && (
-                        <Check className="w-4 h-4 text-green-600" />
+                        <Check className="w-5 h-5 text-indigo-600" />
                       )}
                     </label>
                   ))}
                 </div>
               )}
             </div>
-            {errors.permissions && (
-              <div className="flex items-center mt-2 text-red-600 text-sm">
-                <AlertCircle className="w-4 h-4 mr-1" />
-                {errors.permissions}
-              </div>
-            )}
           </div>
-        </div>
 
-        {/* Footer */}
-        <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
-          <button
-            onClick={handleClose}
-            className="px-6 py-2 text-gray-600 hover:text-gray-800 font-medium transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSave}
-            className="px-6 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-medium rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl"
-          >
-            Update Role
-          </button>
-        </div>
+          {/* Error Message */}
+          {error && (
+            <div className="bg-red-50 border-2 border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm animate-shake flex items-center gap-2">
+              <div className="w-2 h-2 bg-red-500 rounded-full flex-shrink-0"></div>
+              {error}
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          <div className="flex gap-4 pt-4">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={handleClose}
+              label="Cancel"
+              className="flex-1 py-3 text-base font-medium hover:bg-gray-100 transition-colors duration-200"
+            />
+            <Button
+              type="submit"
+              variant="primary"
+              loading={loading}
+              label="Save Changes"
+              className="flex-1 py-3 text-base font-medium bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 transition-all duration-200 transform hover:scale-[1.02] shadow-lg hover:shadow-xl"
+            />
+          </div>
+        </form>
       </div>
+
+      {/* Custom Animations */}
+      <style jsx>{`
+        @keyframes fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        
+        @keyframes slide-up {
+          from { transform: translateY(20px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+        
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          25% { transform: translateX(-5px); }
+          75% { transform: translateX(5px); }
+        }
+        
+        .animate-fade-in {
+          animation: fade-in 0.3s ease-out;
+        }
+        
+        .animate-slide-up {
+          animation: slide-up 0.3s ease-out;
+        }
+        
+        .animate-shake {
+          animation: shake 0.5s ease-in-out;
+        }
+      `}</style>
     </div>
   );
 };
 
-export default EditRoleModal; 
+export default EditRoleModal;

@@ -7,6 +7,7 @@ const QuestionsTable = ({ questions, onAddToSurvey }) => {
   const [searchSubject, setSearchSubject] = useState("");
   const [filteredQuestions, setFilteredQuestions] = useState(questions || []);
   const [loading, setLoading] = useState(false);
+  
 
   useEffect(() => {
     setFilteredQuestions(questions);
@@ -34,8 +35,7 @@ const QuestionsTable = ({ questions, onAddToSurvey }) => {
 };
 
   return (
-    <div className="card-base overflow-hidden">
-
+  <div className="overflow-y-auto border rounded p-2">
       <div className="mb-4">
         <input
           type="text"
@@ -46,65 +46,49 @@ const QuestionsTable = ({ questions, onAddToSurvey }) => {
         />
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="table-header-base">Subject</th>
-              <th className="table-header-base">Question</th>
-              <th className="table-header-base">Options</th>
-              <th className="table-header-base">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {loading ? (
-              <tr>
-                <td colSpan={4} className="text-center py-4 text-gray-500">
-                  Loading...
-                </td>
-              </tr>
-            ) : filteredQuestions.length > 0 ? (
-              filteredQuestions.map((question) => (
-                <tr
-                  key={question.id || question.questionId}
-                  className="hover:bg-gray-50"
-                >
-                  <td className="table-cell-base">{question.subject}</td>
-                  <td className="table-cell-base">{question.questionText}</td>
-                  <td className="table-cell-base">
-                    {question.options?.length > 0 ? (
-                      <ul className="list-disc pl-4">
-                        {question.options.map((option, idx) => (
-                          <li key={idx}>
-                            {option.optionText} ({option.optionScore})
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <span className="text-gray-400 italic">No options</span>
-                    )}
-                  </td>
-                  <td className="table-cell-base text-sm font-medium">
-                    <Button
-                      icon={Plus}
-                      variant="primary"
-                      onClick={() => onAddToSurvey(question.questionId)}
-                    >
-                      Add to Survey
-                    </Button>
-                  </td>
-                </tr>
+      <div className="space-y-4">
+        {loading ? (
+           <div className="text-center text-gray-500">Loading...</div>
+          ) : filteredQuestions.length > 0 ? (
+            filteredQuestions.map((question) => (
+           <div
+           key={question.id || question.questionId}
+           className="border rounded-lg p-4 shadow-sm hover:shadow-md transition"
+           >
+            <h3 className="text-lg font-semibold text-gray-800">
+              {question.subject}
+              </h3>
+              <p className="text-gray-600 mb-2">{question.questionText}</p>
+              <div className="mb-2">
+                {question.options?.length > 0 ? (
+                  <ul className="list-disc list-inside text-gray-700">
+                    {question.options.map((option, idx) => (
+                      <li key={idx}>
+                        {option.optionText} ({option.optionScore})
+                      </li>
+                    ))}
+                  </ul>
+                  ) : (
+                  <span className="text-gray-400 italic">No options</span>
+                  )}
+                </div>
+                <div className="flex justify-end mt-4">
+                  <Button
+                  icon={Plus}
+                  variant="primary"
+                  onClick={() => {
+                    console.log("Clicked Add to Survey for questionId:", question.questionId || question.id);
+                    onAddToSurvey(question.questionId || question.id);
+                  }}>Add to Survey
+                  </Button>
+                </div>
+              </div>
               ))
             ) : (
-              <tr>
-                <td colSpan={4} className="text-center py-4 text-gray-500 italic">
-                  no questions found
-                </td>
-              </tr>
+            <div className="text-center text-gray-500 italic">No questions found</div>
             )}
-          </tbody>
-        </table>
-      </div>
+          </div>
+
     </div>
   );
 };

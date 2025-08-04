@@ -189,7 +189,8 @@ const SignupUser = ({
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-9 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-3 text-gray-400 hover:text-gray-600 z-10"
+                style={{ top: '42px' }}
                 tabIndex={-1}
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
@@ -213,7 +214,8 @@ const SignupUser = ({
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-9 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-3 text-gray-400 hover:text-gray-600 z-10"
+                style={{ top: '42px' }}
                 tabIndex={-1}
                 aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
               >
