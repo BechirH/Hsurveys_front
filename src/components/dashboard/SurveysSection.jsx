@@ -1,5 +1,5 @@
 import React, { useState, useEffect,useMemo } from "react";
-import { Plus, Eye, Edit, Lock, Unlock,Trash2 } from "lucide-react";
+import { Plus, Eye, Edit, Lock, Unlock,Trash2,Upload } from "lucide-react";
 import Button from "../common/Button";
 import { surveyService } from '../../services/surveyService';
 import { questionService } from '../../services/questionService';
@@ -228,6 +228,28 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate, reload
     console.error("Error reloading questions.", error);
   }};
 
+
+  const handlePublishSurvey = async (surveyId) => {
+  setLoading(true);
+  setError("");
+  try {
+    const publishedSurvey = await surveyService.publishSurvey(surveyId);
+    // Met à jour la liste des surveys localement avec le survey publié
+    setSurveysLocal(prev =>
+      prev.map(s => (s.surveyId === publishedSurvey.surveyId ? publishedSurvey : s))
+    );
+    // Mets à jour la sélection si besoin
+    if (selectedSurvey?.surveyId === publishedSurvey.surveyId) {
+      setSelectedSurvey(publishedSurvey);
+    }
+  } catch (err) {
+    console.error("Error publishing survey:", err);
+    setError("Error publishing the survey.");
+  } finally {
+    setLoading(false);
+  }
+};
+
   return (
     <div className="space-y-4">
       {/* Header + bouton création */}
@@ -355,6 +377,13 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate, reload
                           }}
                         >
                           <Trash2 className="w-4 h-4" />
+                        </button>
+                        <button
+                        className="text-blue-600 hover:text-blue-900"
+                        onClick={() => handlePublishSurvey(survey.surveyId)}
+                        title="Publish Survey"
+                        disabled={survey.status !== "DRAFT"}
+                        ><Upload size={18} />
                         </button>
                       </div>
                     </td>

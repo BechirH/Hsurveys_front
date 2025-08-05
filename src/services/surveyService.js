@@ -87,4 +87,13 @@ export const surveyService = {
     const client = await createSurveyApiClient();
     return handleRequest(client.get(`/surveys/${surveyId}/exists`));
   },
+  publishSurvey: async (surveyId) => {
+    const client = await createSurveyApiClient();
+    return handleRequest(client.put(`/surveys/${surveyId}/publish`, {}));
+  },
+
+  getActiveAndClosedSurveys: async () => {
+    const client = await createSurveyApiClient();
+    return handleRequest(client.get("/surveys/active-closed"));
+  },
 };
