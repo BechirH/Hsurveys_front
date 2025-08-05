@@ -22,6 +22,7 @@ import AddDepartmentModal from '../components/dashboard/AddDepartmentModal';
 import EditDepartmentModal from '../components/dashboard/EditDepartmentModal';
 import DeleteConfirmationModal from '../components/dashboard/DeleteConfirmationModal';
 import DepartmentUsersModal from '../components/dashboard/DepartmentUsersModal';
+import SurveyBankSection from "../components/dashboard/SurveyBankSection";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -257,7 +258,8 @@ const Dashboard = () => {
     { id: 'organizations', name: 'Organization', icon: Building2 },
     { id: 'departments', name: 'Departments', icon: Users2 },
     { id: 'teams', name: 'Teams', icon: Target },
-    { id: 'roles', name: 'Roles & Permissions', icon: Shield }
+    { id: 'roles', name: 'Roles & Permissions', icon: Shield },
+    { id: 'surveyBank', name: 'Survey Bank', icon: FileText } 
   ];
 
   const renderContent = () => {
@@ -285,6 +287,16 @@ const Dashboard = () => {
             reload={reload}
           />
         );
+      
+      case "surveyBank":
+        return (
+        <SurveyBankSection
+        getSurveyTypeColor={getSurveyTypeColor}
+        getStatusColor={getStatusColor}
+        formatDate={formatDate}
+        reload={reload}
+        />
+      );
       case "questions":
         return (
           <QuestionsSection

@@ -263,6 +263,17 @@ export const apiService = {
     return handleRequest(client.get(`/surveys/${surveyId}/exists`));
   },
 
+  publishSurvey: async (surveyId) => {
+    const client = await createApiClient();
+    return handleRequest(client.put(`/surveys/${surveyId}/publish`));
+  },
+
+  getActiveAndClosedSurveys: async () => {
+    const client = await createApiClient();
+    return handleRequest(client.get("/surveys/active-closed"));
+  },
+
+
   // ----- Question endpoints -----
   getAllQuestions: async () => {
     const client = await createApiClient();
