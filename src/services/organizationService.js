@@ -22,14 +22,17 @@ async function createOpenOrgApiClient() {
 function getCookie(name) {
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop().split(';').shift();
+  if (parts.length === 2) return parts.pop().split(";").shift();
 }
 
 export const organizationService = {
   createOrganization: async (orgData) => {
     const openOrgApiClient = await createOpenOrgApiClient();
     try {
-      const response = await openOrgApiClient.post("/organizations/register", orgData);
+      const response = await openOrgApiClient.post(
+        "/organizations/register",
+        orgData
+      );
       return response.data;
     } catch (error) {
       throw error;
@@ -39,7 +42,9 @@ export const organizationService = {
   getCurrentOrganization: async (organizationId) => {
     const orgApiClient = await createOrgApiClient();
     try {
-      const response = await orgApiClient.get(`/organizations/${organizationId}`);
+      const response = await orgApiClient.get(
+        `/organizations/${organizationId}`
+      );
       return response.data;
     } catch (error) {
       throw error;
@@ -49,7 +54,7 @@ export const organizationService = {
   getDepartments: async () => {
     const orgApiClient = await createOrgApiClient();
     try {
-      const response = await orgApiClient.get("/organizations/departments");
+      const response = await orgApiClient.get("/departments");
       return response.data;
     } catch (error) {
       throw error;
@@ -59,7 +64,7 @@ export const organizationService = {
   getTeams: async () => {
     const orgApiClient = await createOrgApiClient();
     try {
-      const response = await orgApiClient.get("/organizations/teams");
+      const response = await orgApiClient.get("/teams");
       return response.data;
     } catch (error) {
       throw error;

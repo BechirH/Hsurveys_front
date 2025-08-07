@@ -9,6 +9,7 @@ import {
 import { store } from "./redux/store";
 import { useDispatch, useSelector } from "react-redux";
 import { autoLogin } from "./redux/slices/authSlice";
+import { shouldRedirectToDashboard } from "./utils/roleUtils";
 
 import AuthSystem from "./components/auth/AuthSystem";
 import Dashboard from "./pages/Dashboard";
@@ -34,24 +35,23 @@ const AppRoutes = () => {
     );
   }
 
-  const getRedirectPath = () => {
-    if (user) {
-      // Check if user has admin roles
-      const isAdmin =
-        user.roles &&
-        user.roles.some(
-          (role) =>
-            role === "ORGANIZATION MANAGER" ||
-            role === "DEPARTMENT MANAGER" ||
-            role === "TEAM MANAGER" ||
-            role === "ADMIN" ||
-            role === "admin"
-        );
-      return isAdmin ? "/dashboard" : "/user-home";
-    }
-    return "/";
-  };
-
+const getRedirectPath = () => {
+  if (user) {
+    // Check if user has admin roles
+    const isAdmin =
+      user.roles &&
+      user.roles.some(
+        (role) =>
+          role === "ORGANIZATION MANAGER" ||
+          role === "DEPARTMENT MANAGER" ||
+          role === "TEAM MANAGER" ||
+          role === "ADMIN" ||
+          role === "admin"
+      );
+    return isAdmin ? "/dashboard" : "/user-home";
+  }
+  return "/";
+};
   return (
     <Routes>
       <Route

@@ -64,11 +64,11 @@ const NavBar = () => {
           {/* Logo/Brand */}
           <div className="flex items-center space-x-3">
             <div className="bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 p-2 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
-              <Building className="w-6 h-6 text-white" />
+              <img src="/Hsurveys.png" alt="H Surveys Logo" className="w-6 h-6 object-contain" />
             </div>
             <div className="hidden sm:block">
               <h1 className="text-xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-                Organization Portal
+                H Surveys
               </h1>
               <p className="text-xs text-gray-500 font-medium">Welcome back, {user?.username}!</p>
             </div>
