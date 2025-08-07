@@ -12,8 +12,9 @@ export const autoLogin = createAsyncThunk(
         return rejectWithValue("Session expired");
       }
     } catch (error) {
+      localStorage.removeItem("authState");
       return rejectWithValue(
-        "Session verification failed. Please log in again."
+        "Session verification and refresh failed. Please log in again."
       );
     }
   }
@@ -83,8 +84,10 @@ export const logoutUser = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       await authService.logout();
+      localStorage.removeItem("authState");
       return "Logged out successfully";
     } catch (err) {
+      localStorage.removeItem("authState");
       return "Logged out successfully";
     }
   }
@@ -131,20 +134,8 @@ const authSlice = createSlice({
         state.isInitialized = true;
         if (action.payload.user) {
           const user = action.payload.user;
-          // Map the /me API response to our user structure
-          state.user = {
-            username: user.username,
-            organizationId: user.organizationId,
-            roles: user.roles,
-            // Determine role for UI consistency
-            role: user.roles.includes("ORGANIZATION MANAGER")
-              ? "ORGANIZATION MANAGER"
-              : user.roles.includes("DEPARTMENT MANAGER")
-              ? "DEPARTMENT MANAGER"
-              : user.roles.includes("TEAM MANAGER")
-              ? "TEAM MANAGER"
-              : "USER",
-          };
+          // Keep the roles array as-is, don't modify it
+          state.user = user;
         }
       })
       .addCase(autoLogin.rejected, (state) => {
@@ -158,30 +149,18 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
-
-        // Always process user data consistently
-        const payload = action.payload;
-        if (payload) {
-          state.user = {
-            username: payload.username || payload.user?.username,
-            organizationId:
-              payload.organizationId || payload.user?.organizationId,
-            roles: payload.roles || payload.user?.roles || [],
-            // Determine role for UI consistency
-            role: (payload.roles || payload.user?.roles || []).includes(
-              "ORGANIZATION MANAGER"
-            )
-              ? "ORGANIZATION MANAGER"
-              : (payload.roles || payload.user?.roles || []).includes(
-                  "DEPARTMENT MANAGER"
-                )
-              ? "DEPARTMENT MANAGER"
-              : (payload.roles || payload.user?.roles || []).includes(
-                  "TEAM MANAGER"
-                )
-              ? "TEAM MANAGER"
-              : "USER",
+        let userData;
+        if (action.payload.user) {
+          userData = action.payload.user;
+          // Keep the roles array as-is, don't modify it
+          state.user = userData;
+        } else {
+          userData = {
+            username: action.payload.username,
+            organizationId: action.payload.organizationId,
+            roles: action.payload.roles,
           };
+          state.user = userData;
         }
       })
       .addCase(loginUser.rejected, (state, action) => {
@@ -198,17 +177,6 @@ const authSlice = createSlice({
         if (action.payload && action.payload.username) {
           state.user = {
             username: action.payload.username,
-            role:
-              action.payload.roles &&
-              action.payload.roles.includes("ORGANIZATION MANAGER")
-                ? "ORGANIZATION MANAGER"
-                : action.payload.roles &&
-                  action.payload.roles.includes("DEPARTMENT MANAGER")
-                ? "DEPARTMENT MANAGER"
-                : action.payload.roles &&
-                  action.payload.roles.includes("TEAM MANAGER")
-                ? "TEAM MANAGER"
-                : "USER",
             organizationId: action.payload.organizationId,
             roles: action.payload.roles,
           };
@@ -228,17 +196,6 @@ const authSlice = createSlice({
         if (action.payload && action.payload.username) {
           state.user = {
             username: action.payload.username,
-            role:
-              action.payload.roles &&
-              action.payload.roles.includes("ORGANIZATION MANAGER")
-                ? "ORGANIZATION MANAGER"
-                : action.payload.roles &&
-                  action.payload.roles.includes("DEPARTMENT MANAGER")
-                ? "DEPARTMENT MANAGER"
-                : action.payload.roles &&
-                  action.payload.roles.includes("TEAM MANAGER")
-                ? "TEAM MANAGER"
-                : "USER",
             organizationId: action.payload.organizationId,
             roles: action.payload.roles,
           };

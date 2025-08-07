@@ -35,13 +35,23 @@ const AppRoutes = () => {
     );
   }
 
-  const getRedirectPath = () => {
-    if (user) {
-      return shouldRedirectToDashboard(user) ? "/dashboard" : "/user-home";
-    }
-    return "/";
-  };
-
+const getRedirectPath = () => {
+  if (user) {
+    // Check if user has admin roles
+    const isAdmin =
+      user.roles &&
+      user.roles.some(
+        (role) =>
+          role === "ORGANIZATION MANAGER" ||
+          role === "DEPARTMENT MANAGER" ||
+          role === "TEAM MANAGER" ||
+          role === "ADMIN" ||
+          role === "admin"
+      );
+    return isAdmin ? "/dashboard" : "/user-home";
+  }
+  return "/";
+};
   return (
     <Routes>
       <Route
