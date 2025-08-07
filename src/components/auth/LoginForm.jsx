@@ -33,7 +33,15 @@ const LoginForm = ({
 
   useEffect(() => {
     if (user) {
-      if (user.role === 'admin') {
+      // Check if user has admin roles
+      const isAdmin = user.roles && user.roles.some(role => 
+        role === "ORGANIZATION MANAGER" ||
+        role === "DEPARTMENT MANAGER" ||
+        role === "TEAM MANAGER" ||
+        role === "ADMIN" ||
+        role === "admin"
+      );
+      if (isAdmin) {
         navigate('/dashboard');
       } else {
         navigate('/user-home');

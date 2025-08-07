@@ -14,7 +14,7 @@ async function createSurveyApiClient() {
     if (["post", "put", "delete", "patch"].includes(config.method)) {
       const xsrfToken = document.cookie
         .split("; ")
-        .find(row => row.startsWith("XSRF-TOKEN="))
+        .find((row) => row.startsWith("XSRF-TOKEN="))
         ?.split("=")[1];
       if (xsrfToken) {
         config.headers["X-XSRF-TOKEN"] = xsrfToken;
@@ -32,7 +32,11 @@ async function handleRequest(promise) {
     const res = await promise;
     return res.data;
   } catch (error) {
-    console.error("[surveyService] error", error.response?.status, error.response?.data);
+    console.error(
+      "[surveyService] error",
+      error.response?.status,
+      error.response?.data
+    );
     throw error;
   }
 }
@@ -65,12 +69,16 @@ export const surveyService = {
 
   assignQuestionToSurvey: async (surveyId, questionId) => {
     const client = await createSurveyApiClient();
-    return handleRequest(client.post(`/surveys/${surveyId}/question/${questionId}`));
+    return handleRequest(
+      client.post(`/surveys/${surveyId}/question/${questionId}`)
+    );
   },
 
   unassignQuestionFromSurvey: async (surveyId, questionId) => {
     const client = await createSurveyApiClient();
-    return handleRequest(client.delete(`/surveys/${surveyId}/question/${questionId}`));
+    return handleRequest(
+      client.delete(`/surveys/${surveyId}/question/${questionId}`)
+    );
   },
 
   lockSurvey: async (surveyId) => {
@@ -95,5 +103,46 @@ export const surveyService = {
   getActiveAndClosedSurveys: async () => {
     const client = await createSurveyApiClient();
     return handleRequest(client.get("/surveys/active-closed"));
+  },
+
+  // Survey Assignment to Departments and Teams
+  assignSurveyToDepartment: async (organizationId, departmentId, surveyId) => {
+    const client = await createSurveyApiClient();
+    return handleRequest(
+      client.post(
+        `/organizations/${organizationId}/departments/${departmentId}/assign-survey/${surveyId}`
+      )
+    );
+  },
+
+  assignSurveyToTeam: async (organizationId, teamId, surveyId) => {
+    const client = await createSurveyApiClient();
+    return handleRequest(
+      client.post(
+        `/organizations/${organizationId}/teams/${teamId}/assign-survey/${surveyId}`
+      )
+    );
+  },
+
+  removeSurveyFromDepartment: async (
+    organizationId,
+    departmentId,
+    surveyId
+  ) => {
+    const client = await createSurveyApiClient();
+    return handleRequest(
+      client.delete(
+        `/organizations/${organizationId}/departments/${departmentId}/remove-survey/${surveyId}`
+      )
+    );
+  },
+
+  removeSurveyFromTeam: async (organizationId, teamId, surveyId) => {
+    const client = await createSurveyApiClient();
+    return handleRequest(
+      client.delete(
+        `/organizations/${organizationId}/teams/${teamId}/remove-survey/${surveyId}`
+      )
+    );
   },
 };

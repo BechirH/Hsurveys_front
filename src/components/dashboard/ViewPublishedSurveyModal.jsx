@@ -1,17 +1,11 @@
 import React from 'react';
-import { X, Calendar, Users, FileText, Clock, Lock, Unlock, Plus } from 'lucide-react';
-import SurveyDetails from '../survey/SurveyDetails';
-import QuestionsTable from '../survey/QuestionsTable';
+import { X, Calendar, Users, FileText, Clock, CheckCircle, Eye, BarChart3 } from 'lucide-react';
+import SurveyBankDetails from '../survey/SurveyBankDetails';
 
-const ViewSurveyModal = ({ 
+const ViewPublishedSurveyModal = ({ 
   open, 
   onClose, 
-  survey, 
-  onAddQuestions, 
-  showQuestionsList, 
-  questions, 
-  onAddQuestionToSurvey,
-  reloadGlobalQuestions 
+  survey 
 }) => {
   if (!open || !survey) return null;
 
@@ -68,7 +62,7 @@ const ViewSurveyModal = ({
                 <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
                   <FileText className="w-4 h-4 text-gray-600" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900">Survey Details</h3>
+                <h3 className="text-lg font-semibold text-gray-900">Published Survey Details</h3>
               </div>
               <button
                 onClick={onClose}
@@ -86,7 +80,7 @@ const ViewSurveyModal = ({
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 bg-gradient-to-r from-sky-400 to-sky-500 rounded-lg flex items-center justify-center">
+                    <div className="w-10 h-10 bg-gradient-to-r from-green-400 to-green-500 rounded-lg flex items-center justify-center">
                       <span className="text-white text-sm font-bold">
                         {survey.title?.charAt(0).toUpperCase()}
                       </span>
@@ -105,10 +99,10 @@ const ViewSurveyModal = ({
                     <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium border ${getSurveyTypeColor(survey.type)}`}>
                       {survey.type}
                     </span>
-                    {survey.locked && (
-                      <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-red-100 text-red-800 border border-red-200">
-                        <Lock className="w-3 h-3 mr-1" />
-                        Locked
+                    {survey.status === 'ACTIVE' && (
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                        <CheckCircle className="w-3 h-3 mr-1" />
+                        Live
                       </span>
                     )}
                   </div>
@@ -146,10 +140,10 @@ const ViewSurveyModal = ({
                 <div className="bg-white rounded-md p-3 border border-gray-200">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                      <Clock className="w-4 h-4 text-purple-600" />
+                      <BarChart3 className="w-4 h-4 text-purple-600" />
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500">Created</p>
+                      <p className="text-xs text-gray-500">Published</p>
                       <p className="font-medium text-gray-900 text-sm">
                         {survey.createdAt ? formatDate(survey.createdAt) : 'N/A'}
                       </p>
@@ -159,33 +153,21 @@ const ViewSurveyModal = ({
               </div>
             </div>
 
-            {/* Survey Details Component */}
+            {/* Survey Bank Details Component */}
             <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-              <SurveyDetails 
-                survey={survey} 
-                onAddQuestions={onAddQuestions} 
-                reloadGlobalQuestions={reloadGlobalQuestions}
-              />
-            </div>
-
-            {/* Questions List */}
-            {showQuestionsList && (
-              <div className="mt-6 bg-white rounded-lg border border-gray-200 overflow-hidden">
-                <div className="bg-gray-50 px-6 py-3 border-b border-gray-200">
-                  <div className="flex items-center gap-3">
-                    <Plus className="w-4 h-4 text-gray-600" />
-                    <div>
-                      <h3 className="font-semibold text-gray-900">Add Questions</h3>
-                      <p className="text-xs text-gray-600">Select questions to add to this survey</p>
-                    </div>
+              <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-3 border-b border-gray-200">
+                <div className="flex items-center gap-3">
+                  <div className="w-6 h-6 bg-gradient-to-r from-green-400 to-green-500 rounded-lg flex items-center justify-center">
+                    <Eye className="w-3 h-3 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900">Survey Details & Responses</h3>
+                    <p className="text-xs text-gray-600">View survey information and participant responses</p>
                   </div>
                 </div>
-                <QuestionsTable
-                  questions={questions}
-                  onAddToSurvey={onAddQuestionToSurvey}
-                />
               </div>
-            )}
+              <SurveyBankDetails surveyId={survey.surveyId} />
+            </div>
           </div>
 
           {/* Footer */}
@@ -205,4 +187,4 @@ const ViewSurveyModal = ({
   );
 };
 
-export default ViewSurveyModal;
+export default ViewPublishedSurveyModal; 

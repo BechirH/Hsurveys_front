@@ -26,7 +26,6 @@ const AppRoutes = () => {
     dispatch(autoLogin());
   }, [dispatch]);
 
-  
   if (!isInitialized) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -35,10 +34,20 @@ const AppRoutes = () => {
     );
   }
 
-  
   const getRedirectPath = () => {
     if (user) {
-      return user.role === "admin" ? "/dashboard" : "/user-home";
+      // Check if user has admin roles
+      const isAdmin =
+        user.roles &&
+        user.roles.some(
+          (role) =>
+            role === "ORGANIZATION MANAGER" ||
+            role === "DEPARTMENT MANAGER" ||
+            role === "TEAM MANAGER" ||
+            role === "ADMIN" ||
+            role === "admin"
+        );
+      return isAdmin ? "/dashboard" : "/user-home";
     }
     return "/";
   };
@@ -48,11 +57,7 @@ const AppRoutes = () => {
       <Route
         path="/"
         element={
-          user ? (
-            <Navigate to={getRedirectPath()} replace />
-          ) : (
-            <AuthSystem />
-          )
+          user ? <Navigate to={getRedirectPath()} replace /> : <AuthSystem />
         }
       />
       <Route

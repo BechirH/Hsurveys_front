@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { X, FileText } from "lucide-react";
 import SurveyForm from "../survey/SurveyForm";
+
 const CreateSurveyModal = ({ open, onClose, form, setForm, onSubmit, loading, error }) => {
   // Réinitialise le formulaire à l'ouverture de la modal
   useEffect(() => {
@@ -19,34 +20,60 @@ const CreateSurveyModal = ({ open, onClose, form, setForm, onSubmit, loading, er
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-xl relative animate-slide-up border border-gray-100">
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-full"
-          aria-label="Close modal"
-        >
-          <X className="w-5 h-5" />
-        </button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-xl relative animate-slide-up border border-gray-200 mx-4 max-h-[90vh] overflow-hidden">
+        
+        {/* Slim Header */}
+        <div className="relative bg-white border-b border-gray-200 px-6 py-4">
+          {/* Close button */}
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-1.5 rounded-lg transition-all duration-200"
+            aria-label="Close modal"
+          >
+            <X className="w-4 h-4" />
+          </button>
 
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <div className="w-14 h-14 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-            <FileText className="w-7 h-7 text-white" />
-          </div>
-          <div>
-            <h3 className="text-2xl font-bold text-gray-800">Créer un nouveau sondage</h3>
-            <p className="text-gray-600 mt-1">Remplissez le formulaire ci-dessous pour créer un sondage.</p>
+          {/* Header content */}
+          <div className="flex items-center gap-3 pr-12">
+            <div className="w-8 h-8 bg-gradient-to-r from-sky-400 to-sky-500 rounded-lg flex items-center justify-center shadow-sm">
+              <FileText className="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800">Create New Survey</h3>
+              <p className="text-sm text-gray-500">Configure your survey settings</p>
+            </div>
           </div>
         </div>
 
-        <SurveyForm
-          form={form}
-          setForm={setForm}
-          onSubmit={onSubmit}
-          loading={loading}
-          error={error}
-        />
+        {/* Content Section */}
+        <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
+          {/* Error Alert */}
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+              {error}
+            </div>
+          )}
+
+          {/* Survey Form with modern styling */}
+          <SurveyForm
+            form={form}
+            setForm={setForm}
+            onSubmit={onSubmit}
+            loading={loading}
+            error={error}
+          />
+        </div>
+
+        {/* Loading overlay */}
+        {loading && (
+          <div className="absolute inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center z-50 rounded-xl">
+            <div className="flex items-center gap-2 bg-white shadow-md rounded-lg px-4 py-3 border border-gray-200">
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-sky-500 border-t-transparent"></div>
+              <span className="text-gray-700 text-sm">Creating survey...</span>
+            </div>
+          </div>
+        )}
       </div>
 
       <style jsx>{`
@@ -55,14 +82,14 @@ const CreateSurveyModal = ({ open, onClose, form, setForm, onSubmit, loading, er
           to { opacity: 1; }
         }
         @keyframes slide-up {
-          from { transform: translateY(20px); opacity: 0; }
+          from { transform: translateY(16px); opacity: 0; }
           to { transform: translateY(0); opacity: 1; }
         }
         .animate-fade-in {
-          animation: fade-in 0.3s ease-out;
+          animation: fade-in 0.2s ease-out;
         }
         .animate-slide-up {
-          animation: slide-up 0.3s ease-out;
+          animation: slide-up 0.2s ease-out;
         }
       `}</style>
     </div>
@@ -70,5 +97,3 @@ const CreateSurveyModal = ({ open, onClose, form, setForm, onSubmit, loading, er
 };
 
 export default CreateSurveyModal;
-
-

@@ -1,7 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { authService } from "../../services/authService";
 
-
 export const autoLogin = createAsyncThunk(
   "auth/autoLogin",
   async (_, { rejectWithValue }) => {
@@ -13,9 +12,10 @@ export const autoLogin = createAsyncThunk(
         return rejectWithValue("Session expired");
       }
     } catch (error) {
-      
       localStorage.removeItem("authState");
-      return rejectWithValue("Session verification and refresh failed. Please log in again.");
+      return rejectWithValue(
+        "Session verification and refresh failed. Please log in again."
+      );
     }
   }
 );
@@ -40,7 +40,6 @@ export const loginUser = createAsyncThunk(
   }
 );
 
-
 export const registerUserForNewOrg = createAsyncThunk(
   "auth/registerUserForNewOrg",
   async ({ orgId, userData }, { rejectWithValue }) => {
@@ -59,7 +58,6 @@ export const registerUserForNewOrg = createAsyncThunk(
     }
   }
 );
-
 
 export const registerUserForExistingOrg = createAsyncThunk(
   "auth/registerUserForExistingOrg",
@@ -136,10 +134,7 @@ const authSlice = createSlice({
         state.isInitialized = true;
         if (action.payload.user) {
           const user = action.payload.user;
-          // Ensure 'role' is always set for UI consistency
-          if (!user.role && user.roles) {
-            user.role = user.roles.includes("ADMIN") ? "admin" : "user";
-          }
+          // Keep the roles array as-is, don't modify it
           state.user = user;
         }
       })
@@ -157,14 +152,11 @@ const authSlice = createSlice({
         let userData;
         if (action.payload.user) {
           userData = action.payload.user;
-          state.user = action.payload.user;
+          // Keep the roles array as-is, don't modify it
+          state.user = userData;
         } else {
           userData = {
             username: action.payload.username,
-            role:
-              action.payload.roles && action.payload.roles.includes("ADMIN")
-                ? "admin"
-                : "user",
             organizationId: action.payload.organizationId,
             roles: action.payload.roles,
           };
@@ -181,11 +173,10 @@ const authSlice = createSlice({
       })
       .addCase(registerUserForNewOrg.fulfilled, (state, action) => {
         state.loading = false;
-        
+
         if (action.payload && action.payload.username) {
           state.user = {
             username: action.payload.username,
-            role: action.payload.roles && action.payload.roles.includes("ADMIN") ? "admin" : "user",
             organizationId: action.payload.organizationId,
             roles: action.payload.roles,
           };
@@ -201,11 +192,10 @@ const authSlice = createSlice({
       })
       .addCase(registerUserForExistingOrg.fulfilled, (state, action) => {
         state.loading = false;
-        
+
         if (action.payload && action.payload.username) {
           state.user = {
             username: action.payload.username,
-            role: action.payload.roles && action.payload.roles.includes("ADMIN") ? "admin" : "user",
             organizationId: action.payload.organizationId,
             roles: action.payload.roles,
           };

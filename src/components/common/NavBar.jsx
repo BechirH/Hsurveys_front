@@ -2,15 +2,37 @@ import React, { useState } from 'react';
 import { LogOut, User, Building, ChevronDown, Bell, Settings, Menu, X } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { logoutUser } from '../../redux/slices/authSlice';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Button from './Button';
 
 const NavBar = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useSelector(state => state.auth);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Helper function to get user role display
+  const getUserRoleDisplay = () => {
+    if (!user) return 'user';
+    
+    // Check if user has roles array
+    if (user.roles && Array.isArray(user.roles)) {
+      // Return the first role found (or you can join multiple roles)
+      return user.roles[0] || 'user';
+    }
+    
+    // Check if user has a direct role property (fallback)
+    if (user.role) {
+      return user.role;
+    }
+    
+    // Default fallback
+    return 'user';
+  };
+
+  const userRoleDisplay = getUserRoleDisplay();
 
   const handleLogout = async () => {
     try {
@@ -75,7 +97,7 @@ const NavBar = () => {
                 </div>
                 <div className="text-sm text-left hidden sm:block">
                   <p className="font-semibold text-gray-800">{user?.username || 'User'}</p>
-                  <p className="text-gray-500 capitalize text-xs font-medium">{user?.role || 'user'}</p>
+                  <p className="text-gray-500 capitalize text-xs font-medium">{userRoleDisplay}</p>
                 </div>
                 <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${isUserMenuOpen ? 'rotate-180' : ''}`} />
               </button>
@@ -126,6 +148,15 @@ const NavBar = () => {
             </button>
           </div>
         </div>
+
+        {/* Mobile Navigation Menu */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden border-t border-gray-200 py-4">
+            <div className="space-y-2">
+              {/* Mobile menu content can be added here if needed */}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Backdrop for mobile menu */}
