@@ -77,7 +77,7 @@ const QuestionForm = ({ onSubmit, onCancel, submitLabel = "Submit", loading, err
     <form onSubmit={handleSubmit} className="mb-6 p-4 border rounded bg-white shadow">
       <InputField
         id="subject"
-        label="Sujet"
+        label="Subject"
         name="subject"
         value={form.subject}
         onChange={handleChange}

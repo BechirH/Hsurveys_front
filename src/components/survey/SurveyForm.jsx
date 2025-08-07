@@ -19,7 +19,7 @@ const SurveyForm = ({ form, setForm, onSubmit, loading, error}) => {
     <form onSubmit={onSubmit} className="mb-6 p-4 border rounded bg-white shadow">
       <InputField
         id="title"
-        label="Titre"
+        label="Title"
         name="title"
         value={form.title}
         onChange={handleChange}
