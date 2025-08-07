@@ -83,7 +83,7 @@ const TeamsSection = ({ departments = [], onDepartmentClick }) => {
               <Target className="w-4 h-4 text-white" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-800">Departments</h2>
+              <h2 className="text-xl font-bold text-gray-800">Teams</h2>
               <p className="text-sm text-gray-500">View and manage teams by department</p>
             </div>
           </div>
@@ -147,7 +147,7 @@ const TeamsSection = ({ departments = [], onDepartmentClick }) => {
                   <td colSpan="2" className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center justify-center">
                       <Users2 className="w-12 h-12 text-gray-300 mb-4" />
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">No departments found</h3>
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">No Teams found</h3>
                       <p className="text-gray-500 mb-4">
                         {searchTerm ? "Try adjusting your search criteria" : ""}
                       </p>

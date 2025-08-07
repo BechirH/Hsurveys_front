@@ -9,6 +9,7 @@ import {
 import { store } from "./redux/store";
 import { useDispatch, useSelector } from "react-redux";
 import { autoLogin } from "./redux/slices/authSlice";
+import { shouldRedirectToDashboard } from "./utils/roleUtils";
 
 import AuthSystem from "./components/auth/AuthSystem";
 import Dashboard from "./pages/Dashboard";
@@ -26,7 +27,6 @@ const AppRoutes = () => {
     dispatch(autoLogin());
   }, [dispatch]);
 
-  
   if (!isInitialized) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -35,10 +35,9 @@ const AppRoutes = () => {
     );
   }
 
-  
   const getRedirectPath = () => {
     if (user) {
-      return user.role === "admin" ? "/dashboard" : "/user-home";
+      return shouldRedirectToDashboard(user) ? "/dashboard" : "/user-home";
     }
     return "/";
   };
@@ -48,11 +47,7 @@ const AppRoutes = () => {
       <Route
         path="/"
         element={
-          user ? (
-            <Navigate to={getRedirectPath()} replace />
-          ) : (
-            <AuthSystem />
-          )
+          user ? <Navigate to={getRedirectPath()} replace /> : <AuthSystem />
         }
       />
       <Route

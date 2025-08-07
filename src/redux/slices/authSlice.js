@@ -1,7 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { authService } from "../../services/authService";
 
-
 export const autoLogin = createAsyncThunk(
   "auth/autoLogin",
   async (_, { rejectWithValue }) => {
@@ -13,9 +12,9 @@ export const autoLogin = createAsyncThunk(
         return rejectWithValue("Session expired");
       }
     } catch (error) {
-      
-      localStorage.removeItem("authState");
-      return rejectWithValue("Session verification and refresh failed. Please log in again.");
+      return rejectWithValue(
+        "Session verification failed. Please log in again."
+      );
     }
   }
 );
@@ -40,7 +39,6 @@ export const loginUser = createAsyncThunk(
   }
 );
 
-
 export const registerUserForNewOrg = createAsyncThunk(
   "auth/registerUserForNewOrg",
   async ({ orgId, userData }, { rejectWithValue }) => {
@@ -59,7 +57,6 @@ export const registerUserForNewOrg = createAsyncThunk(
     }
   }
 );
-
 
 export const registerUserForExistingOrg = createAsyncThunk(
   "auth/registerUserForExistingOrg",
@@ -86,10 +83,8 @@ export const logoutUser = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       await authService.logout();
-      localStorage.removeItem("authState");
       return "Logged out successfully";
     } catch (err) {
-      localStorage.removeItem("authState");
       return "Logged out successfully";
     }
   }
@@ -136,11 +131,20 @@ const authSlice = createSlice({
         state.isInitialized = true;
         if (action.payload.user) {
           const user = action.payload.user;
-          // Ensure 'role' is always set for UI consistency
-          if (!user.role && user.roles) {
-            user.role = user.roles.includes("ADMIN") ? "admin" : "user";
-          }
-          state.user = user;
+          // Map the /me API response to our user structure
+          state.user = {
+            username: user.username,
+            organizationId: user.organizationId,
+            roles: user.roles,
+            // Determine role for UI consistency
+            role: user.roles.includes("ORGANIZATION MANAGER")
+              ? "ORGANIZATION MANAGER"
+              : user.roles.includes("DEPARTMENT MANAGER")
+              ? "DEPARTMENT MANAGER"
+              : user.roles.includes("TEAM MANAGER")
+              ? "TEAM MANAGER"
+              : "USER",
+          };
         }
       })
       .addCase(autoLogin.rejected, (state) => {
@@ -154,21 +158,30 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
-        let userData;
-        if (action.payload.user) {
-          userData = action.payload.user;
-          state.user = action.payload.user;
-        } else {
-          userData = {
-            username: action.payload.username,
-            role:
-              action.payload.roles && action.payload.roles.includes("ADMIN")
-                ? "admin"
-                : "user",
-            organizationId: action.payload.organizationId,
-            roles: action.payload.roles,
+
+        // Always process user data consistently
+        const payload = action.payload;
+        if (payload) {
+          state.user = {
+            username: payload.username || payload.user?.username,
+            organizationId:
+              payload.organizationId || payload.user?.organizationId,
+            roles: payload.roles || payload.user?.roles || [],
+            // Determine role for UI consistency
+            role: (payload.roles || payload.user?.roles || []).includes(
+              "ORGANIZATION MANAGER"
+            )
+              ? "ORGANIZATION MANAGER"
+              : (payload.roles || payload.user?.roles || []).includes(
+                  "DEPARTMENT MANAGER"
+                )
+              ? "DEPARTMENT MANAGER"
+              : (payload.roles || payload.user?.roles || []).includes(
+                  "TEAM MANAGER"
+                )
+              ? "TEAM MANAGER"
+              : "USER",
           };
-          state.user = userData;
         }
       })
       .addCase(loginUser.rejected, (state, action) => {
@@ -181,11 +194,21 @@ const authSlice = createSlice({
       })
       .addCase(registerUserForNewOrg.fulfilled, (state, action) => {
         state.loading = false;
-        
+
         if (action.payload && action.payload.username) {
           state.user = {
             username: action.payload.username,
-            role: action.payload.roles && action.payload.roles.includes("ADMIN") ? "admin" : "user",
+            role:
+              action.payload.roles &&
+              action.payload.roles.includes("ORGANIZATION MANAGER")
+                ? "ORGANIZATION MANAGER"
+                : action.payload.roles &&
+                  action.payload.roles.includes("DEPARTMENT MANAGER")
+                ? "DEPARTMENT MANAGER"
+                : action.payload.roles &&
+                  action.payload.roles.includes("TEAM MANAGER")
+                ? "TEAM MANAGER"
+                : "USER",
             organizationId: action.payload.organizationId,
             roles: action.payload.roles,
           };
@@ -201,11 +224,21 @@ const authSlice = createSlice({
       })
       .addCase(registerUserForExistingOrg.fulfilled, (state, action) => {
         state.loading = false;
-        
+
         if (action.payload && action.payload.username) {
           state.user = {
             username: action.payload.username,
-            role: action.payload.roles && action.payload.roles.includes("ADMIN") ? "admin" : "user",
+            role:
+              action.payload.roles &&
+              action.payload.roles.includes("ORGANIZATION MANAGER")
+                ? "ORGANIZATION MANAGER"
+                : action.payload.roles &&
+                  action.payload.roles.includes("DEPARTMENT MANAGER")
+                ? "DEPARTMENT MANAGER"
+                : action.payload.roles &&
+                  action.payload.roles.includes("TEAM MANAGER")
+                ? "TEAM MANAGER"
+                : "USER",
             organizationId: action.payload.organizationId,
             roles: action.payload.roles,
           };
