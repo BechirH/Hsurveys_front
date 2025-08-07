@@ -11,11 +11,12 @@ import EditSurveyModal from "./EditSurveyModal";
 import CreateSurveyModal from "./CreateSurveyModal";
 import LockConfirmationModal from "./LockConfirmationModal";
 import { Search,ClipboardList } from "lucide-react";
-
+import ErrorInfoModal from "./ErrorInfoModal";
 
 
 const SURVEY_STATUSES = ["DRAFT", "ACTIVE", "CLOSED"];
 const SURVEY_TYPES = ["FEEDBACK", "EXAM"];
+
 
 const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate, reload  }) => {
   const { token } = useSelector(state => state.auth);
@@ -47,6 +48,10 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate, reload
   const [searchTerm, setSearchTerm] = useState("");
   const [showLockModal, setShowLockModal] = useState(false);
   const [surveyToToggleLock, setSurveyToToggleLock] = useState(null);
+
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [publishErrorMessage, setPublishErrorMessage] = useState("");
+
 
 
   useEffect(() => {
@@ -234,21 +239,29 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate, reload
   setError("");
   try {
     const publishedSurvey = await surveyService.publishSurvey(surveyId);
-    // Met à jour la liste des surveys localement avec le survey publié
+
     setSurveysLocal(prev =>
       prev.map(s => (s.surveyId === publishedSurvey.surveyId ? publishedSurvey : s))
     );
-    // Mets à jour la sélection si besoin
+
     if (selectedSurvey?.surveyId === publishedSurvey.surveyId) {
       setSelectedSurvey(publishedSurvey);
     }
   } catch (err) {
     console.error("Error publishing survey:", err);
-    setError("Error publishing the survey.");
+
+    if (err.response?.status === 400 && err.response?.data?.message) {
+      // Show the error modal with custom message
+      setPublishErrorMessage(err.response.data.message);
+      setShowErrorModal(true);
+    } else {
+      setError("Error publishing the survey.");
+    }
   } finally {
     setLoading(false);
   }
 };
+
 
   return (
     <div className="space-y-4">
@@ -465,7 +478,12 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate, reload
     loading={loading}
     entity={surveyToToggleLock}
     entityType="survey"/>
-     
+     <ErrorInfoModal 
+  open={showErrorModal} 
+  onClose={() => setShowErrorModal(false)} 
+  message={publishErrorMessage}
+/>
+
       </div>      
     </div>
     
