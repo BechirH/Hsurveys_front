@@ -6,6 +6,7 @@ import { logoutUser } from '../redux/slices/authSlice';
 import NavBar from '../components/common/NavBar';
 import { apiService } from '../services/apiService';
 import QuestionsSection from '../components/dashboard/QuestionSection';
+import { isDepartmentManager, isTeamManager } from '../utils/roleUtils';
 
 import {Users,Building2,FileText,Shield,Plus,Edit,Trash2,Search,Filter,Settings,BarChart3,UserCheck,Globe,MapPin,Home,  Bell,  LogOut,  ChevronDown,  Eye,  UserPlus,  ShieldCheck,  Users2,  Loader2,  AlertCircle,  X,  ClipboardList,  Target,  TrendingUp,  Calendar,  Award,  Lock,  Unlock,  CheckCircle,  Clock,  AlertTriangle} from "lucide-react";
 import OverviewSection from '../components/dashboard/OverviewSection';
@@ -57,50 +58,138 @@ const Dashboard = () => {
   const [showTeamUsersModal, setShowTeamUsersModal] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState(null);
 
-  const dashboardStats = [
-    {
-      title: 'Organization',
-      value: organizations[0]?.name || 'Loading...',
-      icon: Building2,
-      color: 'bg-blue-500',
-      description: 'Your organization'
-    },
-    {
-      title: 'Departments',
-      value: departments.length,
-      icon: Users,
-      color: 'bg-green-500',
-      description: 'In your organization'
-    },
-    {
-      title: 'Teams',
-      value: teams.length,
-      icon: Users2,
-      color: 'bg-purple-500',
-      description: 'Active teams'
-    },
-    {
-      title: 'Total Users',
-      value: users.length,
-      icon: UserCheck,
-      color: 'bg-orange-500',
-      description: 'In your organization'
-    },
-    {
-      title: 'Active Surveys',
-      value: surveys.filter(s => s.status === 'ACTIVE').length,
-      icon: ClipboardList,
-      color: 'bg-indigo-500',
-      description: 'Currently running'
-    },
-    {
-      title: 'Survey Responses',
-      value: surveyResponses.length,
-      icon: BarChart3,
-      color: 'bg-pink-500',
-      description: 'Total submissions'
+  // Ensure activeTab is valid for the current user's role
+  React.useEffect(() => {
+    if (currentUser) {
+      const validTabs = getFilteredTabs().map(tab => tab.id);
+      if (!validTabs.includes(activeTab)) {
+        setActiveTab(validTabs[0] || 'overview');
+      }
     }
-  ];
+  }, [currentUser, activeTab]);
+
+  const getDashboardStats = () => {
+    if (isDepartmentManager(currentUser)) {
+      // DEPARTMENT MANAGER stats
+      return [
+        {
+          title: 'Organization',
+          value: organizations[0]?.name || 'Loading...',
+          icon: Building2,
+          color: 'bg-blue-500',
+          description: 'Your organization'
+        },
+        {
+          title: 'Departments',
+          value: departments.length,
+          icon: Users,
+          color: 'bg-green-500',
+          description: 'In your organization'
+        },
+        {
+          title: 'Teams',
+          value: teams.length,
+          icon: Users2,
+          color: 'bg-purple-500',
+          description: 'Active teams'
+        },
+        {
+          title: 'Active Surveys',
+          value: surveys.filter(s => s.status === 'ACTIVE').length,
+          icon: ClipboardList,
+          color: 'bg-indigo-500',
+          description: 'Currently running'
+        },
+        {
+          title: 'Survey Responses',
+          value: surveyResponses.length,
+          icon: BarChart3,
+          color: 'bg-pink-500',
+          description: 'Total submissions'
+        }
+      ];
+    } else if (isTeamManager(currentUser)) {
+      // TEAM MANAGER stats
+      return [
+        {
+          title: 'Organization',
+          value: organizations[0]?.name || 'Loading...',
+          icon: Building2,
+          color: 'bg-blue-500',
+          description: 'Your organization'
+        },
+        {
+          title: 'Teams',
+          value: teams.length,
+          icon: Users2,
+          color: 'bg-purple-500',
+          description: 'Active teams'
+        },
+        {
+          title: 'Active Surveys',
+          value: surveys.filter(s => s.status === 'ACTIVE').length,
+          icon: ClipboardList,
+          color: 'bg-indigo-500',
+          description: 'Currently running'
+        },
+        {
+          title: 'Survey Responses',
+          value: surveyResponses.length,
+          icon: BarChart3,
+          color: 'bg-pink-500',
+          description: 'Total submissions'
+        }
+      ];
+    } else {
+      // ORGANIZATION MANAGER stats (full access)
+      return [
+        {
+          title: 'Organization',
+          value: organizations[0]?.name || 'Loading...',
+          icon: Building2,
+          color: 'bg-blue-500',
+          description: 'Your organization'
+        },
+        {
+          title: 'Departments',
+          value: departments.length,
+          icon: Users,
+          color: 'bg-green-500',
+          description: 'In your organization'
+        },
+        {
+          title: 'Teams',
+          value: teams.length,
+          icon: Users2,
+          color: 'bg-purple-500',
+          description: 'Active teams'
+        },
+        {
+          title: 'Total Users',
+          value: users.length,
+          icon: UserCheck,
+          color: 'bg-orange-500',
+          description: 'In your organization'
+        },
+        {
+          title: 'Active Surveys',
+          value: surveys.filter(s => s.status === 'ACTIVE').length,
+          icon: ClipboardList,
+          color: 'bg-indigo-500',
+          description: 'Currently running'
+        },
+        {
+          title: 'Survey Responses',
+          value: surveyResponses.length,
+          icon: BarChart3,
+          color: 'bg-pink-500',
+          description: 'Total submissions'
+        }
+      ];
+    }
+  };
+
+  const dashboardStats = getDashboardStats();
 
   // Helper functions
   const getStatusColor = (status) => {
@@ -241,16 +330,8 @@ const Dashboard = () => {
     }
   };
 
-  // Early return for loading user
-  if (!currentUser) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-      </div>
-    );
-  }
-
-  const tabs = [
+  // Define all possible tabs
+  const allTabs = [
     { id: 'overview', name: 'Overview', icon: Home },
     { id: 'surveys', name: 'Surveys', icon: ClipboardList },
     { id: 'questions', name: 'Questions', icon: ClipboardList },
@@ -261,6 +342,39 @@ const Dashboard = () => {
     { id: 'roles', name: 'Roles & Permissions', icon: Shield },
     { id: 'surveyBank', name: 'Survey Bank', icon: FileText } 
   ];
+
+  // Filter tabs based on user role
+  const getFilteredTabs = () => {
+    if (!currentUser) return allTabs;
+    
+    if (isDepartmentManager(currentUser)) {
+      // DEPARTMENT MANAGER: Surveys, Questions, Departments, Teams, Survey Bank
+      return allTabs.filter(tab => 
+        ['surveys', 'questions', 'departments', 'teams', 'surveyBank'].includes(tab.id)
+      );
+    } else if (isTeamManager(currentUser)) {
+      // TEAM MANAGER: Surveys, Questions, Teams, Survey Bank
+      return allTabs.filter(tab => 
+        ['surveys', 'questions', 'teams', 'surveyBank'].includes(tab.id)
+      );
+    } else {
+      // ORGANIZATION MANAGER or other roles: show all tabs
+      return allTabs;
+    }
+  };
+
+  const tabs = getFilteredTabs();
+
+  // Early return for loading user
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
+
+
 
   const renderContent = () => {
     switch (activeTab) {
@@ -274,6 +388,7 @@ const Dashboard = () => {
             getStatusColor={getStatusColor}
             getSurveyTypeColor={getSurveyTypeColor}
             setActiveTab={setActiveTab}
+            currentUser={currentUser}
           />
         );
       case "surveys":
@@ -305,40 +420,52 @@ const Dashboard = () => {
           />
         );
       case "users":
-        return (
-          <UsersSection 
-            users={users} 
-            roles={roles}
-            getStatusColor={getStatusColor}
-            formatDate={formatDate}
-            reload={reload} 
-          />
-        );
+        // Only show users section for ORGANIZATION MANAGER
+        if (!isDepartmentManager(currentUser) && !isTeamManager(currentUser)) {
+          return (
+            <UsersSection 
+              users={users} 
+              roles={roles}
+              getStatusColor={getStatusColor}
+              formatDate={formatDate}
+              reload={reload} 
+            />
+          );
+        }
+        return <div className="p-6 text-center text-gray-500">Access denied</div>;
       case "organizations":
-        return (
-          <OrganizationsSection 
-            organizations={organizations} 
-            departments={departments} 
-            teams={teams} 
-            users={users}
-            getStatusColor={getStatusColor}
-            formatDate={formatDate}
-            reload={reload}
-          />
-        );
+        // Only show organizations section for ORGANIZATION MANAGER
+        if (!isDepartmentManager(currentUser) && !isTeamManager(currentUser)) {
+          return (
+            <OrganizationsSection 
+              organizations={organizations} 
+              departments={departments} 
+              teams={teams} 
+              users={users}
+              getStatusColor={getStatusColor}
+              formatDate={formatDate}
+              reload={reload}
+            />
+          );
+        }
+        return <div className="p-6 text-center text-gray-500">Access denied</div>;
       case "departments":
-        return (
-          <DepartmentsSection
-            departments={departments}
-            users={users}
-            onCreateDepartment={onCreateDepartment}
-            onEditDepartment={onEditDepartment}
-            onDeleteDepartment={onDeleteDepartment}
-            onManageUsers={onManageUsers}
-            getStatusColor={getStatusColor}
-            formatDate={formatDate}
-          />
-        );
+        // Only show departments section for ORGANIZATION MANAGER and DEPARTMENT MANAGER
+        if (!isTeamManager(currentUser)) {
+          return (
+            <DepartmentsSection
+              departments={departments}
+              users={users}
+              onCreateDepartment={onCreateDepartment}
+              onEditDepartment={onEditDepartment}
+              onDeleteDepartment={onDeleteDepartment}
+              onManageUsers={onManageUsers}
+              getStatusColor={getStatusColor}
+              formatDate={formatDate}
+            />
+          );
+        }
+        return <div className="p-6 text-center text-gray-500">Access denied</div>;
       case "teams":
         return (
           <TeamsSection
@@ -347,17 +474,21 @@ const Dashboard = () => {
           />
         );
       case "roles":
-        return (
-          <RolesSection
-            roles={roles}
-            permissions={permissions}
-            onCreateRole={onCreateRole}
-            onEditRole={onEditRole}
-            onDeleteRole={onDeleteRole}
-            getStatusColor={getStatusColor}
-            formatDate={formatDate}
-          />
-        );
+        // Only show roles section for ORGANIZATION MANAGER
+        if (!isDepartmentManager(currentUser) && !isTeamManager(currentUser)) {
+          return (
+            <RolesSection
+              roles={roles}
+              permissions={permissions}
+              onCreateRole={onCreateRole}
+              onEditRole={onEditRole}
+              onDeleteRole={onDeleteRole}
+              getStatusColor={getStatusColor}
+              formatDate={formatDate}
+            />
+          );
+        }
+        return <div className="p-6 text-center text-gray-500">Access denied</div>;
       default:
         return (
           <OverviewSection 
@@ -368,6 +499,7 @@ const Dashboard = () => {
             getStatusColor={getStatusColor}
             getSurveyTypeColor={getSurveyTypeColor}
             setActiveTab={setActiveTab}
+            currentUser={currentUser}
           />
         );
     }

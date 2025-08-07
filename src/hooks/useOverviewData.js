@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { apiService } from "../services/apiService";
+import { isDepartmentManager, isTeamManager } from "../utils/roleUtils";
 
 export const useOverviewData = (currentUser) => {
   const [loading, setLoading] = useState(false);
@@ -23,17 +24,33 @@ export const useOverviewData = (currentUser) => {
   const loadDashboardData = async () => {
     setLoading(true);
     try {
-      await Promise.all([
+      // Always load basic data that all roles need
+      const basicDataPromises = [
         loadOrganization(),
-        loadDepartments(),
-        loadTeams(),
-        loadUsers(),
         loadSurveys(),
-        loadRoles(),
-        loadPermissions(),
         loadQuestions(),
         loadSurveyResponses(),
-      ]);
+      ];
+
+      // Add role-specific data
+      if (isDepartmentManager(currentUser)) {
+        // DEPARTMENT MANAGER: needs departments, teams, users (for department management)
+        basicDataPromises.push(loadDepartments(), loadTeams(), loadUsers());
+      } else if (isTeamManager(currentUser)) {
+        // TEAM MANAGER: needs teams, users (for team management)
+        basicDataPromises.push(loadTeams(), loadUsers());
+      } else {
+        // ORGANIZATION MANAGER: needs everything
+        basicDataPromises.push(
+          loadDepartments(),
+          loadTeams(),
+          loadUsers(),
+          loadRoles(),
+          loadPermissions()
+        );
+      }
+
+      await Promise.all(basicDataPromises);
     } catch (err) {
       setError("Failed to load dashboard data");
       console.error("Dashboard load error:", err);
