@@ -137,7 +137,7 @@ const ViewSurveyModal = ({
                     <div>
                       <p className="text-xs text-gray-500">Questions</p>
                       <p className="font-medium text-gray-900 text-sm">
-                        {survey.questions?.length || 0} questions
+                        {survey.assignedQuestions?.length || 0} questions
                       </p>
                     </div>
                   </div>

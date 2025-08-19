@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import NavBar from '../components/common/NavBar';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+
 import { surveyService } from '../services/surveyService';
 import { organizationService } from '../services/organizationService';
 
@@ -47,7 +48,21 @@ const UserHome = () => {
       setTeams(teamsData || []);
     } catch (err) {
       console.error('Error loading user data:', err);
-      setError('Failed to load dashboard data. Please try again.');
+      
+      // Messages d'erreur plus informatifs
+      if (err.code === 'ECONNREFUSED' || err.message?.includes('Network Error')) {
+        setError('Cannot connect to server. Please check if the backend is running.');
+      } else if (err.response?.status === 401) {
+        setError('Authentication required. Please log in again.');
+      } else if (err.response?.status === 403) {
+        setError('Access denied. You don\'t have permission to view this data.');
+      } else if (err.response?.status === 500) {
+        setError('Server error. Please try again later.');
+      } else if (err.response?.data?.message) {
+        setError(`Error: ${err.response.data.message}`);
+      } else {
+        setError('Failed to load dashboard data. Please check your connection and try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -256,14 +271,20 @@ const UserHome = () => {
                         </div>
                       </div>
                       
-                      {!survey.locked && survey.status === 'ACTIVE' && (
-                        <div className="mt-4 pt-4 border-t border-gray-100">
-                          <button className="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2">
-                            <FileText className="w-4 h-4" />
-                            <span>Take Survey</span>
-                          </button>
-                        </div>
-                      )}
+                                             {!survey.locked && survey.status === 'ACTIVE' && (
+                         <div className="mt-4 pt-4 border-t border-gray-100">
+                           <button 
+                             onClick={() => {
+                               // Navigate to quiz page instead of opening modal
+                               window.location.href = `/quiz/${survey.surveyId}`;
+                             }}
+                             className="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2"
+                           >
+                             <FileText className="w-4 h-4" />
+                             <span>Take Survey</span>
+                           </button>
+                         </div>
+                       )}
                     </div>
                   ))}
                 </div>
@@ -350,8 +371,9 @@ const UserHome = () => {
           </div>
         </div>
       </div>
-    </div>
-  );
-};
+
+           </div>
+   );
+ };
 
 export default UserHome; 

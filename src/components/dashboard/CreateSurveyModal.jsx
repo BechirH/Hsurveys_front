@@ -12,7 +12,6 @@ const CreateSurveyModal = ({ open, onClose, form, setForm, onSubmit, loading, er
         type: "FEEDBACK",
         status: "DRAFT",
         deadline: "",
-        locked: false,
       });
     }
   }, [open, setForm]);

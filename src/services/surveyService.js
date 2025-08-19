@@ -145,4 +145,12 @@ export const surveyService = {
       )
     );
   },
+
+  // Submit survey answers
+  submitSurveyAnswers: async (surveyId, answers) => {
+    const client = await createSurveyApiClient();
+    return handleRequest(
+      client.post(`/surveys/${surveyId}/submit`, { answers })
+    );
+  },
 };

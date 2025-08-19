@@ -35,7 +35,7 @@ const SurveyDetails = ({ survey, onAddQuestions, reloadGlobalQuestions }) => {
     } else {
       setQuestions([]);
     }
-  }, [survey, fetchQuestions]);
+  }, [survey, survey?.assignedQuestions, fetchQuestions]);
 
   useEffect(() => {
   if (showAddModal) {
@@ -49,8 +49,15 @@ const SurveyDetails = ({ survey, onAddQuestions, reloadGlobalQuestions }) => {
   const handleAssign = async (questionId) => {
   try {
     await surveyService.assignQuestionToSurvey(survey.surveyId, questionId);
+    // Mettre à jour immédiatement l'état local
     const updatedSurvey = await surveyService.getSurveyById(survey.surveyId);
-    await fetchQuestions(updatedSurvey.assignedQuestions);
+    if (updatedSurvey?.assignedQuestions) {
+      await fetchQuestions(updatedSurvey.assignedQuestions);
+      // Forcer la mise à jour du composant parent
+      if (onAddQuestions) {
+        onAddQuestions();
+      }
+    }
   } catch (error) {
     console.error("Erreur lors de l'assignation", error);
   }
@@ -63,6 +70,11 @@ const SurveyDetails = ({ survey, onAddQuestions, reloadGlobalQuestions }) => {
     setQuestions((prev) => prev.filter(q => q.questionId !== questionToDelete.questionId));
     setShowDeleteModal(false);
     setQuestionToDelete(null);
+    
+    // Forcer la mise à jour du composant parent
+    if (onAddQuestions) {
+      onAddQuestions();
+    }
   } catch (error) {
     console.error("Error deleting question", error);
   }};
@@ -73,18 +85,27 @@ const SurveyDetails = ({ survey, onAddQuestions, reloadGlobalQuestions }) => {
     try {
       const createdQuestion = await questionService.createQuestion({
         ...questionData,
-      organizationId: survey.organizationId,
+        organizationId: survey.organizationId,
       });
 
       await surveyService.assignQuestionToSurvey(survey.surveyId, createdQuestion.questionId);
-      setQuestions(prev =>[...prev,createdQuestion]);
+      
+      // Mettre à jour immédiatement l'état local
+      setQuestions(prev => [...prev, createdQuestion]);
 
       if (reloadGlobalQuestions) {
         await reloadGlobalQuestions();
       }
 
+      // Rafraîchir la liste complète des questions
       const updatedSurvey = await surveyService.getSurveyById(survey.surveyId);
-      await fetchQuestions(updatedSurvey.assignedQuestions);
+      if (updatedSurvey?.assignedQuestions) {
+        await fetchQuestions(updatedSurvey.assignedQuestions);
+        // Forcer la mise à jour du composant parent
+        if (onAddQuestions) {
+          onAddQuestions();
+        }
+      }
 
     } catch (error) {
       console.error("Error creating and assigning question", error);

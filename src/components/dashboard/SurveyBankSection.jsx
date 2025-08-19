@@ -34,7 +34,22 @@ const SurveyBankSection = ({ getSurveyTypeColor, getStatusColor, formatDate }) =
         const data = await surveyService.getActiveAndClosedSurveys();
         setSurveysLocal(data);
       } catch (err) {
-        setError("Erreur");
+        console.error("Error loading surveys:", err);
+        
+        // Messages d'erreur plus informatifs
+        if (err.code === 'ECONNREFUSED' || err.message?.includes('Network Error')) {
+          setError("Cannot connect to server. Please check if the backend is running.");
+        } else if (err.response?.status === 401) {
+          setError("Authentication required. Please log in again.");
+        } else if (err.response?.status === 403) {
+          setError("Access denied. You don't have permission to view surveys.");
+        } else if (err.response?.status === 500) {
+          setError("Server error. Please try again later.");
+        } else if (err.response?.data?.message) {
+          setError(`Error: ${err.response.data.message}`);
+        } else {
+          setError("Error loading surveys. Please check your connection and try again.");
+        }
       } finally {
         setLoading(false);
       }

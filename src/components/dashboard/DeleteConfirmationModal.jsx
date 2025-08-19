@@ -11,7 +11,8 @@ const DeleteConfirmationModal = ({
   title,
   description,
   warningItems = [],
-  entityDisplay
+  entityDisplay,
+  error
 }) => {
   if (!open || !entity) return null;
 
@@ -144,14 +145,26 @@ const DeleteConfirmationModal = ({
             </div>
           </div>
         </div>
+        
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-100 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm mb-6 animate-shake">
+            {error}
+          </div>
+        )}
+
 
         {/* Action Buttons */}
         <div className="flex gap-4">
           <button
             type="button"
-            className="flex-1 py-3 px-4 rounded-xl border-2 border-gray-300 bg-white hover:bg-gray-50 text-gray-700 font-medium transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
+            className={`flex-1 py-3 px-4 rounded-xl font-medium transition-all duration-200 transform hover:scale-[1.02] shadow-lg hover:shadow-xl flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${
+              error 
+                ? 'bg-gray-400 text-gray-600 cursor-not-allowed' 
+                : 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white'
+            }`}
             onClick={onClose}
-            disabled={loading}
+            disabled={loading || error}
           >
             Cancel
           </button>
@@ -187,13 +200,23 @@ const DeleteConfirmationModal = ({
           from { transform: translateY(20px); opacity: 0; }
           to { transform: translateY(0); opacity: 1; }
         }
-        
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          25% { transform: translateX(-5px); }
+          75% { transform: translateX(5px); }
+        }
         .animate-fade-in {
           animation: fade-in 0.3s ease-out;
         }
         
         .animate-slide-up {
           animation: slide-up 0.3s ease-out;
+        }
+          .animate-shake {
+          animation: shake 0.4s ease-in-out;
+        }
+          .animate-shake {
+          animation: shake 0.4s ease-in-out;
         }
       `}</style>
     </div>

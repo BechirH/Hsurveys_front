@@ -80,18 +80,7 @@ const SurveyForm = ({ form, setForm, onSubmit, loading, error}) => {
         disabled={loading}
       />
 
-      <div className="mb-3 flex items-center">
-        <input
-          type="checkbox"
-          id="locked"
-          name="locked"
-          checked={form.locked}
-          onChange={handleChange}
-          className="mr-2"
-          disabled={loading}
-        />
-        <label htmlFor="locked" className="font-semibold">lock the survey</label>
-      </div>
+
 
       {error && <p className="text-red-600 mb-3">{error}</p>}
 

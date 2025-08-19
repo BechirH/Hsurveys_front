@@ -34,6 +34,11 @@ const EditSurveyModal = ({ open, onClose, survey, onSuccess }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    // Vérifier si le sondage est verrouillé
+    if (survey.locked) {
+      setError("Survey is locked and cannot be updated");
+      return;
+    }
     setLoading(true);
     setError("");
     try {

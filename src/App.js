@@ -14,6 +14,8 @@ import { shouldRedirectToDashboard } from "./utils/roleUtils";
 import AuthSystem from "./components/auth/AuthSystem";
 import Dashboard from "./pages/Dashboard";
 import UserHome from "./pages/UserHome";
+import QuizPage from "./pages/QuizPage";
+import QuizConfirmationPage from "./pages/QuizConfirmationPage";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import LoadingSpinner from "./components/common/LoadingSpinner";
 
@@ -73,6 +75,22 @@ const getRedirectPath = () => {
         element={
           <ProtectedRoute>
             <UserHome />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/quiz/:surveyId"
+        element={
+          <ProtectedRoute>
+            <QuizPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/quiz/:surveyId/confirmation"
+        element={
+          <ProtectedRoute>
+            <QuizConfirmationPage />
           </ProtectedRoute>
         }
       />

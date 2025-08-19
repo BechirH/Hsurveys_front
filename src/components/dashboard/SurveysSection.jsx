@@ -11,7 +11,7 @@ import EditSurveyModal from "./EditSurveyModal";
 import CreateSurveyModal from "./CreateSurveyModal";
 import LockConfirmationModal from "./LockConfirmationModal";
 import ViewSurveyModal from "./ViewSurveyModal";
-
+  
 const SURVEY_STATUSES = ["DRAFT", "ACTIVE", "CLOSED"];
 const SURVEY_TYPES = ["FEEDBACK", "EXAM"];
 
@@ -59,7 +59,21 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate, reload
         setSurveysLocal(data);
       } catch (err) {
         console.error("📛 Erreur API:", err.response?.data || err.message);
-        setError("Error loading surveys.");
+        
+        // Messages d'erreur plus informatifs
+        if (err.code === 'ECONNREFUSED' || err.message?.includes('Network Error')) {
+          setError("Cannot connect to server. Please check if the backend is running.");
+        } else if (err.response?.status === 401) {
+          setError("Authentication required. Please log in again.");
+        } else if (err.response?.status === 403) {
+          setError("Access denied. You don't have permission to view surveys.");
+        } else if (err.response?.status === 500) {
+          setError("Server error. Please try again later.");
+        } else if (err.response?.data?.message) {
+          setError(`Error: ${err.response.data.message}`);
+        } else {
+          setError("Error loading surveys. Please check your connection and try again.");
+        }
       } finally {
         setLoading(false);
       }

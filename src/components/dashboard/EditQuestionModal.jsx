@@ -2,7 +2,7 @@ import React from "react";
 import { X, Edit3 } from "lucide-react";
 import QuestionForm from "../survey/QuestionForm";
 
-const EditQuestionModal = ({ open, onClose, onSubmit, question }) => {
+const EditQuestionModal = ({ open, onClose, onSubmit, question, error }) => {
   if (!open) return null;
 
   return (
@@ -31,6 +31,7 @@ const EditQuestionModal = ({ open, onClose, onSubmit, question }) => {
         onSubmit={onSubmit}
         onCancel={onClose}
         submitLabel="Save"
+        error={error}
 />
       </div>
 

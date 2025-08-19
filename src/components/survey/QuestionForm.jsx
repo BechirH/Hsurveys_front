@@ -17,7 +17,6 @@ const QuestionForm = ({ onSubmit, onCancel, submitLabel = "Submit", loading, err
     subject: "",
     questionText: "",
     questionType: QUESTION_TYPES[0],
-    locked: false,
     options: [],
   };
 
@@ -113,18 +112,7 @@ const QuestionForm = ({ onSubmit, onCancel, submitLabel = "Submit", loading, err
         ))}
       </select>
 
-      <div className="mb-3 flex items-center">
-        <input
-          type="checkbox"
-          id="locked"
-          name="locked"
-          checked={form.locked}
-          onChange={handleChange}
-          className="mr-2"
-          disabled={loading}
-        />
-        <label htmlFor="locked" className="font-semibold">Lock question</label>
-      </div>
+
 
       {form.questionType !== "FREE_TEXT" && (
         <div className="mt-4 space-y-2">
