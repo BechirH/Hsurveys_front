@@ -28,6 +28,11 @@ function getCookie(name) {
   if (parts.length === 2) return parts.pop().split(";").shift();
 }
 
+
+
+
+
+
 async function createApiClient() {
   const baseURL = await getApiBaseUrl();
   const client = axios.create({
@@ -53,11 +58,20 @@ async function handleRequest(promise) {
     return res.data;
   } catch (error) {
     console.error("[apiService] error", error.response?.status, error.response?.data);
-    throw error;
+
+    if (error.response && error.response.data) {
+      const err = new Error("Backend Error");
+      err.data = error.response.data; 
+      throw err;
+    }
+
+    throw new Error(error.message || "Network Error");
   }
 }
 
+
 export const apiService = {
+  
   // ----- User endpoints -----
   getUsers: async () => {
     const client = await createApiClient();
@@ -345,4 +359,29 @@ export const apiService = {
     const client = await createApiClient();
     return handleRequest(client.patch(`/options/${optionId}/unlock`));
   },
+  // ----- Survey Response endpoint -----
+  submitSurveyResponse: async (surveyResponseDto) => {
+    const client = await createApiClient();
+    return handleRequest(client.post("/survey-response", surveyResponseDto));
+  },
+
+  getAllSurveyResponses: async () => {
+  const client = await createApiClient();
+  return handleRequest(client.get("/survey-response"));
+},
+
+getSurveyResponseById: async (id) => {
+  const client = await createApiClient();
+  return handleRequest(client.get(`/survey-response/${id}`));
+},
+
+updateSurveyResponse: async (id, surveyResponseDto) => {
+  const client = await createApiClient();
+  return handleRequest(client.put(`/survey-response/${id}`, surveyResponseDto));
+},
+
+
+
+
+
 };

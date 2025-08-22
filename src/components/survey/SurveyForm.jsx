@@ -2,11 +2,9 @@ import React from "react";
 import InputField from "../common/InputField";
 import Button from "../common/Button";
 
-
-const SURVEY_STATUSES = ["DRAFT", "ACTIVE", "CLOSED"];
 const SURVEY_TYPES = ["FEEDBACK", "EXAM"];
 
-const SurveyForm = ({ form, setForm, onSubmit, loading, error}) => {
+const SurveyForm = ({ form, setForm, onSubmit, loading, error }) => {
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setForm((prev) => ({
@@ -54,22 +52,6 @@ const SurveyForm = ({ form, setForm, onSubmit, loading, error}) => {
         ))}
       </select>
 
-      <label className="block font-semibold mb-1" htmlFor="status">Status</label>
-      <select
-        id="status"
-        name="status"
-        value={form.status}
-        onChange={handleChange}
-        className="mb-4 p-2 border rounded w-full"
-        disabled={loading}
-      >
-        {SURVEY_STATUSES.map((s) => (
-          <option key={s} value={s}>
-            {s.charAt(0).toUpperCase() + s.slice(1)}
-          </option>
-        ))}
-      </select>
-
       <InputField
         id="deadline"
         label="Date limite"
@@ -80,27 +62,21 @@ const SurveyForm = ({ form, setForm, onSubmit, loading, error}) => {
         disabled={loading}
       />
 
-      <div className="mb-3 flex items-center">
-        <input
-          type="checkbox"
-          id="locked"
-          name="locked"
-          checked={form.locked}
-          onChange={handleChange}
-          className="mr-2"
-          disabled={loading}
-        />
-        <label htmlFor="locked" className="font-semibold">lock the survey</label>
-      </div>
-
+      {/* Erreur */}
       {error && <p className="text-red-600 mb-3">{error}</p>}
 
-      <div className="flex justify-center gap-4">
-  <Button type="submit" loading={loading} disabled={loading} className="w-40 text-center justify-center">
+      
+        <div className="flex justify-center gap-4 mt-6">
+  <Button
+    type="submit"
+    loading={loading}
+    disabled={loading}
+    className="w-40 text-center justify-center"
+  >
     Submit
   </Button>
-
 </div>
+      
     </form>
   );
 };

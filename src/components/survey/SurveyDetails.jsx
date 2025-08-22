@@ -17,17 +17,22 @@ const SurveyDetails = ({ survey, onAddQuestions, reloadGlobalQuestions }) => {
 
 
   const fetchQuestions = useCallback(async (assignedQuestions = survey.assignedQuestions) => {
-    if (!survey || !assignedQuestions) return;
-    try {
-      const promises = assignedQuestions.map((q) =>
-        questionService.getQuestionById(q.questionId)
-      );
-      const results = await Promise.all(promises);
-      setQuestions(results);
-    } catch (error) {
-      console.error("Error fetching questions", error);
-    }
-  }, [survey]);
+  if (!survey || !assignedQuestions) return;
+  try {
+    const promises = assignedQuestions.map((q) =>
+      questionService.getQuestionById(q.questionId)
+    );
+    const results = await Promise.all(promises);
+    // Fusionner avec assignedQuestionId
+    const merged = results.map((q, index) => ({
+      ...q,
+      assignedQuestionId: assignedQuestions[index].assignedQuestionId
+    }));
+    setQuestions(merged);
+  } catch (error) {
+    console.error("Error fetching questions", error);
+  }
+}, [survey]);
 
   useEffect(() => {
     if (survey?.assignedQuestions?.length > 0) {
@@ -59,7 +64,7 @@ const SurveyDetails = ({ survey, onAddQuestions, reloadGlobalQuestions }) => {
   const confirmDeleteQuestion = async () => {
   if (!questionToDelete) return;
   try {
-    await surveyService.unassignQuestionFromSurvey(survey.surveyId, questionToDelete.questionId);
+    await surveyService.unassignQuestionFromSurvey(survey.surveyId, questionToDelete.assignedQuestionId);
     setQuestions((prev) => prev.filter(q => q.questionId !== questionToDelete.questionId));
     setShowDeleteModal(false);
     setQuestionToDelete(null);

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+
 import { 
   ClipboardList, 
   Users, 
@@ -18,6 +20,9 @@ import NavBar from '../components/common/NavBar';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { surveyService } from '../services/surveyService';
 import { organizationService } from '../services/organizationService';
+import { questionService } from '../services/questionService';
+import { optionService } from '../services/optionService';
+
 
 const UserHome = () => {
   const { user } = useSelector((state) => state.auth);
@@ -26,6 +31,15 @@ const UserHome = () => {
   const [surveys, setSurveys] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [teams, setTeams] = useState([]);
+  
+  const [selectedSurvey, setSelectedSurvey] = useState(null);
+  const [showQuizModal, setShowQuizModal] = useState(false);
+  const navigate = useNavigate();
+
+  const closeSurveyModal = () => {
+    setSelectedSurvey(null);
+    setShowQuizModal(false);
+  };
 
   useEffect(() => {
     loadUserData();
@@ -64,11 +78,11 @@ const UserHome = () => {
 
   // Get surveys for the user's department/team
   const userSurveys = surveys.filter(survey => {
-    if (user?.departmentId && survey.departmentId) {
-      return survey.departmentId === user.departmentId;
-    }
-    return true; // Show all surveys if no department filter
-  });
+  const matchDept = user?.departmentId && survey.departmentId 
+    ? survey.departmentId === user.departmentId 
+    : true;
+  return matchDept && survey.status?.toUpperCase() !== 'DRAFT';
+});
 
   const getStatusColor = (status) => {
     switch (status?.toUpperCase()) {
@@ -244,21 +258,19 @@ const UserHome = () => {
                           </div>
                         </div>
                         <div className="flex items-center space-x-2">
-                          {survey.locked && (
-                            <div className="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-medium">
-                              Locked
-                            </div>
-                          )}
                           <span className={`px-3 py-1 rounded-full text-xs font-medium flex items-center space-x-1 ${getStatusColor(survey.status)}`}>
                             {getStatusIcon(survey.status)}
                             <span>{survey.status}</span>
-                          </span>
+                            </span>
                         </div>
                       </div>
                       
-                      {!survey.locked && survey.status === 'ACTIVE' && (
+                      {survey.status === 'ACTIVE' && (
                         <div className="mt-4 pt-4 border-t border-gray-100">
-                          <button className="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2">
+                          <button
+                          onClick={() => navigate(`/survey/${survey.surveyId}`)}
+                          className="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2"
+                          >
                             <FileText className="w-4 h-4" />
                             <span>Take Survey</span>
                           </button>
@@ -349,6 +361,7 @@ const UserHome = () => {
             </div>
           </div>
         </div>
+        
       </div>
     </div>
   );

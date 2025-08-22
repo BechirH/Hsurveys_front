@@ -16,6 +16,7 @@ import Dashboard from "./pages/Dashboard";
 import UserHome from "./pages/UserHome";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import LoadingSpinner from "./components/common/LoadingSpinner";
+import SurveyPage from "./pages/SurveyPage";
 
 // App Routes Component (needs to be inside Provider)
 const AppRoutes = () => {
@@ -76,6 +77,14 @@ const getRedirectPath = () => {
           </ProtectedRoute>
         }
       />
+       <Route
+      path="/survey/:surveyId"
+      element={
+        <ProtectedRoute>
+          <SurveyPage />
+        </ProtectedRoute>
+      }
+    />
       {/* Catch all route - redirect to home */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
