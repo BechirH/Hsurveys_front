@@ -4,13 +4,13 @@ import Button from "../common/Button";
 import { surveyService } from '../../services/surveyService';
 import { questionService } from '../../services/questionService';
 import { useSelector } from 'react-redux';
-import SurveyDetails from '../survey/SurveyDetails';
-import QuestionsTable from "../survey/QuestionsTable";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
 import EditSurveyModal from "./EditSurveyModal";
 import CreateSurveyModal from "./CreateSurveyModal";
 import LockConfirmationModal from "./LockConfirmationModal";
 import ViewSurveyModal from "./ViewSurveyModal";
+import ErrorInfoModal from "./ErrorInfoModal";
+import { apiService } from "../../services/apiService";
 
 const SURVEY_STATUSES = ["DRAFT", "ACTIVE", "CLOSED"];
 const SURVEY_TYPES = ["FEEDBACK", "EXAM"];
@@ -50,6 +50,12 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate, reload
   const [sortBy, setSortBy] = useState("title");
   const [sortOrder, setSortOrder] = useState("asc");
 
+   const [showErrorModal, setShowErrorModal] = useState(false);
+   const [publishErrorMessage, setPublishErrorMessage] = useState("");
+
+
+
+
   useEffect(() => {
     const fetchSurveys = async () => {
       setLoading(true);
@@ -68,6 +74,7 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate, reload
     fetchSurveys();
   }, [token]);
 
+   
   const filteredAndSortedSurveys = useMemo(() => {
     let filtered = surveysLocal.filter(survey =>
       survey.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -178,19 +185,34 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate, reload
   };
 
   const handleAddQuestionsClick = async () => {
-    setLoading(true);
-    try {
-      const data = await questionService.getAllQuestions();
-      setQuestions(data);
-      setSelectedQuestions(new Set());
-      setShowQuestionsList(true);
-    } catch (err) {
-      console.error("Questions loading error:", err);
-      setError("Error loading questions.");
-    } finally {
-      setLoading(false);
+  setLoading(true);
+  try {
+    const data = await questionService.getAllQuestions();
+    setQuestions(data);
+    setSelectedQuestions(new Set());
+    setShowQuestionsList(true);
+
+    // Vérifier si le survey sélectionné est locked
+    if (selectedSurvey && selectedSurvey.locked) {
+      const updatedSurvey = await surveyService.getSurveyById(selectedSurvey.surveyId);
+      // Forcer l'état locked à false si le backend le signale
+      if (!updatedSurvey.locked) {
+        setSelectedSurvey(updatedSurvey);
+        setSurveysLocal(prev =>
+          prev.map(s =>
+            s.surveyId === updatedSurvey.surveyId ? updatedSurvey : s
+          )
+        );
+      }
     }
-  };
+
+  } catch (err) {
+    console.error("Questions loading error:", err);
+    setError("Error loading questions.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleDeleteSurvey = async () => {
     if (!surveyToDelete) return;
@@ -212,22 +234,31 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate, reload
   };
 
   const handleAddQuestionToSurvey = async (questionId) => {
-    if (!selectedSurvey) {
-      alert("Please select a survey first.");
-      return;
-    }
-    setLoading(true);
-    try {
-      await surveyService.assignQuestionToSurvey(selectedSurvey.surveyId, questionId);
-      const updatedSurvey = await surveyService.getSurveyById(selectedSurvey.surveyId);
-      setSelectedSurvey(updatedSurvey);
-    } catch (err) {
-      console.error("Error assigning questions:", err);
-      setError("Error adding questions to the survey.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (!selectedSurvey) return;
+  setLoading(true);
+  try {
+    await surveyService.assignQuestionToSurvey(selectedSurvey.surveyId, questionId);
+
+    // Récupérer l'état réel du survey depuis le backend
+    const updatedSurvey = await surveyService.getSurveyById(selectedSurvey.surveyId);
+
+    // Mettre à jour le survey sélectionné
+    setSelectedSurvey(updatedSurvey);
+
+    // Mettre à jour la liste globale
+    setSurveysLocal(prev =>
+      prev.map(s =>
+        s.surveyId === updatedSurvey.surveyId ? updatedSurvey : s
+      )
+    );
+
+  } catch (err) {
+    console.error("Error assigning question:", err);
+    setError("Error adding question to the survey.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -267,25 +298,48 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate, reload
       console.error("Error reloading questions.", error);
     }
   };
+const handlePublishSurvey = async (surveyId) => {
+  console.log("=== Publishing survey debug ===");
+  console.log("Survey ID:", surveyId);
+  
+  setLoading(true);
+  setError("");
+  setPublishErrorMessage("");
+  setShowErrorModal(false);
 
-  const handlePublishSurvey = async (surveyId) => {
-    setLoading(true);
-    setError("");
-    try {
-      const publishedSurvey = await surveyService.publishSurvey(surveyId);
-      setSurveysLocal(prev =>
-        prev.map(s => (s.surveyId === publishedSurvey.surveyId ? publishedSurvey : s))
-      );
-      if (selectedSurvey?.surveyId === publishedSurvey.surveyId) {
-        setSelectedSurvey(publishedSurvey);
-      }
-    } catch (err) {
-      console.error("Error publishing survey:", err);
-      setError("Error publishing the survey.");
-    } finally {
-      setLoading(false);
+  try {
+    const publishedSurvey = await surveyService.publishSurvey(surveyId);
+    console.log("Response from publishSurvey:", publishedSurvey);
+
+    // Mettre à jour la liste des surveys
+    setSurveysLocal(prev =>
+      prev.map(s => (s.surveyId === publishedSurvey.surveyId ? publishedSurvey : s))
+    );
+
+    // Mettre à jour le survey sélectionné si nécessaire
+    if (selectedSurvey?.surveyId === publishedSurvey.surveyId) {
+      setSelectedSurvey(publishedSurvey);
     }
-  };
+
+  } catch (err) {
+    console.error("Error publishing survey:", err);
+
+    // ✅ Récupérer le message exact envoyé par le backend
+    const backendMessage = err?.response?.data?.message;
+
+    if (backendMessage) {
+      setPublishErrorMessage(backendMessage);  
+      setShowErrorModal(true);
+    } else {
+      // Cas générique si pas de message
+      setError("Error publishing the survey.");
+    }
+
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="space-y-4">
@@ -513,12 +567,9 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate, reload
                             <Edit className="w-4 h-4" />
                           </button>
                           <button
-                            className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors duration-200 border border-orange-200 hover:border-orange-300"
-                            onClick={() => {
-                              setSurveyToToggleLock(survey);
-                              setShowLockModal(true);
-                            }}
-                            title={survey.locked ? "Unlock Survey" : "Lock Survey"}
+                          className="p-2 rounded-lg transition-colors duration-200 border text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+                          onClick={() => handleToggleLockSurvey(survey.surveyId, survey.locked)}
+                          title={survey.locked ? "Survey is locked. Click to unlock." : "Survey is unlocked. Click to lock."}
                           >
                             {survey.locked ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
                           </button>
@@ -623,6 +674,10 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate, reload
         onAddQuestionToSurvey={handleAddQuestionToSurvey}
         reloadGlobalQuestions={reloadAndFetchQuestions}
       />
+      <ErrorInfoModal 
+      open={showErrorModal} 
+      onClose={() => setShowErrorModal(false)} 
+      message={publishErrorMessage}/>
     </div>
   );
 };

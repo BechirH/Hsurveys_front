@@ -95,9 +95,14 @@ export const surveyService = {
     const client = await createSurveyApiClient();
     return handleRequest(client.get(`/surveys/${surveyId}/exists`));
   },
-  publishSurvey: async (surveyId) => {
+   publishSurvey: async (surveyId) => {
     const client = await createSurveyApiClient();
-    return handleRequest(client.put(`/surveys/${surveyId}/publish`, {}));
+    try {
+      const response = await client.put(`/surveys/${surveyId}/publish`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
   },
 
   getActiveAndClosedSurveys: async () => {
