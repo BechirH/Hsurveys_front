@@ -127,7 +127,7 @@ const QuestionForm = ({ onSubmit, onCancel, submitLabel = "Submit", loading, err
         <label htmlFor="locked" className="font-semibold">Lock question</label>
       </div>
 
-      {form.questionType !== "FREE_TEXT" && (
+      {!["FREE_TEXT", "DATE_PICKER"].includes(form.questionType) && (
         <div className="mt-4 space-y-2">
           <div className="flex justify-between items-center">
             <h4 className="font-semibold text-gray-700">Options</h4>

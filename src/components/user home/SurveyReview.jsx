@@ -85,6 +85,7 @@ const SurveyReview = ({ surveyResponseId }) => {
             optionText: opt.optionText,
             selected: Array.isArray(answer) ? answer.includes(opt.optionId) : answer === opt.optionId,
             optionScore: opt.optionScore,
+            correct: opt.correct,
           })),
         };
       }),

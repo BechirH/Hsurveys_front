@@ -5,8 +5,7 @@ import { apiService } from '../../services/apiService';
 const ModernSurveyInterfaceAllQuestions = ({ survey, onClose, onComplete }) => {
   const [userAnswers, setUserAnswers] = useState({});
   const [timeLeft, setTimeLeft] = useState('');
-  const [questionStatus, setQuestionStatus] = useState({}); // suivi des statuts
-
+  const [questionStatus, setQuestionStatus] = useState({});
   const questionRefs = useRef([]);
 
   // Calcul du temps restant
@@ -78,15 +77,15 @@ const ModernSurveyInterfaceAllQuestions = ({ survey, onClose, onComplete }) => {
       questionResponses: survey.questions.map((q) => {
         const answer = userAnswers[q.id];
 
-        if (q.type === "FREE_TEXT" || q.type === "DATE_PICKER") {
+        if (q.type === 'FREE_TEXT' || q.type === 'DATE_PICKER') {
           return {
             questionId: q.id,
             questionText: q.text,
             optionResponses: [
               {
                 optionId: null,
-                optionText: answer || "", // empty string if not answered
-                selected: !!answer, // true if answered, false otherwise
+                optionText: answer || '',
+                selected: !!answer,
                 optionScore: null,
               },
             ],
@@ -102,7 +101,7 @@ const ModernSurveyInterfaceAllQuestions = ({ survey, onClose, onComplete }) => {
               optionText: opt.text,
               correct: opt.correct,
               selected:
-                q.type === "MULTIPLE_CHOICE_TEXT"
+                q.type === 'MULTIPLE_CHOICE_TEXT'
                   ? (answer || []).includes(opt.optionId)
                   : answer === opt.optionId,
               optionScore: opt.optionScore,
@@ -110,7 +109,6 @@ const ModernSurveyInterfaceAllQuestions = ({ survey, onClose, onComplete }) => {
           };
         }
 
-        // fallback for any question without options
         return {
           questionId: q.id,
           questionText: q.text,
@@ -120,158 +118,153 @@ const ModernSurveyInterfaceAllQuestions = ({ survey, onClose, onComplete }) => {
     };
   };
 
-  // MODIFIÉ: Submit dans la DB puis passer au review
   const handleProceedToReview = async () => {
     const surveyResponseDto = buildSurveyResponseDto();
     try {
-      // Submit initial dans la DB (isFinal = false par défaut)
       const savedResponse = await apiService.submitSurveyResponse(surveyResponseDto);
-      console.log('Survey saved:', savedResponse);
-      
-      // Passer l'ID de la réponse sauvegardée au parent pour aller en mode review
       onComplete?.(savedResponse.surveyResponseId);
     } catch (error) {
-      console.error("Erreur lors de la sauvegarde", error);
-      alert("Impossible de sauvegarder les réponses.");
+      console.error('Erreur lors de la sauvegarde', error);
+      alert('Impossible de sauvegarder les réponses.');
     }
   };
 
   return (
     <div className="flex-1 flex flex-col overflow-y-auto p-6 max-w-[calc(100%-2rem)] mx-auto">
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-y-auto p-6">
-        {/* Header Bande Colorée */}
-        <div className="bg-gradient-to-br from-blue-600 via-purple-600 to-purple-800 p-6 rounded-lg mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <button
-              onClick={onClose}
-              className="text-white hover:text-gray-200 transition-colors px-4 py-2 bg-black/20 rounded-lg"
-            >
-              <ArrowLeft className="w-6 h-6 mr-2 inline" />
-              Home
-            </button>
-            <div className="text-center flex-1 px-4">
-              <h1 className="text-3xl font-bold text-white">{survey?.title}</h1>
-              <p className="text-purple-200 mt-1">{survey?.description}</p>
-            </div>
-          </div>
-
-          {survey.deadline && (
-            <div className="bg-black/20 backdrop-blur-sm rounded-lg p-4 mt-2 border border-white/20 text-white flex items-center">
-              <Clock className="w-5 h-5 mr-2" />
-              <span className="font-medium">Deadline</span>
-              <span className="ml-2">{new Date(survey.deadline).toLocaleString()}</span>
-              {timeLeft && <span className="ml-4 text-purple-200">({timeLeft} restant)</span>}
-            </div>
-          )}
-
-          {/* Progress Bar */}
-          <div className="mt-4">
-            <div className="flex justify-between text-white mb-2 px-2">
-              <span>{totalQuestions} Questions</span>
-              <span>{Math.round(progress)}% Complete</span>
-            </div>
-            <div className="w-full bg-white/30 rounded-full h-3">
-              <div
-                className="bg-gradient-to-r from-yellow-400 to-green-400 h-3 rounded-full transition-all duration-300"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Questions */}
-        <div className="space-y-6">
-          {survey.questions?.length > 0 ? (
-            survey.questions.map((q, idx) => (
-              <div
-                key={q.id || idx}
-                ref={(el) => (questionRefs.current[idx] = el)}
-                className="bg-white rounded-xl shadow-lg p-6 border"
-              >
-                <div className="flex items-start mb-4">
-                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold mr-4">
-                    {idx + 1}
-                  </div>
-                  <div>
-                    <h2 className="text-lg font-semibold text-gray-800">{q.text}</h2>
-                    {q.description && <p className="text-gray-600 mt-1">{q.description}</p>}
-                  </div>
-                </div>
-
-                {q.type === 'FREE_TEXT' ? (
-                  <textarea
-                    className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Your answer..."
-                    rows={4}
-                    value={userAnswers[q.id] || ''}
-                    onChange={(e) => handleTextChange(q.id, e.target.value)}
-                  />
-                ) : q.type === 'DATE_PICKER' ? (
-                  <input
-                    type="date"
-                    className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    value={userAnswers[q.id] || ''}
-                    onChange={(e) => handleTextChange(q.id, e.target.value)}
-                  />
-                ) : (
-                  <div className="space-y-3">
-                    {q.options?.map((opt) => (
-                      <label
-                        key={opt.optionId}
-                        className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
-                      >
-                        <input
-                          type={q.type === 'MULTIPLE_CHOICE_TEXT' ? 'checkbox' : 'radio'}
-                          name={`question-${q.id}`}
-                          value={opt.optionId}
-                          checked={
-                            q.type === 'MULTIPLE_CHOICE_TEXT'
-                              ? userAnswers[q.id]?.includes(opt.optionId) || false
-                              : userAnswers[q.id] === opt.optionId
-                          }
-                          onChange={() =>
-                            handleOptionSelect(q.id, opt.optionId, q.type === 'MULTIPLE_CHOICE_TEXT')
-                          }
-                          className="w-5 h-5 mr-3 text-blue-600"
-                        />
-                        <span className="text-gray-700">{opt.text}</span>
-                      </label>
-                    ))}
-                  </div>
-                )}
-
-                {/* Buttons for Uncertain / Review */}
-                <div className="mt-2 flex space-x-2">
-                  <button
-                    onClick={() => markQuestionAsUncertain(q.id)}
-                    className="px-3 py-1 bg-yellow-400 text-white rounded hover:bg-yellow-500"
-                  >
-                    Uncertain
-                  </button>
-                  <button
-                    onClick={() => markQuestionForReview(q.id)}
-                    className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-                  >
-                    Review
-                  </button>
-                </div>
-              </div>
-            ))
-          ) : (
-            <p className="text-gray-700">No questions available.</p>
-          )}
-        </div>
-
-        {/* Submit Button - MODIFIÉ */}
-        <div className="mt-8 text-right">
+      {/* Header */}
+      <div className="bg-gradient-to-br from-blue-600 via-purple-600 to-purple-800 p-6 rounded-lg mb-6">
+        <div className="flex items-center justify-between mb-4">
           <button
-            onClick={handleProceedToReview}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-lg font-semibold transition"
+            onClick={onClose}
+            className="text-white hover:text-gray-200 transition-colors px-4 py-2 bg-black/20 rounded-lg"
           >
-            Review Answers
+            <ArrowLeft className="w-6 h-6 mr-2 inline" />
+            Home
           </button>
+          <div className="text-center flex-1 px-4">
+            <h1 className="text-3xl font-bold text-white">{survey?.title}</h1>
+            <p className="text-purple-200 mt-1">{survey?.description}</p>
+          </div>
         </div>
+
+        {survey.deadline && (
+          <div className="bg-black/20 backdrop-blur-sm rounded-lg p-4 mt-2 border border-white/20 text-white flex items-center">
+            <Clock className="w-5 h-5 mr-2" />
+            <span className="font-medium">Deadline</span>
+            <span className="ml-2">{new Date(survey.deadline).toLocaleString()}</span>
+            {timeLeft && <span className="ml-4 text-purple-200">({timeLeft} restant)</span>}
+          </div>
+        )}
+
+        {/* Progress Bar */}
+        <div className="mt-4">
+          <div className="flex justify-between text-white mb-2 px-2">
+            <span>{totalQuestions} Questions</span>
+            <span>{Math.round(progress)}% Complete</span>
+          </div>
+          <div className="w-full bg-white/30 rounded-full h-3">
+            <div
+              className="bg-gradient-to-r from-yellow-400 to-green-400 h-3 rounded-full transition-all duration-300"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Questions */}
+      <div className="space-y-6">
+        {survey.questions?.map((q, idx) => (
+          <div
+            key={q.id || idx}
+            ref={(el) => (questionRefs.current[idx] = el)}
+            className="bg-white rounded-xl shadow-lg p-6 border"
+          >
+            <div className="flex items-start mb-4">
+              <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold mr-4">
+                {idx + 1}
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold text-gray-800">{q.text}</h2>
+                {q.description && <p className="text-gray-600 mt-1">{q.description}</p>}
+              </div>
+            </div>
+
+            {/* Question Input / Options */}
+            {q.type === 'FREE_TEXT' ? (
+              <textarea
+                className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Your answer..."
+                rows={4}
+                value={userAnswers[q.id] || ''}
+                onChange={(e) => handleTextChange(q.id, e.target.value)}
+              />
+            ) : q.type === 'DATE_PICKER' ? (
+              <input
+                type="date"
+                className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={userAnswers[q.id] || ''}
+                onChange={(e) => handleTextChange(q.id, e.target.value)}
+              />
+            ) : (
+              <div className="space-y-3">
+                {q.options?.map((opt) => (
+                  <label
+                    key={opt.optionId}
+                    className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                  >
+                    <input
+                      type={
+                        q.type === 'MULTIPLE_CHOICE_TEXT' ? 'checkbox' : 'radio'
+                      }
+                      name={`question-${q.id}`}
+                      value={opt.optionId}
+                      checked={
+                        q.type === 'MULTIPLE_CHOICE_TEXT'
+                          ? userAnswers[q.id]?.includes(opt.optionId) || false
+                          : userAnswers[q.id] === opt.optionId
+                      }
+                      onChange={() =>
+                        handleOptionSelect(
+                          q.id,
+                          opt.optionId,
+                          q.type === 'MULTIPLE_CHOICE_TEXT'
+                        )
+                      }
+                      className="w-5 h-5 mr-3 text-blue-600"
+                    />
+                    <span className="text-gray-700">{opt.text}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+
+            {/* Buttons for Uncertain / Review */}
+            <div className="mt-2 flex space-x-2">
+              <button
+                onClick={() => markQuestionAsUncertain(q.id)}
+                className="px-3 py-1 bg-yellow-400 text-white rounded hover:bg-yellow-500"
+              >
+                Uncertain
+              </button>
+              <button
+                onClick={() => markQuestionForReview(q.id)}
+                className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+              >
+                Review
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Submit Button */}
+      <div className="mt-8 text-right">
+        <button
+          onClick={handleProceedToReview}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-lg font-semibold transition"
+        >
+          Review Answers
+        </button>
       </div>
 
       {/* Fixed Right Navigation Panel */}

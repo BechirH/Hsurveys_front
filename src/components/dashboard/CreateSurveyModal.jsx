@@ -10,6 +10,7 @@ const CreateSurveyModal = ({ open, onClose, form, setForm, onSubmit, loading, er
         title: "",
         description: "",
         type: "FEEDBACK",
+        responseType: "ALL_IN_ONE_PAGE",
         status: "DRAFT",
         deadline: "",
         locked: false,
