@@ -5,14 +5,15 @@ import SurveyReview from '../components/user home/SurveyReview';
 import { apiService } from '../services/apiService';
 import NavBar from '../components/common/NavBar';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import ModernSurveyInterfaceOneByOne from '../components/user home/ModernSurveyInterfaceOneByOne';
 
 const SurveyPage = () => {
   const { surveyId } = useParams();
   const navigate = useNavigate();
   const [survey, setSurvey] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [reviewMode, setReviewMode] = useState(false); // pour savoir si on est en review
-  const [surveyResponseId, setSurveyResponseId] = useState(null); // stocker l'ID de la réponse sauvegardée
+  const [reviewMode, setReviewMode] = useState(false); 
+  const [surveyResponseId, setSurveyResponseId] = useState(null); 
 
   useEffect(() => {
     const loadSurvey = async () => {
@@ -70,22 +71,33 @@ const SurveyPage = () => {
       <NavBar />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Mode réponse */}
-        {!reviewMode && survey && (
-          <ModernSurveyInterfaceAllQuestions
-            survey={survey}
-            onClose={() => navigate(-1)}
-            onComplete={(savedResponseId) => {
-              setSurveyResponseId(savedResponseId); // stocker l'ID de la réponse
-              setReviewMode(true);                  // passer en mode review
-            }}
-          />
-        )}
+        {/* Mode réponse */}
+{!reviewMode && survey && (
+  survey.responseType === 'ONE_BY_ONE' ? (
+    <ModernSurveyInterfaceOneByOne
+      survey={survey}
+      onClose={() => navigate(-1)}
+      onComplete={(savedResponseId) => {
+        setSurveyResponseId(savedResponseId);
+        setReviewMode(true);                  
+      }}
+    />
+  ) : (
+    <ModernSurveyInterfaceAllQuestions
+      survey={survey}
+      onClose={() => navigate(-1)}
+      onComplete={(savedResponseId) => {
+        setSurveyResponseId(savedResponseId);
+        setReviewMode(true);                  
+      }}
+    />
+  )
+)}
 
         {/* Mode review */}
         {reviewMode && surveyResponseId && (
           <SurveyReview
             surveyResponseId={surveyResponseId}
-            onBack={() => setReviewMode(false)} // revenir au mode réponse si besoin
           />
         )}
       </div>

@@ -3,6 +3,15 @@ import InputField from "../common/InputField";
 import Button from "../common/Button";
 
 const SURVEY_TYPES = ["FEEDBACK", "EXAM"];
+const SURVEY_RESPONSE_TYPES = ["ALL_IN_ONE_PAGE", "ONE_BY_ONE"];
+
+// Fonction utilitaire pour transformer les valeurs en labels lisibles
+const toLabel = (value) => {
+  return value
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+};
 
 const SurveyForm = ({ form, setForm, onSubmit, loading, error }) => {
   const handleChange = (e) => {
@@ -36,6 +45,7 @@ const SurveyForm = ({ form, setForm, onSubmit, loading, error }) => {
         disabled={loading}
       />
 
+      {/* Survey Type */}
       <label className="block font-semibold mb-1" htmlFor="type">Type</label>
       <select
         id="type"
@@ -47,7 +57,24 @@ const SurveyForm = ({ form, setForm, onSubmit, loading, error }) => {
       >
         {SURVEY_TYPES.map((t) => (
           <option key={t} value={t}>
-            {t.charAt(0).toUpperCase() + t.slice(1)}
+            {toLabel(t)}
+          </option>
+        ))}
+      </select>
+
+      {/* Survey Response Type */}
+      <label className="block font-semibold mb-1" htmlFor="responseType">Display Type</label>
+      <select
+        id="responseType"
+        name="responseType"
+        value={form.responseType}
+        onChange={handleChange}
+        className="mb-4 p-2 border rounded w-full"
+        disabled={loading}
+      >
+        {SURVEY_RESPONSE_TYPES.map((t) => (
+          <option key={t} value={t}>
+            {toLabel(t)}
           </option>
         ))}
       </select>
@@ -62,21 +89,18 @@ const SurveyForm = ({ form, setForm, onSubmit, loading, error }) => {
         disabled={loading}
       />
 
-      {/* Erreur */}
       {error && <p className="text-red-600 mb-3">{error}</p>}
 
-      
-        <div className="flex justify-center gap-4 mt-6">
-  <Button
-    type="submit"
-    loading={loading}
-    disabled={loading}
-    className="w-40 text-center justify-center"
-  >
-    Submit
-  </Button>
-</div>
-      
+      <div className="flex justify-center gap-4 mt-6">
+        <Button
+          type="submit"
+          loading={loading}
+          disabled={loading}
+          className="w-40 text-center justify-center"
+        >
+          Submit
+        </Button>
+      </div>
     </form>
   );
 };
