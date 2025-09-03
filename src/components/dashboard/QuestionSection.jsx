@@ -7,6 +7,7 @@ import EditQuestionModal from "./EditQuestionModal";
 import LockConfirmationModal from "./LockConfirmationModal";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
 import { ClipboardList } from "lucide-react";
+import ErrorInfoModal from "./ErrorInfoModal";
 
 const QuestionsSection = ({ reload }) => {
   const [questions, setQuestions] = useState([]);
@@ -27,6 +28,9 @@ const QuestionsSection = ({ reload }) => {
   const [statusFilter, setStatusFilter] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(8);
+
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -179,8 +183,14 @@ const QuestionsSection = ({ reload }) => {
       setShowEditModal(false);
       setEditQuestion(null);
     } catch (err) {
-      console.error("Error updating question:", err);
-    }
+    console.error("Error updating question:", err);
+    const msg = err?.response?.data?.message || "An error occurred";
+
+    setErrorMessage(msg);
+    setShowErrorModal(true);
+    setShowEditModal(false);
+    setEditQuestion(null);
+  }
   };
 
   const handleSubmitQuestion = async (formData) => {
@@ -212,18 +222,30 @@ const QuestionsSection = ({ reload }) => {
   };
 
   const handleDeleteQuestion = async (questionId) => {
-    try {
-      setLoadingDelete(true);
-      await questionService.deleteQuestion(questionId);
-      setQuestions((prev) => prev.filter(q => q.questionId !== questionId));
-      setShowDeleteModal(false);
-      setQuestionToDelete(null);
-    } catch (error) {
-      console.error("Error deleting question:", error);
-    } finally {
-      setLoadingDelete(false);
+  try {
+    setLoadingDelete(true);
+    await questionService.deleteQuestion(questionId);
+    setQuestions((prev) => prev.filter(q => q.questionId !== questionId));
+    setShowDeleteModal(false);
+    setQuestionToDelete(null);
+  } catch (error) {
+    console.error("Error deleting question:", error);
+
+    let msg = error?.response?.data?.message || "An error occurred";
+
+    // Si le message concerne une contrainte de clé étrangère
+    if (msg.includes("violates foreign key constraint") || msg.includes("assigned_questions")) {
+      msg = "This question exists in a survey and cannot be deleted";
     }
-  };
+
+    setErrorMessage(msg);
+    setShowErrorModal(true);
+    setShowDeleteModal(false);
+    setQuestionToDelete(null);
+  } finally {
+    setLoadingDelete(false);
+  }
+};
 
   return (
     <div className="space-y-4">
@@ -530,6 +552,12 @@ const QuestionsSection = ({ reload }) => {
         loading={loadingDelete}
         entity={questionToDelete}
         entityType="question"
+      />
+
+      <ErrorInfoModal
+      open={showErrorModal}
+      onClose={() => setShowErrorModal(false)}
+      message={errorMessage}
       />
     </div>
   );

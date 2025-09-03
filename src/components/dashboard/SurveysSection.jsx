@@ -166,23 +166,29 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate, reload
   };
   
   const handleUpdateSurvey = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-    try {
-      const updatedSurvey = await surveyService.updateSurvey(editingSurvey.surveyId, form);
-      setSurveysLocal((prev) =>
-        prev.map((s) => (s.surveyId === updatedSurvey.surveyId ? updatedSurvey : s))
-      );
-      setEditingSurvey(null);
-      setShowCreateForm(false);
-      setSelectedSurvey(updatedSurvey);
-    } catch {
-      setError("Error updating the survey.");
-    } finally {
-      setLoading(false);
-    }
-  };
+     e.preventDefault();
+  setLoading(true);
+  setError("");
+  setPublishErrorMessage("");
+  setShowErrorModal(false);
+
+  try {
+    const updatedSurvey = await surveyService.updateSurvey(editingSurvey.surveyId, form);
+    setSurveysLocal((prev) =>
+      prev.map((s) => (s.surveyId === updatedSurvey.surveyId ? updatedSurvey : s))
+    );
+    setEditingSurvey(null);
+    setShowCreateForm(false);
+    setSelectedSurvey(updatedSurvey);
+  } catch (err) {
+    console.error("Error updating survey:", err);
+    const backendMessage = err?.response?.data?.message || "Error updating the survey.";
+    setPublishErrorMessage(backendMessage);
+    setShowErrorModal(true);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleAddQuestionsClick = async () => {
   setLoading(true);
@@ -192,10 +198,10 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate, reload
     setSelectedQuestions(new Set());
     setShowQuestionsList(true);
 
-    // Vérifier si le survey sélectionné est locked
+    
     if (selectedSurvey && selectedSurvey.locked) {
       const updatedSurvey = await surveyService.getSurveyById(selectedSurvey.surveyId);
-      // Forcer l'état locked à false si le backend le signale
+      
       if (!updatedSurvey.locked) {
         setSelectedSurvey(updatedSurvey);
         setSurveysLocal(prev =>
@@ -227,13 +233,21 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate, reload
       setSurveyToDelete(null);
     } catch (err) {
       console.error("Error deleting survey:", err);
-      setError("Error deleting the survey.");
+
+      
+      const backendMessage = err?.response?.data?.message;
+
+      if (backendMessage) {
+        setPublishErrorMessage(backendMessage);
+        setShowErrorModal(true);   
+      } else {
+        setError("Error deleting the survey.");
+      }
     } finally {
       setDeleting(false);
     }
   };
-
-  const handleAddQuestionToSurvey = async (questionId) => {
+const handleAddQuestionToSurvey = async (questionId) => {
   if (!selectedSurvey) return;
   setLoading(true);
   try {
@@ -311,12 +325,12 @@ const handlePublishSurvey = async (surveyId) => {
     const publishedSurvey = await surveyService.publishSurvey(surveyId);
     console.log("Response from publishSurvey:", publishedSurvey);
 
-    // Mettre à jour la liste des surveys
+    
     setSurveysLocal(prev =>
       prev.map(s => (s.surveyId === publishedSurvey.surveyId ? publishedSurvey : s))
     );
 
-    // Mettre à jour le survey sélectionné si nécessaire
+    
     if (selectedSurvey?.surveyId === publishedSurvey.surveyId) {
       setSelectedSurvey(publishedSurvey);
     }
@@ -324,14 +338,14 @@ const handlePublishSurvey = async (surveyId) => {
   } catch (err) {
     console.error("Error publishing survey:", err);
 
-    // ✅ Récupérer le message exact envoyé par le backend
+    
     const backendMessage = err?.response?.data?.message;
 
     if (backendMessage) {
       setPublishErrorMessage(backendMessage);  
       setShowErrorModal(true);
     } else {
-      // Cas générique si pas de message
+      
       setError("Error publishing the survey.");
     }
 
@@ -557,22 +571,32 @@ const handlePublishSurvey = async (surveyId) => {
                             <Eye className="w-4 h-4" />
                           </button>
                           <button
-                            className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-200 border border-green-200 hover:border-green-300"
-                            onClick={() => {
+                           className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-200 border border-green-200 hover:border-green-300"
+                           onClick={() => {
+                            if (survey.locked) {
+                              setPublishErrorMessage("Question is locked and cannot be updated");
+                              setShowErrorModal(true);
+                            } else {
                               setSelectedSurvey(survey);
                               setShowEditModal(true);
-                            }}
-                            title="Edit Survey"
-                          >
+                            }
+                          }}
+                          title={survey.locked ? "Survey is locked" : "Edit Survey"}>
                             <Edit className="w-4 h-4" />
-                          </button>
+                            </button>
+
+                          {/* Lock / Unlock Survey */}
                           <button
                           className="p-2 rounded-lg transition-colors duration-200 border text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
-                          onClick={() => handleToggleLockSurvey(survey.surveyId, survey.locked)}
+                          onClick={() => {
+                            setSurveyToToggleLock(survey);
+                            setShowLockModal(true);
+                          }}
                           title={survey.locked ? "Survey is locked. Click to unlock." : "Survey is unlocked. Click to lock."}
                           >
                             {survey.locked ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
                           </button>
+                          
                           <button
                             className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors duration-200 border border-purple-200 hover:border-purple-300 disabled:opacity-50 disabled:cursor-not-allowed"
                             onClick={() => handlePublishSurvey(survey.surveyId)}
@@ -673,6 +697,8 @@ const handlePublishSurvey = async (surveyId) => {
         questions={questions}
         onAddQuestionToSurvey={handleAddQuestionToSurvey}
         reloadGlobalQuestions={reloadAndFetchQuestions}
+        setPublishErrorMessage={setPublishErrorMessage} 
+        setShowErrorModal={setShowErrorModal}  
       />
       <ErrorInfoModal 
       open={showErrorModal} 

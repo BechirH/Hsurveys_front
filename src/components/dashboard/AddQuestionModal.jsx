@@ -22,8 +22,8 @@ const AddQuestionModal = ({ open, onClose, questions, onAssign }) => {
             <ListChecks className="w-7 h-7 text-white" />
           </div>
           <div>
-            <h3 className="text-2xl font-bold text-gray-800">Ajouter des questions existantes</h3>
-            <p className="text-gray-600 mt-1">Sélectionnez les questions à ajouter au sondage.</p>
+            <h3 className="text-2xl font-bold text-gray-800">Add Existing Questions</h3>
+            <p className="text-gray-600 mt-1">Select the questions to add to the survey.</p>
           </div>
         </div>
         <div className="max-h-[600px] overflow-y-auto">

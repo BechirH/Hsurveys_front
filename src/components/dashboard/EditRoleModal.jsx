@@ -161,6 +161,8 @@ const EditRoleModal = ({ isOpen, onClose, role, permissions, onSave }) => {
                     >
                       <input
                         type="checkbox"
+                        name="permissions"
+                        value={permission.id}
                         checked={selectedPermissions.includes(permission.id)}
                         onChange={() => handlePermissionToggle(permission.id)}
                         className="w-5 h-5 text-indigo-600 border-2 border-gray-300 rounded focus:ring-indigo-500 focus:ring-2"

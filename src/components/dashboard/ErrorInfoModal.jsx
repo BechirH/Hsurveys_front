@@ -20,8 +20,7 @@ const ErrorInfoModal = ({ open, onClose, message }) => {
             <AlertTriangle className="w-7 h-7 text-white" />
           </div>
           <div>
-            <h3 className="text-2xl font-bold text-gray-800">Publish Error</h3>
-            <p className="text-gray-600 mt-1">Cannot publish this survey</p>
+            <h3 className="text-2xl font-bold text-gray-800">Error</h3>
           </div>
         </div>
 
