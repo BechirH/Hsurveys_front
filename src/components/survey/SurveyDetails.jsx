@@ -6,6 +6,7 @@ import { surveyService } from "../../services/surveyService";
 import CreateQuestionModal from "../dashboard/CreateQuestionModal";
 import AddQuestionModal from "../dashboard/AddQuestionModal";
 import DeleteConfirmationModal from "../dashboard/DeleteConfirmationModal";
+import ErrorInfoModal from "../dashboard/ErrorInfoModal";
 
 const SurveyDetails = ({ survey, onAddQuestions, reloadGlobalQuestions }) => {
   const [questions, setQuestions] = useState([]);
@@ -14,6 +15,8 @@ const SurveyDetails = ({ survey, onAddQuestions, reloadGlobalQuestions }) => {
   const [globalQuestions, setGlobalQuestions] = useState([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [questionToDelete, setQuestionToDelete] = useState(null);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [showError, setShowError] = useState(false);
 
 
   const fetchQuestions = useCallback(async (assignedQuestions = survey.assignedQuestions) => {
@@ -58,8 +61,13 @@ const SurveyDetails = ({ survey, onAddQuestions, reloadGlobalQuestions }) => {
     await fetchQuestions(updatedSurvey.assignedQuestions);
   } catch (error) {
     console.error("Erreur lors de l'assignation", error);
+    // Récupérer le message d'erreur du backend
+    const message = error?.response?.data?.message || error.message || "An unexpected error occurred";
+    setErrorMessage(message);
+    setShowError(true);
   }
 };
+
 
   const confirmDeleteQuestion = async () => {
   if (!questionToDelete) return;
@@ -70,6 +78,11 @@ const SurveyDetails = ({ survey, onAddQuestions, reloadGlobalQuestions }) => {
     setQuestionToDelete(null);
   } catch (error) {
     console.error("Error deleting question", error);
+    const message = error?.response?.data?.message || error.message || "An unexpected error occurred";
+    setErrorMessage(message);
+    setShowError(true);
+    setShowDeleteModal(false);
+    setQuestionToDelete(null);
   }};
 
  
@@ -190,6 +203,11 @@ const SurveyDetails = ({ survey, onAddQuestions, reloadGlobalQuestions }) => {
         name: question.questionText,
         subtitle: question.options?.map(opt => opt.optionText).join(', ') || "No options"
         })}/>
+
+        <ErrorInfoModal 
+        open={showError} 
+        onClose={() => setShowError(false)} 
+        message={errorMessage} />
 
   
 

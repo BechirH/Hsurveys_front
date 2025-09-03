@@ -157,6 +157,8 @@ const AddRoleModal = ({ isOpen, onClose, permissions, onSave }) => {
                         type="checkbox"
                         checked={selectedPermissions.includes(permission.id)}
                         onChange={() => handlePermissionToggle(permission.id)}
+                        name="permissions"
+                        value={permission.name}
                         className="w-5 h-5 text-indigo-600 border-2 border-gray-300 rounded focus:ring-indigo-500 focus:ring-2"
                       />
                       <div className="ml-4 flex-1">
