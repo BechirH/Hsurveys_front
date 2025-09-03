@@ -3,8 +3,8 @@ import { FileText, X } from "lucide-react";
 import Button from "../common/Button";
 import { surveyService } from "../../services/surveyService";
 
-const EditSurveyModal = ({ open, onClose, survey, onSuccess }) => {
-  const [form, setForm] = useState({
+const EditSurveyModal = ({ open, onClose, survey, onSuccess, onError }) => {
+const [form, setForm] = useState({
     title: "",
     description: "",
     type: "FEEDBACK",
@@ -41,7 +41,7 @@ const EditSurveyModal = ({ open, onClose, survey, onSuccess }) => {
       onSuccess?.(); // pour rafraîchir la liste
       onClose(); // fermer la modal
     } catch (err) {
-      setError(err.response?.data?.message || "Error updating survey.");
+      onError?.(err.response?.data?.message || "Error updating survey.");
     } finally {
       setLoading(false);
     }

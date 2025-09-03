@@ -165,31 +165,22 @@ const SurveysSection = ({ getSurveyTypeColor, getStatusColor, formatDate, reload
     }
   };
   
-  const handleUpdateSurvey = async (e) => {
-     e.preventDefault();
-  setLoading(true);
-  setError("");
-  setPublishErrorMessage("");
-  setShowErrorModal(false);
-
+const handleUpdateSurvey = async (updatedSurvey) => {
   try {
-    const updatedSurvey = await surveyService.updateSurvey(editingSurvey.surveyId, form);
-    setSurveysLocal((prev) =>
-      prev.map((s) => (s.surveyId === updatedSurvey.surveyId ? updatedSurvey : s))
-    );
-    setEditingSurvey(null);
-    setShowCreateForm(false);
-    setSelectedSurvey(updatedSurvey);
-  } catch (err) {
-    console.error("Error updating survey:", err);
-    const backendMessage = err?.response?.data?.message || "Error updating the survey.";
+    await surveyService.updateSurvey(updatedSurvey.id, updatedSurvey);
+    setShowEditModal(false);
+  } catch (error) {
+    console.error("Error updating survey:", error);
+
+    // Récupérer le message du backend
+    const backendMessage =
+      error.response?.data?.message || "Failed to update survey";
+
+    // L’envoyer dans ton modal
     setPublishErrorMessage(backendMessage);
     setShowErrorModal(true);
-  } finally {
-    setLoading(false);
   }
 };
-
   const handleAddQuestionsClick = async () => {
   setLoading(true);
   try {
@@ -571,19 +562,14 @@ const handlePublishSurvey = async (surveyId) => {
                             <Eye className="w-4 h-4" />
                           </button>
                           <button
-                           className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-200 border border-green-200 hover:border-green-300"
-                           onClick={() => {
-                            if (survey.locked) {
-                              setPublishErrorMessage("Question is locked and cannot be updated");
-                              setShowErrorModal(true);
-                            } else {
-                              setSelectedSurvey(survey);
-                              setShowEditModal(true);
-                            }
+                          className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-200 border border-green-200 hover:border-green-300"
+                          onClick={() => {
+                            setSelectedSurvey(survey);
+                            setShowEditModal(true);
                           }}
-                          title={survey.locked ? "Survey is locked" : "Edit Survey"}>
+                          title="Edit Survey">
                             <Edit className="w-4 h-4" />
-                            </button>
+                          </button>
 
                           {/* Lock / Unlock Survey */}
                           <button
@@ -652,16 +638,20 @@ const handlePublishSurvey = async (surveyId) => {
       />
 
       <EditSurveyModal
-        open={showEditModal}
-        onClose={() => setShowEditModal(false)}
-        survey={selectedSurvey}
-        onSuccess={async () => {
-          const updated = await surveyService.getAllSurveys();
-          setSurveysLocal(updated);
-          setSelectedSurvey(updated.find(s => s.surveyId === selectedSurvey.surveyId));
-          setShowEditModal(false);
-        }}
-      />
+  open={showEditModal}
+  onClose={() => setShowEditModal(false)}
+  survey={selectedSurvey}
+  onSuccess={async () => {
+    const updated = await surveyService.getAllSurveys();
+    setSurveysLocal(updated);
+    setSelectedSurvey(updated.find(s => s.surveyId === selectedSurvey.surveyId));
+    setShowEditModal(false);
+  }}
+  onError={(message) => {
+    setPublishErrorMessage(message);
+    setShowErrorModal(true);
+  }}
+/>
 
       <LockConfirmationModal
         open={showLockModal}
