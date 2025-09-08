@@ -55,7 +55,7 @@ jobs:
         run: pytest tests/ --base-url=http://localhost:3000 --html=report.html
 
       - name: Upload Selenium report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: selenium-report
           path: report.html
